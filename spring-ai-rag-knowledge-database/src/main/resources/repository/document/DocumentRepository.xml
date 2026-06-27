@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ranyk.spring.ai.rag.knowledge.database.repository.document.DocumentRepository">
+    <resultMap id="BaseResultMap" type="com.ranyk.spring.ai.rag.knowledge.database.domain.document.entity.Document">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="category_id" jdbcType="BIGINT" property="categoryId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="file_name" jdbcType="VARCHAR" property="fileName"/>
+        <result column="file_path" jdbcType="VARCHAR" property="filePath"/>
+        <result column="file_type" jdbcType="VARCHAR" property="fileType"/>
+        <result column="file_size" jdbcType="BIGINT" property="fileSize"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+        <result column="vector_count" jdbcType="INTEGER" property="vectorCount"/>
+        <result column="upload_user_id" jdbcType="BIGINT" property="uploadUserId"/>
+        <result column="create_by" jdbcType="BIGINT" property="createBy"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_by" jdbcType="BIGINT" property="updateBy"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+</mapper>
