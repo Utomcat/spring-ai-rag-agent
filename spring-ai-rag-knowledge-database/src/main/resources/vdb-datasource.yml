@@ -1,0 +1,23 @@
+spring:
+  ai:
+    vectorstore:
+      redis:
+        index-name: knowledge_database_index
+        prefix: knowledge_database_rag
+        initialize-schema: true
+
+# 自定义向量存储配置
+vector-store:
+  # 自定义向量 Redis 存储配置
+  redis:
+    # 自定义向量 Redis 存储元数据字段配置
+    metadata-field:
+      # 自定义向量 Redis 存储元数据字段标签列表
+      tags:
+        - docId
+        - categoryId
+        - title
+  # 自定义配置 - 向量数据删除配置
+  delete:
+    # 自定义配置 - 向量数据删除每批次数量
+    batch-quantity: 100

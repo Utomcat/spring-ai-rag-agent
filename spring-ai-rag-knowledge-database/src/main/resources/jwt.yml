@@ -1,0 +1,6 @@
+# JWT 配置
+jwt:
+  # JWT 加密密钥
+  secret: "ranyk-rag-knowledge-database-secret-key-change-in-prod-min-32bytes!!"
+  # JWT 过期时间（小时）
+  expire-hours: 24

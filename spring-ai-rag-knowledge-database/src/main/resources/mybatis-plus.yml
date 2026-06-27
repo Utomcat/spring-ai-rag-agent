@@ -1,0 +1,30 @@
+# MyBatis Plus 配置
+mybatis-plus:
+  # 指定 MyBatis Mapper 对应的 XML 文件位置。如果在 Mapper 中有自定义方法，需要配置此项
+  mapper-locations: classpath*:repository/**/*.xml
+  # 指定 MyBatis 别名包扫描路径，用于给包中的类注册别名。注册后，在 Mapper 对应的 XML 文件中可以直接使用类名，无需使用全限定类名 (此项配置必须写到具体的包下, 不能使用通配符 * 进行配置, 多个 package 时, 多个 package 之间用逗号隔开)
+  type-aliases-package: com.ranyk.spring.ai.rag.knowledge.database.repository
+  # MyBatis-Plus 的 Configuration 配置继承自 MyBatis 原生支持的配置，这意味着您可以通过 MyBatis XML 配置文件的形式进行配置，也可以通过 Spring Boot 或 Spring MVC 的配置文件进行设置
+  configuration:
+    # 开启自动驼峰命名规则（camel case）映射，即从经典数据库列名 A_COLUMN（下划线命名） 到经典 Java 属性名 aColumn（驼峰命名） 的类似映射
+    map-underscore-to-camel-case: true
+    # 是否开启 MyBatis 二级缓存
+    cache-enabled: false
+    # Mybatis 一级缓存，默认为 SESSION。
+    #   - SESSION：Session 级别缓存，同一个 Session 相同查询语句不会再次查询数据库
+    #   - STATEMENT：关闭一级缓存
+    local-cache-scope: session
+  global-config:
+    # 控制是否在控制台打印 MyBatis-Plus 的 LOGO
+    banner: false
+    db-config:
+      # 全局的 Entity 逻辑删除字段属性名，仅在逻辑删除功能打开时有效(即使用 @TableLogic 注解 的情况下)
+      logic-delete-field: status
+      # 逻辑已删除值，仅在逻辑删除功能打开时有效
+      logic-delete-value: -1
+      # 逻辑未删除值，仅在逻辑删除功能打开时有效
+      logic-not-delete-value: 1
+      # 设置数据库主键策略, 当设置为自增 auto 时, 需要确保数据库表中的主键字段是自增的,否则不生效
+      id-type: auto
+  # 指定 MyBatis 的执行器类型，包括 SIMPLE、REUSE 和 BATCH; REUSE > SIMPLE
+  executor-type: reuse

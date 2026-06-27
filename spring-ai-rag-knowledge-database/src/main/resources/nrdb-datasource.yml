@@ -1,0 +1,13 @@
+spring:
+  # 非关系型数据库数据源配置
+  data:
+    # Redis 配置
+    redis:
+      # Redis 客户端类型配置
+      client-type: jedis
+      # Redis 主机地址配置
+      host: 192.168.31.83
+      # Redis 端口号配置
+      port: 16380
+      # Redis 使用数据库索引配置 (在作为向量数据库, 使用内嵌大模型进行向量计算存储时, 默认使用数据库索引 0, 且无法更改)
+      database: 0

@@ -1,0 +1,7 @@
+spring:
+  # 配置 Web 相关参数
+  web:
+    # 配置 Web 本地化语言参数
+    locale: zh_CN
+    # 配置 Web 本地化语言解析器
+    locale-resolver: accept-header

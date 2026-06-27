@@ -1,0 +1,15 @@
+spring:
+  # 关系型数据源配置
+  datasource:
+    # hikari 连接池配置 - Spring Boot 4 默认的连接池
+    hikari:
+      # HikariCP 连接池配置
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      # JDBC URL 配置
+      jdbc-url: jdbc:mysql://192.168.31.83:13309/knowledge_database_rag?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+      # 数据库用户名配置
+      username: user
+      # 数据库密码配置
+      password: 123456
+      # 是否注册 JMX MBeans, 开发环境建议设置为 false, 在开发时使用 DevTools 或其他热重载工具时, 容易出现 MBean 重复注册, 禁用 JMX 可以减少少量的性能开销; 生产环境建议设置为 true;
+      register-mbeans: false
