@@ -1,4 +1,4 @@
-package com.ranyk.spring.ai.rag.knowledge.database.common.domain.vo;
+package com.ranyk.spring.ai.rag.knowledge.database.base.domain.vo;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -21,7 +21,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 @AllArgsConstructor
 @SuppressWarnings("unused")
-public class Result<T> implements Serializable{
+public class Result<T> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1088505742827320434L;
     /**
@@ -67,6 +67,19 @@ public class Result<T> implements Serializable{
         result.setCode("200");
         result.setMsg("success");
         result.setData(data);
+        return result;
+    }
+
+    /**
+     * 构造成功返回结果
+     *
+     * @return 返回结果 {@link Result} 对象
+     */
+    public static <Void> Result<Void> success() {
+        Result<Void> result = new Result<>();
+        result.setSuccess(Boolean.TRUE);
+        result.setCode("200");
+        result.setMsg("success");
         return result;
     }
 

@@ -1,4 +1,4 @@
-package com.ranyk.spring.ai.rag.knowledge.database.common.domain.vo;
+package com.ranyk.spring.ai.rag.knowledge.database.base.domain.vo;
 
 import lombok.*;
 import lombok.experimental.SuperBuilder;
