@@ -35,6 +35,10 @@ public class VectorStoreProperties {
      * 自定义 - 向量数据删除属性
      */
     private Delete delete;
+    /**
+     * 自定义 - 删除文档时 SCAN 的 key 前缀（逗号分隔，末尾可加可不加冒号）；留空则自动包含上面 prefix + 历史 embedding:
+     */
+    private String deleteScanPrefixes = "";
 
     /**
      * redis 配置属性类
