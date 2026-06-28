@@ -15,6 +15,7 @@ import org.mapstruct.Mappings;
  * @description: 登录业务数据 MapStruct 转换 Mapper
  * @date: 2026-06-27
  */
+@SuppressWarnings("unused")
 @Mapper(componentModel = "spring")
 public interface LoginMapper {
 
@@ -32,6 +33,10 @@ public interface LoginMapper {
             @Mapping(target = "createTime", ignore = true),
             @Mapping(target = "updateBy", ignore = true),
             @Mapping(target = "updateTime", ignore = true),
+            @Mapping(target = "total", ignore = true),
+            @Mapping(target = "page", ignore = true),
+            @Mapping(target = "size", ignore = true),
+            @Mapping(target = "dataList", ignore = true),
     })
     LoginDTO loginPOToLoginDTO(LoginPO loginPO);
 

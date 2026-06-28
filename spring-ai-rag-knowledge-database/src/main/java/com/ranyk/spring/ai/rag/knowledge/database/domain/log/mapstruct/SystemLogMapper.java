@@ -12,6 +12,7 @@ import org.mapstruct.Mapper;
  * @description: 系统日志数据转换 MapStruct 接口
  * @date: 2026-06-27
  */
+@SuppressWarnings("unused")
 @Mapper(componentModel = "spring")
 public interface SystemLogMapper {
 
