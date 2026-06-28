@@ -33,4 +33,12 @@
         from t_user
         where username = #{username}
     </select>
+
+    <select id="countUserRegByDayLast7" resultType="map">
+        SELECT DATE_FORMAT(DATE(create_time), '%Y-%m-%d') AS dayKey, COUNT(*) AS cnt
+        FROM t_user
+        WHERE create_time >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+        GROUP BY DATE_FORMAT(DATE(create_time), '%Y-%m-%d')
+        ORDER BY dayKey
+    </select>
 </mapper>

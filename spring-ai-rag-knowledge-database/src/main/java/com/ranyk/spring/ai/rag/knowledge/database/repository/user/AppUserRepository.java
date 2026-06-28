@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.entity.AppUser;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -24,4 +26,11 @@ public interface AppUserRepository extends BaseMapper<AppUser> {
      * @return 用户信息
      */
     Optional<AppUser> selectUserByUsername(String username);
+
+    /**
+     * 近 7 天按日注册用户数量
+     *
+     * @return 近 7 天按日注册用户数量 {@link List}&lt;{@link Map}&lt;{@link String}, {@link Object}&gt;&gt;
+     */
+    List<Map<String, Long>> countUserRegByDayLast7();
 }
