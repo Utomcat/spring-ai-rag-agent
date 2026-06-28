@@ -1,10 +1,17 @@
 spring:
   ai:
+    # 向量存储 配置
     vectorstore:
+      # Redis 作为向量存储的配置
       redis:
+        # 向量存储索引名
         index-name: knowledge_database_index
+        # 向量存储前缀
         prefix: knowledge_database_rag
+        # 是否初始化向量存储模式
         initialize-schema: true
+        # 删除文档时 SCAN 的 key 前缀（逗号分隔，末尾可加可不加冒号）；留空则自动包含上面 prefix + 历史 embedding:
+        # delete-scan-prefixes: "ranyk_rag:,embedding:"
 
 # 自定义向量存储配置
 vector-store:
@@ -21,3 +28,5 @@ vector-store:
   delete:
     # 自定义配置 - 向量数据删除每批次数量
     batch-quantity: 100
+  # 删除文档时 SCAN 的 key 前缀（逗号分隔，末尾可加可不加冒号）；留空则自动包含上面 prefix + 历史 embedding:
+  # delete-scan-prefixes: "ranyk_rag:,embedding:"
