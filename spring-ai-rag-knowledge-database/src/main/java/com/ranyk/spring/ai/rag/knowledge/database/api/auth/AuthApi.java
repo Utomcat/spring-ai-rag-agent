@@ -1,6 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.api.auth;
 
-import com.ranyk.spring.ai.rag.knowledge.database.common.domain.vo.Result;
+import com.ranyk.spring.ai.rag.knowledge.database.base.domain.vo.Result;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.login.mapstruct.LoginMapper;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.login.po.LoginPO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.login.vo.LoginVO;
