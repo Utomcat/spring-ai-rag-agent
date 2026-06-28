@@ -1,5 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.domain.category.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.ranyk.spring.ai.rag.knowledge.database.base.domain.entity.BaseEntity;
 import lombok.*;
@@ -29,20 +30,21 @@ public class Category extends BaseEntity {
     /**
     * 分类名称
     */
+    @TableField(value = "name")
     private String name;
-
     /**
     * 描述
     */
+    @TableField(value = "description")
     private String description;
-
     /**
     * 图标标识
     */
+    @TableField(value = "icon")
     private String icon;
-
     /**
     * 排序
     */
+    @TableField(value = "sort_order")
     private Integer sortOrder;
 }
