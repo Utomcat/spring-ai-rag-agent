@@ -21,7 +21,7 @@ package com.ranyk.spring.ai.rag.knowledge.database.domain.document.vo;
  * @date: 2026-06-28
  */
 public record DocumentVO(Long id,
-                         String categoryId,
+                         Long categoryId,
                          String title,
                          String fileName,
                          String filePath,
@@ -29,5 +29,5 @@ public record DocumentVO(Long id,
                          String fileSize,
                          String status,
                          Integer vectorCount,
-                         String uploadUserId) {
+                         Long uploadUserId) {
 }

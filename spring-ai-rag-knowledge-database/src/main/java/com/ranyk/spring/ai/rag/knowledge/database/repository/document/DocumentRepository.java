@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.entity.Document;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,5 +23,5 @@ public interface DocumentRepository extends BaseMapper<Document> {
      *
      * @return 文档数量统计结果
      */
-    Map<String, Long> countGroupByCategory();
+    List<Map<String, Long>> countGroupByCategory();
 }

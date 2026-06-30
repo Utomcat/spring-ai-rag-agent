@@ -1,6 +1,5 @@
 package com.ranyk.spring.ai.rag.knowledge.database.domain.document.mapstruct;
 
-import com.ranyk.spring.ai.rag.knowledge.database.base.domain.po.PageQueryPO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.dto.DocumentDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.entity.Document;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.po.DocumentQueryPO;
@@ -10,7 +9,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * CLASS_NAME: DocumentMapper.java
@@ -49,25 +47,32 @@ public interface DocumentMapper {
     Document documentDTOToDocument(DocumentDTO documentDTO);
 
     /**
-     * 将分页查询参数对象 {@link PageQueryPO} 转换为 知识库文档数据传输 DTO 对象 {@link DocumentDTO}
+     * 将 知识库文档数据查询 PO 对象 {@link DocumentQueryPO} 转换为 知识库文档数据传输 DTO 对象 {@link DocumentDTO}
      *
-     * @param pageQueryPO 分页查询参数对象 {@link PageQueryPO}
+     * @param documentQueryPO 知识库文档数据查询 PO 对象 {@link DocumentQueryPO}
      * @return 知识库文档数据传输 DTO 对象 {@link DocumentDTO}
      */
-    default DocumentDTO pageQueryPOToDocumentDTO(PageQueryPO<DocumentQueryPO> pageQueryPO) {
-        if (Objects.isNull(pageQueryPO) || Objects.isNull(pageQueryPO.condition())) {
-            return DocumentDTO.builder().build();
-        }
-
-        DocumentQueryPO condition = pageQueryPO.condition();
-
-        return DocumentDTO.builder()
-                .keyword(condition.keyword())
-                .categoryId(condition.categoryId())
-                .size(pageQueryPO.size())
-                .page(pageQueryPO.page())
-                .build();
-    }
+    @Mappings({
+            @Mapping(target = "dataList", ignore = true),
+            @Mapping(target = "page", ignore = true),
+            @Mapping(target = "size", ignore = true),
+            @Mapping(target = "total", ignore = true),
+            @Mapping(target = "absolutePath", ignore = true),
+            @Mapping(target = "createBy", ignore = true),
+            @Mapping(target = "createTime", ignore = true),
+            @Mapping(target = "updateBy", ignore = true),
+            @Mapping(target = "updateTime", ignore = true),
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "status", ignore = true),
+            @Mapping(target = "fileName", ignore = true),
+            @Mapping(target = "filePath", ignore = true),
+            @Mapping(target = "fileSize", ignore = true),
+            @Mapping(target = "fileType", ignore = true),
+            @Mapping(target = "title", ignore = true),
+            @Mapping(target = "uploadUserId", ignore = true),
+            @Mapping(target = "vectorCount", ignore = true),
+    })
+    DocumentDTO documentQueryPOToDocumentDTO(DocumentQueryPO documentQueryPO);
 
     /**
      * 将 知识库文档数据访问 Entity 对象 {@link Document} 转换为 知识库文档数据传输 DTO 对象 {@link DocumentDTO}

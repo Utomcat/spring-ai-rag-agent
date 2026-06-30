@@ -10,6 +10,7 @@ import com.ranyk.spring.ai.rag.knowledge.database.domain.document.po.DocumentQue
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.vo.DocumentVO;
 import com.ranyk.spring.ai.rag.knowledge.database.service.document.DocumentService;
 import com.ranyk.spring.ai.rag.knowledge.database.utils.SecurityUtils;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -82,8 +83,11 @@ public class DocumentApi {
      */
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public MultiResult<DocumentVO> list(@RequestParam PageQueryPO<DocumentQueryPO> documentQueryPO) {
-        DocumentDTO documentDTO = documentService.list(documentMapper.pageQueryPOToDocumentDTO(documentQueryPO));
+    public MultiResult<DocumentVO> list(@Valid PageQueryPO pageQueryPO, @Valid DocumentQueryPO documentQueryPO) {
+        DocumentDTO query = documentMapper.documentQueryPOToDocumentDTO(documentQueryPO);
+        query.setPage(pageQueryPO.page());
+        query.setSize(pageQueryPO.size());
+        DocumentDTO documentDTO = documentService.list(query);
         return MultiResult.successMulti(documentMapper.documentDTOListToDocumentVOList(documentDTO.getDataList()), documentDTO.getTotal(), documentDTO.getPage(), documentDTO.getSize());
     }
 

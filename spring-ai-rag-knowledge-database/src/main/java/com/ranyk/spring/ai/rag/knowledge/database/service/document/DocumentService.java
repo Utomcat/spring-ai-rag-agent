@@ -157,7 +157,7 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
     public DocumentDTO list(DocumentDTO documentDTO) {
         Page<Document> page = BaseDTO.buildPage(documentDTO);
         LambdaQueryWrapper<Document> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Objects.nonNull(documentDTO.getCategoryId()), Document::getCategoryId, documentDTO.getCategoryId());
+        queryWrapper.eq(Objects.nonNull(documentDTO.getCategoryId()) && !Objects.equals(0L, documentDTO.getCategoryId()), Document::getCategoryId, documentDTO.getCategoryId());
         queryWrapper.and(StrUtil.isNotBlank(documentDTO.getKeyword()), wrapper -> wrapper.like(Document::getTitle, documentDTO.getKeyword()).or().like(Document::getFileName, documentDTO.getKeyword()));
         Page<Document> documentPage = page(page, queryWrapper);
         return DocumentDTO.builder()
@@ -220,7 +220,7 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
      *
      * @return 所有知识库文档按类别分组数量 {@link Map}&lt;String, Long&gt;
      */
-    public Map<String, Long> countGroupByCategory() {
+    public List<Map<String, Long>> countGroupByCategory() {
         return documentRepository.countGroupByCategory();
     }
 }
