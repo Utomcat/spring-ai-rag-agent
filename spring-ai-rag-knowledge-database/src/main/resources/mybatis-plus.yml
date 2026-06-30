@@ -19,11 +19,11 @@ mybatis-plus:
     banner: false
     db-config:
       # 全局的 Entity 逻辑删除字段属性名，仅在逻辑删除功能打开时有效(即使用 @TableLogic 注解 的情况下)
-      logic-delete-field: status
+      # logic-delete-field: status
       # 逻辑已删除值，仅在逻辑删除功能打开时有效
-      logic-delete-value: -1
+      # logic-delete-value: -1
       # 逻辑未删除值，仅在逻辑删除功能打开时有效
-      logic-not-delete-value: 1
+      # logic-not-delete-value: 1
       # 设置数据库主键策略, 当设置为自增 auto 时, 需要确保数据库表中的主键字段是自增的,否则不生效
       id-type: auto
   # 指定 MyBatis 的执行器类型，包括 SIMPLE、REUSE 和 BATCH; REUSE > SIMPLE

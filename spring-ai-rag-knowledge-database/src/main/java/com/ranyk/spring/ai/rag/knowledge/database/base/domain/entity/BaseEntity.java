@@ -33,30 +33,30 @@ public class BaseEntity implements Serializable {
     /**
      * 数据主键, 自增
      */
-    @TableId(type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
     /**
      * 数据创建人
      */
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "create_by", fill = FieldFill.INSERT)
     private Long createBy;
     /**
      * 数据创建时间
      */
     @Builder.Default
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime = LocalDateTime.now();
     /**
      * 数据更新人
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
     private Long updateBy;
     /**
      * 数据更新时间
      */
     @Builder.Default
-    @TableField(fill = FieldFill.INSERT_UPDATE)
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime = LocalDateTime.now();
 }
