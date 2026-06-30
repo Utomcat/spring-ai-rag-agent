@@ -20,6 +20,7 @@ spring:
     # language.yml: 语言配置
     # log.yml: 日志配置
     # jwt.yml: JWT 配置
+    # rdb.yml: 关系型数据库配置
     import:
     - classpath:mybatis-plus.yml
     - classpath:nrdb-datasource.yml
@@ -30,4 +31,4 @@ spring:
     - classpath:language.yml
     - classpath:log.yml
     - classpath:jwt.yml
-
+    - classpath:rdb.yml

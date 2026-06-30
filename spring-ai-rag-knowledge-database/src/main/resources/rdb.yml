@@ -1,0 +1,4 @@
+rdb:
+  orm:
+    skip-auto-fill-tables:
+      - t_kb_document
