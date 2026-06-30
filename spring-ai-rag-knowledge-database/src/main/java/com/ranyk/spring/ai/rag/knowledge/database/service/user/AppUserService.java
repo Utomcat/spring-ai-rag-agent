@@ -243,9 +243,7 @@ public class AppUserService extends ServiceImpl<AppUserRepository, AppUser> {
      * @return 用户信息数据封装 DTO 对象 {@link AppUserDTO}
      */
     public AppUserDTO getUserById(AppUserDTO appUserDTO) {
-        LambdaQueryWrapper<AppUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AppUser::getId, appUserDTO.getId());
-        AppUser appUser = this.getById(queryWrapper);
+        AppUser appUser = this.getById(appUserDTO.getId());
         return appUserMapper.appUserToAppUserDTO(appUser);
     }
 

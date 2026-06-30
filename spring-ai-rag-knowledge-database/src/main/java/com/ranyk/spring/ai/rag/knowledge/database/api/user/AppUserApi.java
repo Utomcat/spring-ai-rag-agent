@@ -61,8 +61,11 @@ public class AppUserApi {
      */
     @GetMapping("/page")
     @PreAuthorize("hasRole('ADMIN')")
-    public MultiResult<AppUserVO> page(@RequestParam PageQueryPO<AppUserQueryPO> pageQueryPO) {
-        AppUserDTO appUserDTO = appUserService.list(appUserMapper.pageQueryPOToAppUserDTO(pageQueryPO));
+    public MultiResult<AppUserVO> page(PageQueryPO pageQueryPO, AppUserQueryPO appUserQueryPO) {
+        AppUserDTO query = appUserMapper.appUserQueryPOToAppUserDTO(appUserQueryPO);
+        query.setPage(pageQueryPO.page());
+        query.setSize(pageQueryPO.size());
+        AppUserDTO appUserDTO = appUserService.list(query);
         return MultiResult.successMulti(appUserMapper.appUserDTOListToAppUserVOList(appUserDTO.getDataList()),
                 appUserDTO.getTotal(),
                 appUserDTO.getPage(),

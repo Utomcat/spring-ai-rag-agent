@@ -1,6 +1,5 @@
 package com.ranyk.spring.ai.rag.knowledge.database.domain.user.mapstruct;
 
-import com.ranyk.spring.ai.rag.knowledge.database.base.domain.po.PageQueryPO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.dto.AppUserDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.entity.AppUser;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.po.AppUserQueryPO;
@@ -13,7 +12,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * CLASS_NAME: AppUserMapper.java
@@ -45,32 +43,41 @@ public interface AppUserMapper {
     AppUserDTO appUserToAppUserDTO(AppUser appUser);
 
     /**
-     * 将 {@link PageQueryPO} 对象转换为 {@link AppUserDTO} 对象
-     *
-     * @param pageQueryPO 待转换的 {@link PageQueryPO} 对象
-     * @return 转换后的 {@link AppUserDTO} 对象
-     */
-    default AppUserDTO pageQueryPOToAppUserDTO(PageQueryPO<AppUserQueryPO> pageQueryPO) {
-        if (Objects.isNull(pageQueryPO) || Objects.isNull(pageQueryPO.condition())) {
-            return AppUserDTO.builder().build();
-        }
-
-        AppUserQueryPO condition = pageQueryPO.condition();
-
-        return AppUserDTO.builder()
-                .keyword(condition.keyword())
-                .size(pageQueryPO.size())
-                .page(pageQueryPO.page())
-                .build();
-    }
-
-    /**
      * 将 {@link AppUserDTO} 对象转换为 {@link AppUserVO} 对象
      *
      * @param appUserDTO 待转换的 {@link AppUserDTO} 对象
      * @return 转换后的 {@link AppUserVO} 对象
      */
     AppUserVO appUserDTOToAppUserVO(AppUserDTO appUserDTO);
+
+    /**
+     * 将 {@link AppUserQueryPO} 对象转换为 {@link AppUserDTO} 对象
+     *
+     * @param appUserQueryPO 待转换的 {@link AppUserQueryPO} 对象
+     * @return 转换后的 {@link AppUserDTO} 对象
+     */
+    @Mappings({
+            @Mapping(target = "id", ignore = true),
+            @Mapping(target = "avatar", ignore = true),
+            @Mapping(target = "username", ignore = true),
+            @Mapping(target = "realName", ignore = true),
+            @Mapping(target = "role", ignore = true),
+            @Mapping(target = "status", ignore = true),
+            @Mapping(target = "lastLoginTime", ignore = true),
+            @Mapping(target = "createBy", ignore = true),
+            @Mapping(target = "createTime", ignore = true),
+            @Mapping(target = "updateBy", ignore = true),
+            @Mapping(target = "updateTime", ignore = true),
+            @Mapping(target = "token", ignore = true),
+            @Mapping(target = "total", ignore = true),
+            @Mapping(target = "page", ignore = true),
+            @Mapping(target = "size", ignore = true),
+            @Mapping(target = "dataList", ignore = true),
+            @Mapping(target = "oldPassword", ignore = true),
+            @Mapping(target = "newPassword", ignore = true),
+            @Mapping(target = "password", ignore = true),
+    })
+    AppUserDTO appUserQueryPOToAppUserDTO(AppUserQueryPO appUserQueryPO);
 
     /**
      * 将 {@link AppUserDTO} 对象列表转换为 {@link AppUserVO} 对象列表
