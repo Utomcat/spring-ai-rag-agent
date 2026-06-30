@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerIntercep
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.ranyk.spring.ai.rag.knowledge.database.config.properties.HikariDataSourceProperties;
+import com.ranyk.spring.ai.rag.knowledge.database.config.properties.RdbProperties;
 import com.ranyk.spring.ai.rag.knowledge.database.handle.MyBatisPlusMetaObjectHandler;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -129,7 +130,7 @@ public class MyBatisPlusConfiguration {
      * @return MyBatis Plus 的元对象处理器 {@link MyBatisPlusMetaObjectHandler}
      */
     @Bean
-    public MyBatisPlusMetaObjectHandler myBatisPlusMetaObjectHandler() {
-        return new MyBatisPlusMetaObjectHandler();
+    public MyBatisPlusMetaObjectHandler myBatisPlusMetaObjectHandler(RdbProperties rdbProperties) {
+        return new MyBatisPlusMetaObjectHandler(rdbProperties);
     }
 }

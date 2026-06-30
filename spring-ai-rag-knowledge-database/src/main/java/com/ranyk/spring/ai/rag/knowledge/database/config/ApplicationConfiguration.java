@@ -20,7 +20,8 @@ import org.springframework.context.annotation.Configuration;
         VectorStoreProperties.class,
         FileProperties.class,
         JwtProperties.class,
-        CorsProperties.class
+        CorsProperties.class,
+        RdbProperties.class
 })
 public class ApplicationConfiguration {
 }
