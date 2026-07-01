@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ranyk.spring.ai.rag.knowledge.database.base.domain.dto.BaseDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.base.domain.dto.StoredFile;
+import com.ranyk.spring.ai.rag.knowledge.database.common.constant.FileTypeEnum;
 import com.ranyk.spring.ai.rag.knowledge.database.common.exception.ServiceException;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.dto.DocumentDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.entity.Document;
@@ -87,8 +88,38 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
             log.error("No file has been uploaded, so no processing is required.");
             throw new ServiceException("no.upload.file", new Object[]{""});
         }
-        // TODO 此处可能需要增加文件过滤处理逻辑, 包括但不限于 支持的文档类型处理、单个文件的大小处理等
+        // TODO 此处可能需要增加文件过滤处理逻辑, 包括但不限于 单个文件的大小处理等
+        // 此处增加文件的有效性过滤, 依据 FileTypeEnum 枚举类中的文件类型进行过滤
+        List<String> allValidSuffixes = FileTypeEnum.getAllSuffixes();
+        log.info("系统支持的文件类型后缀: {}", allValidSuffixes);
+        validFiles = validFiles.stream()
+                .filter(file -> {
+                    String originalFilename = file.getOriginalFilename();
+                    if (StrUtil.isBlank(originalFilename)) {
+                        log.warn("文件名为空, 已过滤该文件");
+                        return false;
+                    }
+                    // 提取文件后缀（不含点号）
+                    int lastDotIndex = originalFilename.lastIndexOf('.');
+                    if (lastDotIndex == -1 || lastDotIndex == originalFilename.length() - 1) {
+                        log.warn("文件 '{}' 没有有效的后缀名, 已过滤", originalFilename);
+                        return false;
+                    }
+                    String suffix = originalFilename.substring(lastDotIndex + 1);
+                    boolean isValid = allValidSuffixes.stream().anyMatch(validSuffix -> validSuffix.equalsIgnoreCase(suffix));
+                    if (!isValid) {
+                        log.warn("文件 '{}' 的后缀 '{}' 不在支持的文件类型列表中, 已过滤", originalFilename, suffix);
+                    }
+                    return isValid;
+                })
+                .toList();
+        // 检查过滤后是否还有有效文件
+        if (validFiles.isEmpty()) {
+            log.error("所有文件均不符合要求, 无有效文件可上传");
+            throw new ServiceException("no.valid.file", new Object[]{"所有文件格式均不支持"});
+        }
 
+        log.info("经过文件类型过滤后, 有效文件数量为: {}", validFiles.size());
         // 文件上传处理
         List<StoredFile> storedFiles;
         try {
@@ -99,18 +130,29 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
         }
         // 遍历文件存储结果 List 集合, 将其转换为知识库文档数据库映射对象 List 集合
         List<Document> storedDocumentList = storedFiles.stream().map(file -> {
+            // 数据转换 - 将传入的 documentDTO 对象转换为 Document 对象
             Document document = documentMapper.documentDTOToDocument(documentDTO);
+            // 当文档的标题为空时, 则使用文件名作为文档标题
             if (StrUtil.isBlank(document.getTitle())) {
                 document.setTitle(file.fileName());
             }
+            // 设置知识库文档的文件名
             document.setFileName(file.fileName());
+            // 设置知识库文档的相对路径
             document.setFilePath(file.relativePath());
+            // 设置知识库文档的绝对路径
             document.setAbsolutePath(file.absolutePath().toFile().getAbsolutePath());
-            document.setFileType(file.fileType());
+            // 设置知识库文档的文件类型, 如 .txt, .pdf 等, 并转换为小写
+            document.setFileType(file.fileType().toLowerCase());
+            // 设置知识库文档的文件大小
             document.setFileSize(file.fileSize());
+            // 初始化知识库文档的状态为处理中
             document.setStatus("PROCESSING");
+            // 初始化知识库文档的向量数量为 0
             document.setVectorCount(0);
+            // 设置知识库文档的创建人
             document.setCreateBy(documentDTO.getUploadUserId());
+            // 设置知识库文档的更新人
             document.setUpdateBy(documentDTO.getUploadUserId());
             return document;
         }).toList();
@@ -166,9 +208,12 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
      * @return 知识库文档数据 {@link DocumentDTO}
      */
     public DocumentDTO list(DocumentDTO documentDTO) {
+        // 分页查询条件
         Page<Document> page = BaseDTO.buildPage(documentDTO);
         LambdaQueryWrapper<Document> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Objects.nonNull(documentDTO.getCategoryId()) && !Objects.equals(0L, documentDTO.getCategoryId()), Document::getCategoryId, documentDTO.getCategoryId());
+        queryWrapper.in(Objects.nonNull(documentDTO.getCategoryIds()), Document::getCategoryId, documentDTO.getCategoryIds());
+        queryWrapper.in(Objects.nonNull(documentDTO.getFileTypes()), Document::getFileType, documentDTO.getFileTypes());
         queryWrapper.and(StrUtil.isNotBlank(documentDTO.getKeyword()), wrapper -> wrapper.like(Document::getTitle, documentDTO.getKeyword()).or().like(Document::getFileName, documentDTO.getKeyword()));
         Page<Document> documentPage = page(page, queryWrapper);
         return DocumentDTO.builder()
