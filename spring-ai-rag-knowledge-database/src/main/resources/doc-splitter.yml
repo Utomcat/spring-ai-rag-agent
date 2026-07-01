@@ -1,0 +1,20 @@
+doc:
+  splitter:
+    chunk-size: 500
+    max-num-chunks: 1000
+    # 指定用于 Token 化的编码类型, 不同的编码对应不同的分词方式, 影响 Token 计数和分割结果, 默认为 CL100K_BASE (也是 OpenAI 的编码方式)
+    # 可选值如下:
+    # - r50k_base
+    # - p50k_base
+    # - p50k_edit
+    # - cl100k_base
+    # - o200k_base
+    encoding-type: cl100k_base
+    min-chunk-size-charts: 350
+    min-chunk-length-to-embed: 5
+    keep-separator: true
+    punctuation-marks:
+      - "."
+      - "?"
+      - "!"
+      - "\n"
