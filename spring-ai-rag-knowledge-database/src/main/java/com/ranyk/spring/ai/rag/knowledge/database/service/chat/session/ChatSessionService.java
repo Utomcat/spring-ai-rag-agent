@@ -83,7 +83,14 @@ public class ChatSessionService extends ServiceImpl<ChatSessionRepository, ChatS
      */
     @Transactional(rollbackFor = Exception.class)
     public void touchUpdateTime(ChatSessionDTO chatSessionDTO) {
-        this.updateById(ChatSession.builder().id(chatSessionDTO.getId()).build());
+        this.updateById(ChatSession.builder()
+                .id(chatSessionDTO.getId())
+                .createBy(null)
+                .createTime(null)
+                .updateBy(chatSessionDTO.getUpdateBy())
+                .updateTime(chatSessionDTO.getUpdateTime())
+                .build()
+        );
     }
 
     /**
