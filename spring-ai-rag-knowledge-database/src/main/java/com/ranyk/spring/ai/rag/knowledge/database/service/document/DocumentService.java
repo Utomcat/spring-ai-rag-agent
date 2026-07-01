@@ -91,14 +91,12 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
 
         // 文件上传处理
         List<StoredFile> storedFiles;
-
         try {
             storedFiles = fileStorageService.batchUpload(validFiles);
         } catch (Exception e) {
             log.error("在知识库文档上传至文档存储服务时, 发生异常, 异常信息为: {}", e.getMessage());
             throw new ServiceException("upload.knowledge.document.fail", new String[]{"知识库文档文件上传失败!"});
         }
-
         // 遍历文件存储结果 List 集合, 将其转换为知识库文档数据库映射对象 List 集合
         List<Document> storedDocumentList = storedFiles.stream().map(file -> {
             Document document = documentMapper.documentDTOToDocument(documentDTO);
@@ -116,38 +114,48 @@ public class DocumentService extends ServiceImpl<DocumentRepository, Document> {
             document.setUpdateBy(documentDTO.getUploadUserId());
             return document;
         }).toList();
-
         // 将知识库文档数据保存至关系型数据库中
         boolean saveBatchResult = saveOrUpdateBatch(storedDocumentList);
-
         // 判断数据保存至关系型数据库结果
         if (!saveBatchResult) {
+            // 文件删除
+            Boolean batchedDelete = fileStorageService.batchDelete(storedFiles.stream().map(item -> item.absolutePath().toAbsolutePath().toString()).toList());
+            if (!batchedDelete) {
+                log.error("上传知识库文档保存失败, 文件删除失败存在失败, 请联系管理员对需要删除的文件进行确认如下路径文件是否完全删除: {}", storedFiles.stream().map(item -> item.absolutePath().toAbsolutePath().toString()).toList());
+            }
             log.error("上传知识库文档保存失败, 当前上传的文档数量为: {}", validFiles.size());
             throw new ServiceException("upload.knowledge.document.fail", new String[]{"保存知识库文档数据至关系型数据库失败!"});
         }
-
         // 文档文件向量化处理
         try {
             storedDocumentList.forEach(document -> {
-                int n = ragIngestService.ingest(Path.of(document.getAbsolutePath()), document.getFileType(), document.getId(), documentDTO.getCategoryId(), document.getTitle());
+                // 调用 RAG 向量存储业务逻辑处理类的 ingest 方法, 对文档文件进行向量化处理
+                int n = ragIngestService.ingest(
+                        Path.of(document.getAbsolutePath()),
+                        document.getFileType(),
+                        document.getId(),
+                        documentDTO.getCategoryId(),
+                        document.getTitle()
+                );
+                // 设置文档向量数量
                 document.setVectorCount(n);
+                // 设置文档状态为成功
                 document.setStatus("SUCCESS");
+                // 设置文档更新人
                 document.setUpdateBy(documentDTO.getUploadUserId());
             });
         } catch (Exception e) {
             log.error("知识库文档向量化处理失败, 异常信息为: {}", e.getMessage());
             throw new ServiceException("upload.knowledge.document.fail", new String[]{"知识库文档向量化处理失败!"});
         }
-
         // 更新知识库文档数据至关系型数据库中
         boolean updateBatchResult = saveOrUpdateBatch(storedDocumentList);
-
         // 判断数据更新至关系型数据库结果
         if (!updateBatchResult) {
             log.error("上传知识库文档更新失败, 当前上传的文档数量为: {}", validFiles.size());
             throw new ServiceException("upload.knowledge.document.fail", new String[]{"更新知识库文档数据至关系型数据库失败!"});
         }
-
+        // 返回成功
         return Boolean.TRUE;
     }
 
