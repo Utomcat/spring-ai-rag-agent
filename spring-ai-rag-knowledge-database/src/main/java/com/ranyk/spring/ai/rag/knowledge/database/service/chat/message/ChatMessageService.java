@@ -242,7 +242,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             log.info("限定 categoryId {} 向量检索无命中，降级为全库无条件检索", keys);
             return vectorSimilaritySearch(question, null);
         } catch (Exception ex) {
-            log.warn("限定 categoryId 过滤向量检索失败，降级为全库无条件检索, 当前的异常信息为：{}", ex.toString(), ex);
+            log.warn("限定 categoryId 过滤向量检索失败，降级为全库无条件检索, 当前的异常信息为：{}", ex.getMessage(), ex);
             return vectorSimilaritySearch(question, null);
         }
 
