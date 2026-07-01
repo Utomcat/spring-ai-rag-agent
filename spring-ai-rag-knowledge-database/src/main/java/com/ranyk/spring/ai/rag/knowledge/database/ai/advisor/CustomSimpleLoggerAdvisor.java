@@ -27,13 +27,13 @@ public class CustomSimpleLoggerAdvisor implements CallAdvisor, StreamAdvisor {
 
     @Override
     public @NonNull ChatClientResponse adviseCall(@NonNull ChatClientRequest chatClientRequest, @NonNull CallAdvisorChain callAdvisorChain) {
-        log.info("自定义日志 Advisor , 调用 call 方法后, 向 LLM 发送消息之前, 用户的请求对象为: {}", chatClientRequest);
+        // log.info("自定义日志 Advisor , 调用 call 方法后, 向 LLM 发送消息之前, 用户的请求对象为: {}", chatClientRequest);
+        log.info("自定义日志 Advisor , 调用 call 方法后, 向 LLM 发送消息之前, 日志输出, 即将调用 LLM 进行问题分析处理....");
         ChatClientResponse chatClientResponse = callAdvisorChain.nextCall(chatClientRequest);
-
         if (Objects.nonNull(chatClientResponse.chatResponse()) && Objects.nonNull(chatClientResponse.chatResponse().getResult())) {
             String content = chatClientResponse.chatResponse().getResult().getOutput().getText();
             log.info("自定义日志 Advisor, 调用 call 方法后, 向 LLM 发送消息之后, 获取到的响应内容长度: {}", content != null ? content.length() : 0);
-            log.info("自定义日志 Advisor, 调用 call 方法后, 向 LLM 发送消息之后, 获取到的响应内容为: {}", content);
+            // log.info("自定义日志 Advisor, 调用 call 方法后, 向 LLM 发送消息之后, 获取到的响应内容为: {}", content);
         } else {
             log.warn("自定义日志 Advisor, 调用 call 方法后, 向 LLM 发送消息之后, 获取到的响应为空");
         }
