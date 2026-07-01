@@ -74,6 +74,8 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             
             回答请使用清晰的 Markdown（可适当使用标题、列表）. 结尾可简要列出依据的文档标题.
             
+            你可以使用内置工具查询知识库中的文件列表. 当用户询问知识库中有哪些文件时, 请使用文件列表查询工具.
+            
             """;
     private final ChatMessageMapper chatMessageMapper;
 
