@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -159,31 +160,49 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         t0 = System.nanoTime();
         String answer = chatClient.prompt().system(SYSTEM_PROMPT).user(userTurn).call().content();
         long llmMs = (System.nanoTime() - t0) / 1_000_000L;
-        log.info("LLM 生成完成 sessionId={} 耗时={}ms（SimpleLoggerAdvisor 将打出请求/响应摘要）", sessionId, llmMs);
+        log.info("LLM 生成完成 sessionId= {} 耗时= {} ms（SimpleLoggerAdvisor 将打出请求/响应摘要）", sessionId, llmMs);
         List<Map<String, Object>> refs = toRefs(cited);
         String refsJson;
         try {
             refsJson = objectMapper.writeValueAsString(refs);
         } catch (Exception e) {
-            log.error("调用 ObjectsMapper.writeValueAsString 方法时发生异常, 异常信息为: {}", e.getMessage());
+            log.error("调用 ObjectsMapper.writeValueAsString 方法时发生异常, 异常信息为: {} ", e.getMessage(), e);
             throw new ServiceException("json.parse.error", new String[]{"调用 ObjectsMapper.writeValueAsString 方法时, 转换引用文档JSON, 发生异常"});
         }
         ChatMessage userChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
                 .role("USER")
                 .content(chatMessageDTO.getQuestion())
-                .refs("[]")  // 用户消息没有引用,使用空 JSON 数组
+                // 用户消息没有引用,使用空 JSON 数组
+                .refs("[]")
+                .createBy(chatMessageDTO.getUserId())
+                .createTime(LocalDateTime.now())
+                .updateBy(chatMessageDTO.getUserId())
+                .updateTime(LocalDateTime.now())
                 .build();
         this.saveOrUpdate(userChatMessage);
-
+        log.info("完成用户信息保存!");
         ChatMessage assistantChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
                 .role("ASSISTANT")
                 .content(answer)
                 .refs(refsJson)
+                .createBy(chatMessageDTO.getUserId())
+                .createTime(LocalDateTime.now())
+                .updateBy(chatMessageDTO.getUserId())
+                .updateTime(LocalDateTime.now())
                 .build();
         this.saveOrUpdate(assistantChatMessage);
-        chatSessionService.touchUpdateTime(ChatSessionDTO.builder().id(sessionId).build());
+        log.info("完成助手信息保存!");
+        chatSessionService.touchUpdateTime(ChatSessionDTO.builder()
+                .id(sessionId)
+                .createBy(null)
+                .createTime(null)
+                .updateTime(LocalDateTime.now())
+                .updateBy(chatMessageDTO.getUserId())
+                .build()
+        );
+        log.info("完成会话时间更新!");
         return ChatMessageDTO.builder().sessionId(sessionId).answer(answer).references(refs).build();
     }
 
@@ -195,28 +214,35 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @return 相关的文档列表
      */
     private List<Document> retrieveForCategories(String question, List<Long> categoryIds) {
-        if (categoryIds == null || categoryIds.isEmpty()) {
+        // 判断是否传入类别 ID
+        if (Objects.isNull(categoryIds) || categoryIds.isEmpty()) {
+            // 不存在类别 ID , 则直接使用全库的向量相似检索
             return vectorSimilaritySearch(question, null);
         }
+        // 过滤类别ID ,去除空值和重复值
         Set<String> keys = categoryIds.stream()
                 .filter(Objects::nonNull)
                 .map(String::valueOf)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        // 判断过滤后是否存在有效的类别 ID
         if (keys.isEmpty()) {
-
+            // 不存在有效的类别 ID , 则直接使用全库的向量相似检索
             return vectorSimilaritySearch(question, null);
-
         }
         try {
+            // 构建类别 ID 过滤器表达式
             Filter.Expression expr = buildCategoryIdFilter(keys);
+            // 执行向量相似度检索, 获取过滤后的文档列表
             List<Document> filtered = vectorSimilaritySearch(question, expr);
             if (!filtered.isEmpty()) {
+                // 过滤后的文档列表不为空, 则返回过滤后的文档列表
                 return filtered;
             }
+            // 过滤后的文档列表为空, 则进行全库无条件检索
             log.info("限定 categoryId {} 向量检索无命中，降级为全库无条件检索", keys);
             return vectorSimilaritySearch(question, null);
         } catch (Exception ex) {
-            log.warn("categoryId 过滤向量检索失败，降级为全库无条件检索：{}", ex.toString());
+            log.warn("限定 categoryId 过滤向量检索失败，降级为全库无条件检索, 当前的异常信息为：{}", ex.toString(), ex);
             return vectorSimilaritySearch(question, null);
         }
 
@@ -247,13 +273,13 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @return 过滤器表达式
      */
     private static Filter.Expression buildCategoryIdFilter(Set<String> categoryIdsAsString) {
-        FilterExpressionBuilder fb = new FilterExpressionBuilder();
+        // 创建过滤器表达式构建器, 并设置类别 ID 列表过滤条件
         if (categoryIdsAsString.size() == 1) {
-            return fb.eq("categoryId", categoryIdsAsString.iterator().next()).build();
+            // 只存在一个类别 ID , 则直接使用等于条件进行过滤
+            return new FilterExpressionBuilder().eq("categoryId", categoryIdsAsString.stream().findFirst().get()).build();
         }
-        List<Object> values = new ArrayList<>(categoryIdsAsString);
-        return fb.in("categoryId", values).build();
-
+        // 存在多个类别 ID , 则使用 IN 条件进行过滤
+        return new FilterExpressionBuilder().in("categoryId", categoryIdsAsString.stream().toList()).build();
     }
 
     /**
@@ -264,7 +290,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @return RAG 用户消息
      */
     private static String buildRagUserMessage(String question, List<Document> cited) {
-        if (cited == null || cited.isEmpty()) {
+        if ( Objects.isNull(cited) || cited.isEmpty()) {
             return """
                     
                     （知识库检索未命中足够相关的片段，请直接依据系统说明作答。）
