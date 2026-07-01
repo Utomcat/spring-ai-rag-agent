@@ -1,5 +1,18 @@
 # spring-ai-rag-study
 
+<p style="text-align: center;">
+  <img src="https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white" alt="Java Version" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=spring-boot&logoColor=white" alt="Spring Boot" />
+  <img src="https://img.shields.io/badge/Spring%20AI-2.0.0-6DB33F?logo=spring&logoColor=white" alt="Spring AI" />
+  <img src="https://img.shields.io/badge/MySQL-9.7.0-4479A1?logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/Redis-Vector%20Store-DC382D?logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/Ollama-LLM-000000?logo=ollama&logoColor=white" alt="Ollama" />
+  <img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License" />
+  <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build" />
+  <img src="https://img.shields.io/badge/Maven-3.8+-C71A36?logo=apache-maven&logoColor=white" alt="Maven" />
+  <img src="https://img.shields.io/badge/MyBatis%20Plus-3.5.16-000000" alt="MyBatis Plus" />
+</p>
+
 Spring AI RAG（检索增强生成）知识库系统后端。
 
 ## 项目概述
@@ -283,7 +296,6 @@ graph TB
     CORS --> JWTFilter
     JWTFilter --> API
     SecurityConfig -.-> JWTFilter
-
     AuthApi --> AuthService
     UserApi --> UserService
     CategoryApi --> CategoryService
@@ -291,7 +303,6 @@ graph TB
     ChatSessionApi --> ChatSessionService
     ChatMessageApi --> ChatMessageService
     StatsApi --> StatsService
-
     AuthService --> UserService
     DocumentService --> FileService
     DocumentService --> RagIngestService
@@ -299,7 +310,6 @@ graph TB
     StatsService --> UserService
     StatsService --> DocumentService
     StatsService --> LogService
-
     RagIngestService --> DocumentReader
     RagIngestService --> DocumentSplitter
     RagIngestService --> EmbeddingModel
@@ -307,7 +317,6 @@ graph TB
     ChatClient --> FunctionCallback
     ChatClient --> VectorStoreAdvisor
     ChatClient --> ChatMemory
-
     UserService --> UserRepo
     CategoryService --> CategoryRepo
     DocumentService --> DocumentRepo
@@ -315,7 +324,6 @@ graph TB
     ChatMessageService --> ChatMessageRepo
     LogService --> LogRepo
     StatsService --> StatsRepo
-
     UserRepo --> MySQL
     CategoryRepo --> MySQL
     DocumentRepo --> MySQL
@@ -323,7 +331,6 @@ graph TB
     ChatMessageRepo --> MySQL
     LogRepo --> MySQL
     StatsRepo --> MySQL
-
     VectorStoreAdvisor --> Redis
     EmbeddingModel --> Ollama
     ChatClient --> Ollama
@@ -488,7 +495,7 @@ flowchart TD
     Valid -->|是| GetUser[获取用户信息]
     GetUser --> SetContext[设置 SecurityContext]
     SetContext --> Api[进入 API 接口]
-    Api --> PreAuthorize{@PreAuthorize<br/>权限校验}
+    Api --> PreAuthorize{"@PreAuthorize<br/>权限校验"}
     PreAuthorize -->|通过| Service[执行业务逻辑]
     PreAuthorize -->|拒绝| Forbidden[返回 403 无权限]
     Service --> End([请求结束])
@@ -526,12 +533,12 @@ flowchart TD
 
 ### 文档接口
 
-| 接口                      | 方法     | 权限    | 说明         |
-|-------------------------|--------|-------|------------|
-| `/api/document`         | POST   | ADMIN | 上传文档并向量化    |
-| `/api/document/list`    | GET    | ADMIN | 分页查询文档     |
-| `/api/document/filenames` | GET  | ADMIN | 获取知识库文件列表  |
-| `/api/document/{id}`    | DELETE | ADMIN | 删除文档及向量    |
+| 接口                        | 方法     | 权限    | 说明        |
+|---------------------------|--------|-------|-----------|
+| `/api/document`           | POST   | ADMIN | 上传文档并向量化  |
+| `/api/document/list`      | GET    | ADMIN | 分页查询文档    |
+| `/api/document/filenames` | GET    | ADMIN | 获取知识库文件列表 |
+| `/api/document/{id}`      | DELETE | ADMIN | 删除文档及向量   |
 
 ### 聊天会话接口
 
@@ -642,6 +649,7 @@ mvn spring-boot:run -pl spring-ai-rag-knowledge-database
 **功能**：查询知识库中已上传的文件列表
 
 **触发场景**：
+
 - "知识库中有哪些文件？"
 - "列出所有文档"
 - "当前有什么文件？"
@@ -650,6 +658,7 @@ mvn spring-boot:run -pl spring-ai-rag-knowledge-database
 **实现位置**：`com.ranyk.spring.ai.rag.knowledge.database.ai.function.ListKnowledgeFilesFunction`
 
 **使用方式**：
+
 - 用户通过自然语言提问
 - LLM 自动识别意图并调用工具
 - 返回格式化的文件名列表（自然语言）
@@ -662,13 +671,15 @@ mvn spring-boot:run -pl spring-ai-rag-knowledge-database
 4. 在 `ChatClientConfiguration` 中注册该工具（通过 `.tools()` 方法）
 
 **示例**：
+
 ```java
+
 @Component
 public class MyCustomFunction {
-    
+
     @Tool(description = "工具的描述，告诉 LLM 这个工具的用途")
     public String myMethod(
-        @ToolParam(description = "参数描述") String param
+            @ToolParam(description = "参数描述") String param
     ) {
         // 实现逻辑
         return "结果";
