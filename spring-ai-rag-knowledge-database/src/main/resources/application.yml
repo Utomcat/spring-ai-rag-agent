@@ -22,6 +22,7 @@ spring:
     # jwt.yml: JWT 配置
     # rdb.yml: 关系型数据库配置
     # doc-splitter.yml: 文档分割配置
+    # system.yml: 系统配置
     import:
     - classpath:mybatis-plus.yml
     - classpath:nrdb-datasource.yml
@@ -34,3 +35,4 @@ spring:
     - classpath:jwt.yml
     - classpath:rdb.yml
     - classpath:doc-splitter.yml
+    - classpath:system.yml

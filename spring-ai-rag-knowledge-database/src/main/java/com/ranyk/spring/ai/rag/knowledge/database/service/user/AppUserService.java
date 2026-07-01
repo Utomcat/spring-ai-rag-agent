@@ -11,6 +11,7 @@ import com.ranyk.spring.ai.rag.knowledge.database.base.domain.dto.BaseDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.common.constant.StatusEnum;
 import com.ranyk.spring.ai.rag.knowledge.database.common.exception.ServiceException;
 import com.ranyk.spring.ai.rag.knowledge.database.config.properties.FileProperties;
+import com.ranyk.spring.ai.rag.knowledge.database.config.properties.SystemProperties;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.dto.AppUserDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.entity.AppUser;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.mapstruct.AppUserMapper;
@@ -36,6 +37,7 @@ import java.util.*;
  */
 @Slf4j
 @Service
+@SuppressWarnings("all")
 public class AppUserService extends ServiceImpl<AppUserRepository, AppUser> {
 
     /**
@@ -59,6 +61,10 @@ public class AppUserService extends ServiceImpl<AppUserRepository, AppUser> {
      */
     private final FileStorageService fileStorageService;
     /**
+     * 系统属性配置对象
+     */
+    private final SystemProperties systemProperties;
+    /**
      * 当前系统支持的头像文件扩展名集合
      */
     private static final Set<String> AVATAR_EXT = Set.of("jpg", "jpeg", "png", "gif", "webp");
@@ -71,18 +77,21 @@ public class AppUserService extends ServiceImpl<AppUserRepository, AppUser> {
      * @param appUserMapper      用户信息数据转换 MapStruct 映射接口对象 {@link AppUserMapper}
      * @param fileProperties     文件属性配置对象
      * @param fileStorageService 文件存储服务对象
+     * @param systemProperties   系统属性配置对象
      */
     @Autowired
     public AppUserService(AppUserRepository appUserRepository,
                           JwtUtils jwtUtils,
                           AppUserMapper appUserMapper,
                           FileProperties fileProperties,
-                          FileStorageService fileStorageService) {
+                          FileStorageService fileStorageService,
+                          SystemProperties systemProperties) {
         this.appUserRepository = appUserRepository;
         this.jwtUtils = jwtUtils;
         this.appUserMapper = appUserMapper;
         this.fileProperties = fileProperties;
         this.fileStorageService = fileStorageService;
+        this.systemProperties = systemProperties;
     }
 
     /**
@@ -118,19 +127,10 @@ public class AppUserService extends ServiceImpl<AppUserRepository, AppUser> {
                 .username(appUser.getUsername())
                 .realName(appUser.getRealName())
                 .role(appUser.getRole())
-                // 此处处理用户头像, 如果用户头像为空则设置为默认头像, 通过 FileProperties 对象获取 upload 的 root 属性值 + /avatar/fHe1eSEYZ.png 为准
-                .avatar(StrUtil.isBlank(appUser.getAvatar()) ? buildDefaultAvatarUrl() : appUser.getAvatar())
+                // 此处处理用户头像, 如果用户头像为空则设置为默认头像, 通过 FileProperties 对象获取 upload 的 root 属性值 + /avatar/default.png 为准
+                .avatar(StrUtil.isBlank(appUser.getAvatar()) ? systemProperties.getDefaultAvatar() : appUser.getAvatar())
                 .token(token)
                 .build();
-    }
-
-    /**
-     * 构建默认头像 URL
-     *
-     * @return 默认头像的访问 URL
-     */
-    private String buildDefaultAvatarUrl() {
-        return "/avatar/fHe1eSEYZ.png";
     }
 
     /**
@@ -244,6 +244,10 @@ public class AppUserService extends ServiceImpl<AppUserRepository, AppUser> {
      */
     public AppUserDTO getUserById(AppUserDTO appUserDTO) {
         AppUser appUser = this.getById(appUserDTO.getId());
+        // 头像处理 - 如果头像为空, 则使用默认头像
+        if (StrUtil.isBlank(appUser.getAvatar())) {
+            appUser.setAvatar(systemProperties.getDefaultAvatar());
+        }
         return appUserMapper.appUserToAppUserDTO(appUser);
     }
 
