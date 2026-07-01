@@ -65,7 +65,6 @@ public interface CategoryMapper {
      * @return 知识库分类数据传输 DTO 对象 {@link CategoryDTO}
      */
     @Mappings({
-            @Mapping(target = "id", ignore = true),
             @Mapping(target = "createBy", ignore = true),
             @Mapping(target = "createTime", ignore = true),
             @Mapping(target = "updateBy", ignore = true),

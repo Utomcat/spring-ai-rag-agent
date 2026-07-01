@@ -9,10 +9,14 @@ import com.ranyk.spring.ai.rag.knowledge.database.domain.category.po.CategoryQue
 import com.ranyk.spring.ai.rag.knowledge.database.domain.category.po.CategorySavePO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.category.vo.CategoryVO;
 import com.ranyk.spring.ai.rag.knowledge.database.service.category.CategoryService;
+import com.ranyk.spring.ai.rag.knowledge.database.utils.SecurityUtils;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * CLASS_NAME: CategoryApi.java
@@ -68,7 +72,16 @@ public class CategoryApi {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public Result<Void> save(@RequestBody @Valid CategorySavePO categorySavePO) {
-        categoryService.save(categoryMapper.categorySavePOToCategoryDTO(categorySavePO));
+        CategoryDTO categoryDTO = categoryMapper.categorySavePOToCategoryDTO(categorySavePO);
+        Long userId = SecurityUtils.currentUser().getUserId();
+        LocalDateTime now = LocalDateTime.now();
+        if (Objects.isNull(categoryDTO.getId())) {
+            categoryDTO.setCreateBy(userId);
+            categoryDTO.setCreateTime(now);
+        }
+        categoryDTO.setUpdateBy(userId);
+        categoryDTO.setUpdateTime(now);
+        categoryService.save(categoryDTO);
         return Result.success();
     }
 

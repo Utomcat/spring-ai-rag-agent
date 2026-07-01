@@ -81,6 +81,10 @@ public class CategoryService extends ServiceImpl<CategoryRepository, Category> {
     @Transactional(rollbackFor = Exception.class)
     public void save(CategoryDTO categoryDTO) {
         Category category = categoryMapper.categoryDTOToCategory(categoryDTO);
+        if (Objects.nonNull(category.getId())) {
+            category.setCreateBy(null);
+            category.setCreateTime(null);
+        }
         saveOrUpdate(category);
     }
 
