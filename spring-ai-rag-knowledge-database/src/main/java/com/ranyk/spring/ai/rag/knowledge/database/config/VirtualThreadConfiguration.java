@@ -1,5 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * @description: Java21 虚拟线程配置类
  * @date: 2026-06-24
  */
+@Slf4j
 @Configuration
 public class VirtualThreadConfiguration {
 
@@ -25,7 +27,12 @@ public class VirtualThreadConfiguration {
      */
     @Bean(name = "virtualThreadScheduler")
     public ScheduledExecutorService virtualThreadScheduler() {
-        return Executors.newSingleThreadScheduledExecutor();
+        return Executors.newSingleThreadScheduledExecutor(
+            Thread.ofVirtual()
+                .name("virtual-scheduler-", 0)
+                .uncaughtExceptionHandler((t, e) -> log.error("虚拟线程调度器 [{}] 发生未捕获异常: {}", t.getName(), e.getMessage(), e))
+                .factory()
+        );
     }
 
     /**
@@ -35,6 +42,11 @@ public class VirtualThreadConfiguration {
      */
     @Bean(name = "virtualThreadExecutor")
     public ExecutorService virtualThreadExecutor() {
-        return Executors.newVirtualThreadPerTaskExecutor();
+        return Executors.newThreadPerTaskExecutor(
+            Thread.ofVirtual()
+                .name("virtual-worker-", 0)
+                .uncaughtExceptionHandler((t, e) -> log.error("虚拟线程执行器 [{}] 发生未捕获异常: {}", t.getName(), e.getMessage(), e))
+                .factory()
+        );
     }
 }
