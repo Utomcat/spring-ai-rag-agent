@@ -43,6 +43,13 @@ public class ReferenceExtractAdvisor implements CallAdvisor {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * 拦截知识库检索工具调用结果，提取 references 供后续使用
+     *
+     * @param chatClientRequest  Chat 客户端请求对象 {@link ChatClientRequest}
+     * @param callAdvisorChain   拦截器链 {@link CallAdvisorChain}
+     * @return Chat 客户端响应对象 {@link ChatClientResponse}
+     */
     @Override
     public @NonNull ChatClientResponse adviseCall(@NonNull ChatClientRequest chatClientRequest, @NonNull CallAdvisorChain callAdvisorChain) {
         // 清空之前的 references
