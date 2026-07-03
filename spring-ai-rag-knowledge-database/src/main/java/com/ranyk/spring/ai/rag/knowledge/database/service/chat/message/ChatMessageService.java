@@ -76,17 +76,37 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             - 结尾简要列出依据的文档标题
             
             """;
+    /**
+     * 用户角色常量
+     */
+    private static final String ROLE_USER = "USER";
+    /**
+     * 助手角色常量
+     */
+    private static final String ROLE_ASSISTANT = "ASSISTANT";
+    /**
+     * 空 JSON 数组常量
+     */
+    private static final String EMPTY_JSON_ARRAY = "[]";
+    /**
+     * 会话标题最大长度
+     */
+    private static final int SESSION_TITLE_MAX_LENGTH = 30;
+    /**
+     * 省略号字符
+     */
+    private static final String ELLIPSIS = "…";
     private final ChatMessageMapper chatMessageMapper;
 
     /**
      * 构造方法 - 由 Spring IOC 容器创建当前 Bean 实例对象时，自动注入相关依赖的 Bean 实例对象
      *
-     * @param chatMessageRepository      聊天消息数据访问层接口 {@link ChatMessageRepository}
-     * @param chatSessionService         聊天会话业务逻辑处理类 {@link ChatSessionService}
-     * @param chatClient                 RAG 大模型聊天客户端 {@link ChatClient}
-     * @param objectMapper               Jackson 对象映射器 {@link ObjectMapper}
-     * @param chatMessageMapper          聊天消息数据转换 MapStruct 接口对象 {@link ChatMessageMapper}
-     * @param referenceExtractAdvisor    引用提取 Advisor {@link ReferenceExtractAdvisor}
+     * @param chatMessageRepository   聊天消息数据访问层接口 {@link ChatMessageRepository}
+     * @param chatSessionService      聊天会话业务逻辑处理类 {@link ChatSessionService}
+     * @param chatClient              RAG 大模型聊天客户端 {@link ChatClient}
+     * @param objectMapper            Jackson 对象映射器 {@link ObjectMapper}
+     * @param chatMessageMapper       聊天消息数据转换 MapStruct 接口对象 {@link ChatMessageMapper}
+     * @param referenceExtractAdvisor 引用提取 Advisor {@link ReferenceExtractAdvisor}
      */
     @Autowired
     public ChatMessageService(ChatMessageRepository chatMessageRepository,
@@ -132,27 +152,16 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @param chatMessageDTO 聊天消息数据传输对象 {@link ChatMessageDTO}
      * @return 聊天消息数据传输对象 {@link ChatMessageDTO}
      */
+    @Transactional(rollbackFor = Exception.class)
     public ChatMessageDTO ask(ChatMessageDTO chatMessageDTO) {
         // 1. 会话管理：检查或创建会话
-        Long sessionId = chatMessageDTO.getSessionId();
-        // 不存在会话 ID，则创建一个会话
-        if (Objects.isNull(sessionId) || Objects.equals(0L, sessionId)) {
-            String question = chatMessageDTO.getQuestion().trim();
-            question = question.length() > 30 ? question.substring(0, 30) + "…" : question;
-            ChatSessionDTO chatSessionDTO = chatSessionService.saveSessionInfo(ChatSessionDTO.builder().userId(chatMessageDTO.getUserId()).title(question).build());
-            sessionId = chatSessionDTO.getId();
-        } else {
-            ChatSessionDTO chatSessionDTO = chatSessionService.queryById(ChatSessionDTO.builder().id(sessionId).build());
-            if (Objects.isNull(chatSessionDTO) || !Objects.equals(chatSessionDTO.getUserId(), chatMessageDTO.getUserId())) {
-                throw new ServiceException("sessions.no.permissions", new String[]{"会话不存在或无权限！"});
-            }
-        }
+        Long sessionId = createOrValidateSession(chatMessageDTO);
+        Long userId = chatMessageDTO.getUserId();
 
         // 2. Agent 调用：LLM 自主决定调用工具并生成回答
-        long t0 = System.nanoTime();
+        long startTimeNanos = System.nanoTime();
         ChatResponse chatResponse;
         try {
-            // 将 sessionId 赋给一个 final 变量，以便在 lambda 中使用
             final Long conversationId = sessionId;
             chatResponse = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
@@ -161,80 +170,160 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
                     .call()
                     .chatResponse();
         } catch (Exception e) {
-            log.error("Agent 调用异常：{}", e.getMessage(), e);
+            log.error("Agent 调用异常 sessionId={}, userId={}: {}", sessionId, userId, e.getMessage(), e);
             return ChatMessageDTO.builder()
                     .sessionId(sessionId)
                     .answer("系统异常，请稍后重试")
                     .references(List.of())
                     .build();
+        } finally {
+            // 确保 ThreadLocal 被清理，防止内存泄漏
+            referenceExtractAdvisor.clearReferences();
         }
-        long agentMs = (System.nanoTime() - t0) / 1_000_000L;
-        log.info("Agent 调用完成 sessionId={} 耗时={}ms", sessionId, agentMs);
+        long agentDurationMs = (System.nanoTime() - startTimeNanos) / 1_000_000L;
+        log.info("Agent 调用完成 sessionId={}, userId={}, 耗时={}ms", sessionId, userId, agentDurationMs);
 
         // 3. 提取 answer 和 references
-        String answer = Optional.ofNullable(chatResponse)
+        String answer = extractAnswerFromResponse(chatResponse);
+        List<Map<String, Object>> references = referenceExtractAdvisor.getExtractedReferences();
+
+        // 4. 序列化 references
+        String referencesJson = serializeReferences(references);
+        if (referencesJson.equals(EMPTY_JSON_ARRAY)) {
+            references = List.of();
+        }
+
+        // 5. 保存聊天消息
+        LocalDateTime now = LocalDateTime.now();
+        saveChatMessages(sessionId, userId, chatMessageDTO.getQuestion(), answer, referencesJson, now);
+
+        // 6. 更新会话时间
+        updateSessionUpdateTime(sessionId, userId, now);
+
+        // 7. 返回结果
+        return ChatMessageDTO.builder()
+                .sessionId(sessionId)
+                .answer(answer)
+                .references(references)
+                .build();
+    }
+
+    /**
+     * 创建或验证会话
+     *
+     * @param chatMessageDTO 聊天消息数据传输对象
+     * @return 会话 ID
+     */
+    private Long createOrValidateSession(ChatMessageDTO chatMessageDTO) {
+        Long sessionId = chatMessageDTO.getSessionId();
+        Long userId = chatMessageDTO.getUserId();
+
+        // 不存在会话 ID，则创建一个会话
+        if (Objects.isNull(sessionId) || Objects.equals(0L, sessionId)) {
+            String question = chatMessageDTO.getQuestion().trim();
+            String title = question.length() > SESSION_TITLE_MAX_LENGTH
+                    ? question.substring(0, SESSION_TITLE_MAX_LENGTH) + ELLIPSIS
+                    : question;
+            ChatSessionDTO chatSessionDTO = chatSessionService.saveSessionInfo(
+                    ChatSessionDTO.builder().userId(userId).title(title).build()
+            );
+            return chatSessionDTO.getId();
+        } else {
+            ChatSessionDTO chatSessionDTO = chatSessionService.queryById(
+                    ChatSessionDTO.builder().id(sessionId).build()
+            );
+            if (Objects.isNull(chatSessionDTO) || !Objects.equals(chatSessionDTO.getUserId(), userId)) {
+                throw new ServiceException("sessions.no.permissions", new String[]{"会话不存在或无权限！"});
+            }
+            return sessionId;
+        }
+    }
+
+    /**
+     * 从 ChatResponse 中提取 answer
+     *
+     * @param chatResponse Chat 响应对象
+     * @return 回答文本
+     */
+    private String extractAnswerFromResponse(ChatResponse chatResponse) {
+        return Optional.ofNullable(chatResponse)
                 .map(ChatResponse::getResult)
                 .map(Generation::getOutput)
                 .map(AbstractMessage::getText)
                 .orElse("");
+    }
 
-        // 从 Advisor 的 ThreadLocal 中获取 references
-        List<Map<String, Object>> refs = referenceExtractAdvisor.getExtractedReferences();
-        // 清理 ThreadLocal，防止内存泄漏
-        referenceExtractAdvisor.clearReferences();
-
-        // 4. 序列化 references
-        String refsJson;
+    /**
+     * 序列化 references 为 JSON 字符串
+     *
+     * @param references 引用列表
+     * @return JSON 字符串
+     */
+    private String serializeReferences(List<Map<String, Object>> references) {
         try {
-            refsJson = objectMapper.writeValueAsString(refs);
+            return objectMapper.writeValueAsString(references);
         } catch (Exception e) {
-            log.error("序列化 references 失败：{}", e.getMessage(), e);
-            refsJson = "[]";
-            refs = List.of();
+            log.error("序列化 references 失败: {}", e.getMessage(), e);
+            return EMPTY_JSON_ARRAY;
         }
+    }
 
-        // 5. 保存用户消息
+    /**
+     * 保存用户和助手的聊天消息
+     *
+     * @param sessionId      会话 ID
+     * @param userId         用户 ID
+     * @param question       用户问题
+     * @param answer         助手回答
+     * @param referencesJson 引用 JSON 字符串
+     * @param now            当前时间
+     */
+    private void saveChatMessages(Long sessionId, Long userId, String question,
+                                  String answer, String referencesJson, LocalDateTime now) {
+        // 保存用户消息
         ChatMessage userChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
-                .role("USER")
-                .content(chatMessageDTO.getQuestion())
-                // 用户消息没有引用，使用空 JSON 数组
-                .refs("[]")
-                .createBy(chatMessageDTO.getUserId())
-                .createTime(LocalDateTime.now())
-                .updateBy(chatMessageDTO.getUserId())
-                .updateTime(LocalDateTime.now())
+                .role(ROLE_USER)
+                .content(question)
+                .refs(EMPTY_JSON_ARRAY)
+                .createBy(userId)
+                .createTime(now)
+                .updateBy(userId)
+                .updateTime(now)
                 .build();
         this.saveOrUpdate(userChatMessage);
-        log.info("完成用户信息保存！");
+        log.info("完成用户信息保存 sessionId={}, userId={}", sessionId, userId);
 
-        // 6. 保存助手消息
+        // 保存助手消息
         ChatMessage assistantChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
-                .role("ASSISTANT")
+                .role(ROLE_ASSISTANT)
                 .content(answer)
-                .refs(refsJson)
-                .createBy(chatMessageDTO.getUserId())
-                .createTime(LocalDateTime.now())
-                .updateBy(chatMessageDTO.getUserId())
-                .updateTime(LocalDateTime.now())
+                .refs(referencesJson)
+                .createBy(userId)
+                .createTime(now)
+                .updateBy(userId)
+                .updateTime(now)
                 .build();
         this.saveOrUpdate(assistantChatMessage);
-        log.info("完成助手信息保存！");
+        log.info("完成助手信息保存 sessionId={}, userId={}", sessionId, userId);
+    }
 
-        // 7. 更新会话时间
+    /**
+     * 更新会话更新时间
+     *
+     * @param sessionId 会话 ID
+     * @param userId    用户 ID
+     * @param now       当前时间
+     */
+    private void updateSessionUpdateTime(Long sessionId, Long userId, LocalDateTime now) {
         chatSessionService.touchUpdateTime(ChatSessionDTO.builder()
                 .id(sessionId)
-                .createBy(null)
-                .createTime(null)
-                .updateTime(LocalDateTime.now())
-                .updateBy(chatMessageDTO.getUserId())
+                .updateTime(now)
+                .updateBy(userId)
                 .build()
         );
-        log.info("完成会话时间更新！");
-
-        // 8. 返回结果
-        return ChatMessageDTO.builder().sessionId(sessionId).answer(answer).references(refs).build();
+        log.info("完成会话时间更新 sessionId={}, userId={}", sessionId, userId);
     }
 
     /**
