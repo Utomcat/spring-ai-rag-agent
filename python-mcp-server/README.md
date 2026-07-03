@@ -1,6 +1,6 @@
 # Python MCP Server
 
-> **📖 项目主文档**：[spring-ai-rag-study README](../README.md)
+> **📖 项目主文档**：[spring-ai-rag-agent README](../README.md)
 >
 > **详细文档**：[MCP Server 详细文档](../md/mcp-server.md)（配置说明、传输方式、部署、调试、性能优化、安全等）
 
@@ -22,7 +22,7 @@
 | langchain      | 1.3.11  | LLM 应用框架 |
 | beautifulsoup4 | 4.15.0+ | HTML 解析  |
 | requests       | 2.34.2+ | HTTP 请求  |
-| python-dotenv  | 1.2.2+  | 环境变量管理  |
+| python-dotenv  | 1.2.2+  | 环境变量管理   |
 
 ## 🚀 快速开始
 

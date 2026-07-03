@@ -1,4 +1,4 @@
-# spring-ai-rag-study
+# spring-ai-rag-agent
 
 <p style="text-align: center;">
   <img src="https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white" alt="Java Version" />
@@ -24,14 +24,14 @@ Spring AI RAG（检索增强生成）知识库系统后端。
 
 ## 📚 文档导航
 
-| 文档 | 说明 |
-|------|------|
-| [快速开始](md/quickstart.md) | 项目安装、配置和运行指南 |
-| [架构设计](md/architecture.md) | 总体架构、分层架构和核心流程图 |
-| [API 接口](md/api.md) | 完整的 REST API 接口文档 |
-| [配置文件](md/configuration.md) | 各配置文件详解和环境变量支持 |
-| [Function Calling](md/function-calling.md) | 工具扩展和 MCP 支持说明 |
-| [Python MCP Server](md/mcp-server.md) | Python MCP Server 子项目详细文档 |
+| 文档                                         | 说明                        |
+|--------------------------------------------|---------------------------|
+| [快速开始](md/quickstart.md)                   | 项目安装、配置和运行指南              |
+| [架构设计](md/architecture.md)                 | 总体架构、分层架构和核心流程图           |
+| [API 接口](md/api.md)                        | 完整的 REST API 接口文档         |
+| [配置文件](md/configuration.md)                | 各配置文件详解和环境变量支持            |
+| [Function Calling](md/function-calling.md) | 工具扩展和 MCP 支持说明            |
+| [Python MCP Server](md/mcp-server.md)      | Python MCP Server 子项目详细文档 |
 
 ## 📖 项目概述
 
@@ -70,7 +70,7 @@ Function Calling 和 MCP（Model Context Protocol）扩展工具能力。
 ## 📁 模块结构
 
 ```
-spring-ai-rag-study/
+spring-ai-rag-agent/
 ├── pom.xml                          # 父 POM（依赖管理、插件配置）
 ├── LICENSE                          # Apache 2.0 许可证
 ├── .gitignore                       # Git 忽略配置
@@ -169,5 +169,5 @@ Apache License 2.0
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
   <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
-  <a href="#spring-ai-rag-study">⬆️ 返回顶部</a>
+  <a href="#spring-ai-rag-agent">⬆️ 返回顶部</a>
 </div>
