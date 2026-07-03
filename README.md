@@ -43,14 +43,16 @@ Function Calling 和 MCP（Model Context Protocol）扩展工具能力。
 
 - **双模型架构**：使用 OpenAI 兼容 API（小米 Mimo）作为 LLM 聊天模型，Ollama 作为 Embedding 模型
 - **向量存储**：基于 Redis Vector Store 实现文档向量存储与相似度检索
+- **Agent 架构**：采用 Spring AI Alibaba Agent Framework，支持自主工具调用和知识库检索
 - **工具扩展**：支持 Spring AI Function Calling 和 MCP 协议，可扩展网络搜索等工具能力
 - **多模块设计**：Java 后端 + Python MCP Server 双模块架构
+- **Advisor 拦截**：自定义 Advisor 实现日志记录和引用文档提取
 
 ## 🛠️ 技术栈
 
 | 类别        | 技术                                          |
 |-----------|---------------------------------------------|
-| 框架        | Spring Boot 4.1.1, Spring AI 2.0.0 |
+| 框架        | Spring Boot 4.1.1-SNAPSHOT, Spring AI 2.0.0 |
 | Java 版本   | Java 21                                     |
 | 关系型数据库    | MySQL 9.7.0 / MariaDB 3.5.9                 |
 | 向量数据库     | Redis（使用 Jedis 连接）                          |
@@ -63,6 +65,7 @@ Function Calling 和 MCP（Model Context Protocol）扩展工具能力。
 | 数据校验      | Spring Boot Starter Validation              |
 | 虚拟线程      | Spring Boot Virtual Threads                 |
 | MCP       | Spring AI MCP Client (WebFlux)              |
+| Agent框架   | Spring AI Alibaba Agent Framework           |
 
 ## 📁 模块结构
 
@@ -145,8 +148,8 @@ spring-ai-rag-study/
 - **知识库分类**：分类的增删查，支持排序
 - **文档管理**：支持多文件上传、Tika 解析、Markdown 解析、文档向量化、向量存储、文件列表查询
 - **向量检索**：基于 Redis Vector Store 实现相似度检索
-- **智能问答**：结合 RAG 向量检索与 LLM 生成回答，支持引用文档展示
-- **Function Calling**：支持 AI 工具调用，可查询知识库文档列表等扩展能力
+- **智能问答**：基于 Agent 架构的智能对话，支持自主工具调用和知识库检索，提供引用文档展示
+- **Function Calling**：支持 AI 工具调用，包括知识库文件列表查询、知识库语义检索等扩展能力
 - **MCP 客户端**：支持 MCP (Model Context Protocol) 协议，可连接外部 MCP Server 扩展工具能力
 - **聊天会话**：支持多轮对话、会话列表、会话删除、上下文记忆
 - **统计仪表盘**：管理员概览统计数据
@@ -165,6 +168,6 @@ Apache License 2.0
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-03</span>
+  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
   <a href="#spring-ai-rag-study">⬆️ 返回顶部</a>
 </div>

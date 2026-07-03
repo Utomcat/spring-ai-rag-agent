@@ -129,7 +129,7 @@ curl -X POST http://localhost:8083/api/document \
   -F "files=@/path/to/your/document.pdf"
 ```
 
-### 3. 提问
+### 3. 提问（Agent 自主调用）
 
 ```bash
 curl -X POST http://localhost:8083/api/chat/ask \
@@ -137,6 +137,12 @@ curl -X POST http://localhost:8083/api/chat/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "知识库中有哪些文档？"}'
 ```
+
+**Agent 会自动识别意图并调用合适的工具：**
+
+- 询问文件列表 → 调用 `getAllDocumentsFileName` 工具
+- 知识性问题 → 调用 `retrieveKnowledge` 工具进行向量检索
+- 最新信息 → 调用 MCP Server 的网络搜索工具
 
 ## ❓ 常见问题
 
@@ -268,6 +274,6 @@ Get-Content -Path logs\application.log -Wait
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-03</span>
+  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
   <a href="#快速开始">⬆️ 返回顶部</a>
 </div>

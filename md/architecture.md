@@ -48,6 +48,7 @@ graph TB
 
         subgraph AI[AI 能力层]
             ChatClient[ChatClient]
+            AgentFramework[Agent Framework<br/>自主工具调用]
             FunctionCallback[Function Callback<br/>工具调用]
             VectorStoreAdvisor[VectorStoreAdvisor]
             EmbeddingModel[EmbeddingModel]
@@ -55,6 +56,7 @@ graph TB
             DocumentSplitter[文档切分器]
             DocumentReader[文档读取器<br/>Tika / Markdown]
             McpClient[MCP Client<br/>外部工具调用]
+            CustomAdvisors[自定义 Advisors<br/>日志记录 / 引用提取]
         end
 
         subgraph Repository[数据访问层]
@@ -102,10 +104,12 @@ graph TB
     RagIngestService --> DocumentSplitter
     RagIngestService --> EmbeddingModel
     ChatMessageService --> ChatClient
-    ChatClient --> FunctionCallback
+    ChatClient --> AgentFramework
+    AgentFramework --> FunctionCallback
     ChatClient --> VectorStoreAdvisor
     ChatClient --> ChatMemory
     ChatClient --> McpClient
+    ChatClient --> CustomAdvisors
     UserService --> UserRepo
     CategoryService --> CategoryRepo
     DocumentService --> DocumentRepo
@@ -233,7 +237,7 @@ flowchart TD
     SaveMeta --> End([结束])
 ```
 
-### RAG 问答流程
+### RAG 问答流程（Agent 架构）
 
 ```mermaid
 flowchart TD
@@ -243,11 +247,17 @@ flowchart TD
     GetSession -->|是| LoadSession[加载会话及历史消息<br/>ChatMemory]
     GetSession -->|否| CreateSession[创建新会话<br/>t_chat_session]
     CreateSession --> LoadSession
-    LoadSession --> IntentDetect{LLM 意图识别}
-    IntentDetect -->|需要工具调用| CallTool[调用 Function Callback<br/>如查询文件列表]
-    IntentDetect -->|向量检索| Retrieve[VectorStoreAdvisor 向量检索<br/>从 Redis 检索相关文档]
-    CallTool --> BuildPrompt[构建 Prompt<br/>问题 + 工具返回结果]
-    Retrieve --> BuildPrompt
+    LoadSession --> AgentCall[Agent 自主决策]
+    AgentCall --> IntentDetect{意图识别}
+    IntentDetect -->|需要知识库检索| CallRetrieval[调用 retrieveKnowledge 工具<br/>向量相似度检索]
+    IntentDetect -->|需要文件列表| CallDocList[调用 getAllDocumentsFileName 工具<br/>查询文件列表]
+    IntentDetect -->|需要网络搜索| CallMcp[调用 MCP Server 工具<br/>网络搜索等]
+    IntentDetect -->|直接回答| DirectAnswer[直接生成回答]
+    CallRetrieval --> ExtractRefs[ReferenceExtractAdvisor 提取引用文档]
+    ExtractRefs --> BuildPrompt[构建 Prompt<br/>问题 + 检索结果 + 引用]
+    CallDocList --> BuildPrompt
+    CallMcp --> BuildPrompt
+    DirectAnswer --> BuildPrompt
     BuildPrompt --> CallLLM[调用 OpenAI 兼容 API LLM 生成回答<br/>ChatClient]
     CallLLM --> SaveMsg[保存用户消息和 AI 回答<br/>t_chat_message]
     SaveMsg --> SaveRefs[保存引用文档 refs JSON]
@@ -256,19 +266,28 @@ flowchart TD
     Return --> End([结束])
 ```
 
-### Function Calling 工具调用流程
+### Agent 工具调用流程
 
 ```mermaid
 flowchart TD
     Start([用户提问]) --> Input[用户输入: '知识库中有哪些文档?']
-    Input --> LLM[LLM 意图分析]
-    LLM --> MatchTool{匹配到工具?}
-    MatchTool -->|是| CallFunc[调用 DocumentToolFunction]
-    MatchTool -->|否| NormalRAG[执行常规 RAG 检索]
-    CallFunc --> QueryDB[DocumentService 查询数据库]
+    Input --> Agent[Agent 框架分析]
+    Agent --> MatchTool{匹配到工具?}
+    MatchTool -->|是| SelectTool{选择哪个工具?}
+    MatchTool -->|否| DirectAnswer[直接生成回答]
+    SelectTool -->|文件列表| CallDocFunc[调用 DocumentToolFunction]
+    SelectTool -->|知识检索| CallRetrievalFunc[调用 KnowledgeRetrievalToolFunction]
+    SelectTool -->|网络搜索| CallMcpServer[调用 MCP Server]
+    CallDocFunc --> QueryDB[DocumentService 查询数据库]
     QueryDB --> ReturnList[返回文件名列表]
+    CallRetrievalFunc --> VectorSearch[Redis Vector Store 语义检索]
+    VectorSearch --> ReturnDocs[返回结构化文档片段]
+    CallMcpServer --> ExternalSearch[外部搜索引擎]
+    ExternalSearch --> ReturnResults[返回搜索结果]
     ReturnList --> LLMFormat[LLM 格式化结果为自然语言]
-    NormalRAG --> LLMFormat
+    ReturnDocs --> LLMFormat
+    ReturnResults --> LLMFormat
+    DirectAnswer --> LLMFormat
     LLMFormat --> Response[返回用户]
     Response --> End([结束])
 ```
@@ -297,6 +316,6 @@ flowchart TD
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-03</span>
+  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
   <a href="#架构设计">⬆️ 返回顶部</a>
 </div>

@@ -471,6 +471,6 @@ A: 在 `web_search_server.py` 中添加新的搜索函数，然后在 `web_searc
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-03</span>
+  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
   <a href="#python-mcp-server-子项目">⬆️ 返回顶部</a>
 </div>

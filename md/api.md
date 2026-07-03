@@ -391,7 +391,7 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
 | `/api/chat/ask`                          | POST | 登录用户 | 提问（RAG） |
 | `/api/chat/session/{sessionId}/messages` | GET  | 登录用户 | 会话消息列表  |
 
-### 提问（RAG）
+### 提问（Agent 自主调用）
 
 **请求**：`POST /api/chat/ask`
 
@@ -423,6 +423,15 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
   }
 }
 ```
+
+**Agent 自动工具调用说明**：
+
+根据用户问题的意图，Agent 会自动选择合适的工具：
+
+- **询问文件列表**：调用 `getAllDocumentsFileName` 工具查询数据库
+- **知识性问题**：调用 `retrieveKnowledge` 工具进行向量相似度检索
+- **最新信息**：调用 MCP Server 的网络搜索工具
+- **直接回答**：对于简单问题，直接生成回答
 
 ### 获取会话消息列表
 
@@ -561,6 +570,6 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-03</span>
+  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
   <a href="#api-接口">⬆️ 返回顶部</a>
 </div>
