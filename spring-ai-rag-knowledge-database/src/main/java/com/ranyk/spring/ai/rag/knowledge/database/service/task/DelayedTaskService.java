@@ -55,7 +55,6 @@ public class DelayedTaskService {
      */
     public ScheduledFuture<?> executeAfterDelay(Runnable task, long delay, TimeUnit unit) {
         log.info("调度延迟任务: 延迟 {} {}", delay, unit);
-
         return scheduler.schedule(() -> virtualThreadExecutor.execute(() -> {
             try {
                 log.info("[{}] 开始执行延迟任务", LocalDateTime.now());
@@ -167,7 +166,6 @@ public class DelayedTaskService {
             Thread.currentThread().interrupt();
             log.error("关闭虚拟线程相关 Bean 时被中断: ");
             log.error("", e);
-
         }
     }
 }
