@@ -465,7 +465,7 @@
                     <!-- 指定编码 -->
                     <encoding>utf-8</encoding>
                     <!-- 强制分叉进程,确保单独传递参数 -->
-                    <fork>false</fork>
+                    <fork>true</fork>
                     <!-- 关键配置：annotationProcessorPaths 的顺序和内容 -->
                     <annotationProcessorPaths>
                         <!-- 1. 必须：Lombok 处理器 -->
