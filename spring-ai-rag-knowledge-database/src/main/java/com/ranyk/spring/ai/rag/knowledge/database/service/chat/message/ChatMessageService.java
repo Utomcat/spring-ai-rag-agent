@@ -14,7 +14,9 @@ import com.ranyk.spring.ai.rag.knowledge.database.repository.chat.message.ChatMe
 import com.ranyk.spring.ai.rag.knowledge.database.service.chat.session.ChatSessionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -170,7 +172,11 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         log.info("Agent 调用完成 sessionId={} 耗时={}ms", sessionId, agentMs);
 
         // 3. 提取 answer 和 references
-        String answer = chatResponse.getResult().getOutput().getText();
+        String answer = Optional.ofNullable(chatResponse)
+                .map(ChatResponse::getResult)
+                .map(Generation::getOutput)
+                .map(AbstractMessage::getText)
+                .orElse("");
 
         // 从 Advisor 的 ThreadLocal 中获取 references
         List<Map<String, Object>> refs = referenceExtractAdvisor.getExtractedReferences();
