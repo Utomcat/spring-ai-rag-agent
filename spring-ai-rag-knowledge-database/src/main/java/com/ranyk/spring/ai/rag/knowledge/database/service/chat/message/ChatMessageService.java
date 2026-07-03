@@ -1,5 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.service.chat.message;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -21,7 +22,11 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 
 /**
  * CLASS_NAME: ChatMessageService.java
@@ -63,6 +69,14 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      */
     private final ReferenceExtractAdvisor referenceExtractAdvisor;
     /**
+     * 虚拟线程执行器 - 用于异步执行数据库操作
+     */
+    private final ExecutorService virtualThreadExecutor;
+    /**
+     * Spring 编程式事务管理器 - 用于手动控制事务边界
+     */
+    private final PlatformTransactionManager transactionManager;
+    /**
      * 系统提示：Agent 模式下的系统提示词 - 告知 LLM 可用工具及使用规则
      */
     public static final String SYSTEM_PROMPT = """
@@ -77,7 +91,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             回答规则：
             - 遇到知识库相关问题时，请先使用知识库检索工具获取信息后再回答
             - 若知识库中未找到相关信息，请明确说明「知识库中未找到相关信息」，不要编造
-            - 回答使用清晰的 Markdown 格式（可适当使用标题、列表）
+            - 回答使用清晰的文本格式（可适当使用标题、列表）
             - 结尾简要列出依据的文档标题
             
             """;
@@ -85,6 +99,14 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * 会话标题最大长度
      */
     private static final int SESSION_TITLE_MAX_LENGTH = 30;
+    /**
+     * Agent 调用异常时的默认回复消息
+     */
+    private static final String AGENT_ERROR_MESSAGE = "系统异常，请稍后重试";
+    /**
+     * LLM 未生成有效回答时的默认消息
+     */
+    private static final String DEFAULT_ANSWER_MESSAGE = "抱歉，我暂时无法回答这个问题，请稍后再试。";
     /**
      * 聊天消息数据转换 MapStruct 接口对象
      */
@@ -99,6 +121,8 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @param objectMapper            Jackson 对象映射器 {@link ObjectMapper}
      * @param chatMessageMapper       聊天消息数据转换 MapStruct 接口对象 {@link ChatMessageMapper}
      * @param referenceExtractAdvisor 引用提取 Advisor {@link ReferenceExtractAdvisor}
+     * @param virtualThreadExecutor   虚拟线程执行器 {@link ExecutorService}
+     * @param transactionManager      平台事务管理器 {@link PlatformTransactionManager}
      */
     @Autowired
     public ChatMessageService(ChatMessageRepository chatMessageRepository,
@@ -106,13 +130,17 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
                               ChatClient chatClient,
                               ObjectMapper objectMapper,
                               ChatMessageMapper chatMessageMapper,
-                              ReferenceExtractAdvisor referenceExtractAdvisor) {
+                              ReferenceExtractAdvisor referenceExtractAdvisor,
+                              ExecutorService virtualThreadExecutor,
+                              PlatformTransactionManager transactionManager) {
         this.chatMessageRepository = chatMessageRepository;
         this.chatSessionService = chatSessionService;
         this.chatClient = chatClient;
         this.objectMapper = objectMapper;
         this.chatMessageMapper = chatMessageMapper;
         this.referenceExtractAdvisor = referenceExtractAdvisor;
+        this.virtualThreadExecutor = virtualThreadExecutor;
+        this.transactionManager = transactionManager;
     }
 
     /**
@@ -146,6 +174,17 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      */
     @Transactional(rollbackFor = Exception.class)
     public ChatMessageDTO ask(ChatMessageDTO chatMessageDTO) {
+        // 0. 参数验证
+        if (Objects.isNull(chatMessageDTO)) {
+            throw new IllegalArgumentException("聊天消息对象不能为空");
+        }
+        if (Objects.isNull(chatMessageDTO.getUserId())) {
+            throw new IllegalArgumentException("用户 ID 不能为空");
+        }
+        String question = chatMessageDTO.getQuestion();
+        if (Objects.isNull(question) || question.trim().isEmpty()) {
+            throw new IllegalArgumentException("问题内容不能为空");
+        }
         // 1. 会话管理：检查或创建会话
         Long sessionId = createOrValidateSession(chatMessageDTO);
         Long userId = chatMessageDTO.getUserId();
@@ -157,7 +196,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             final Long conversationId = sessionId;
             chatResponse = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
-                    .user(chatMessageDTO.getQuestion())
+                    .user(question)
                     .advisors(a -> a.param("conversation_id", conversationId))
                     .call()
                     .chatResponse();
@@ -165,7 +204,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             log.error("Agent 调用异常 sessionId={}, userId={}: {}", sessionId, userId, e.getMessage(), e);
             return ChatMessageDTO.builder()
                     .sessionId(sessionId)
-                    .answer("系统异常，请稍后重试")
+                    .answer(AGENT_ERROR_MESSAGE)
                     .references(List.of())
                     .build();
         } finally {
@@ -173,10 +212,14 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             referenceExtractAdvisor.clearReferences();
         }
         long agentDurationMs = (System.nanoTime() - startTimeNanos) / 1_000_000L;
-        log.info("Agent 调用完成 sessionId={}, userId={}, 耗时={}ms", sessionId, userId, agentDurationMs);
-
+        log.debug("Agent 调用完成 sessionId={}, userId={}, 耗时={}ms", sessionId, userId, agentDurationMs);
         // 3. 提取 answer 和 references
         String answer = extractAnswerFromResponse(chatResponse);
+        // 处理空 answer 情况，提供默认消息
+        if (answer.trim().isEmpty()) {
+            answer = DEFAULT_ANSWER_MESSAGE;
+            log.warn("LLM 未生成有效回答 sessionId={}, userId={}", sessionId, userId);
+        }
         List<Map<String, Object>> references = referenceExtractAdvisor.getExtractedReferences();
 
         // 4. 序列化 references
@@ -185,19 +228,75 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             references = List.of();
         }
 
-        // 5. 保存聊天消息
+        // 5. 异步保存聊天消息和更新会话时间
         LocalDateTime now = LocalDateTime.now();
-        saveChatMessages(sessionId, userId, chatMessageDTO.getQuestion(), answer, referencesJson, now);
+        asyncSaveChatMessages(sessionId, userId, question, answer, referencesJson, now);
 
-        // 6. 更新会话时间
-        updateSessionUpdateTime(sessionId, userId, now);
-
-        // 7. 返回结果
+        // 6. 立即返回结果（不等待异步操作完成）
         return ChatMessageDTO.builder()
                 .sessionId(sessionId)
                 .answer(answer)
                 .references(references)
                 .build();
+    }
+
+    /**
+     * 异步保存聊天消息和更新会话时间
+     *
+     * @param sessionId      会话 ID
+     * @param userId         用户 ID
+     * @param question       用户问题
+     * @param answer         助手回答
+     * @param referencesJson 引用 JSON 字符串
+     * @param now            当前时间
+     */
+    private void asyncSaveChatMessages(Long sessionId,
+                                       Long userId,
+                                       String question,
+                                       String answer,
+                                       String referencesJson,
+                                       LocalDateTime now) {
+        virtualThreadExecutor.execute(() -> {
+            TransactionStatus status = null;
+            try {
+                // 使用编程式事务确保两个数据库操作的原子性
+                DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+                def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+                def.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
+                def.setTimeout(30);
+                // 开始事务
+                status = transactionManager.getTransaction(def);
+
+                // 保存聊天消息
+                saveChatMessages(sessionId, userId, question, answer, referencesJson, now);
+                log.debug("异步保存聊天消息完成 sessionId => {}, userId => {}", sessionId, userId);
+
+                // 更新会话时间
+                updateSessionUpdateTime(sessionId, userId, now);
+                log.debug("异步更新会话时间完成 sessionId => {}, userId => {}", sessionId, userId);
+                // 提交事务
+                transactionManager.commit(status);
+                log.info("异步保存聊天消息成功 sessionId => {}, userId => {}, questionLength => {}, answerLength => {}", sessionId, userId, StrUtil.isNotBlank(question) ? question.length() : 0, StrUtil.isNotBlank(answer) ? answer.length() : 0);
+            } catch (Exception e) {
+                // 回滚事务
+                if (Objects.nonNull(status) && !status.isCompleted()) {
+                    try {
+                        transactionManager.rollback(status);
+                        log.warn("异步保存聊天消息失败，已回滚事务, 当前的会话和会话消息信息为 sessionId => {}, userId => {}, question => {}, answer => {} ", sessionId, userId, question, answer);
+                        log.warn("异步保存聊天消息失败，已回滚事务 errorMessage => {}", e.getMessage());
+                        log.warn("异步保存聊天消息失败，已回滚事务, 当前的异常栈为: \n", e);
+                    } catch (Exception rollbackEx) {
+                        log.warn("异步保存聊天消息失败，回滚事务也异常, 当前的会话和会话消息信息为 sessionId => {}, userId => {}, question => {}, answer => {} ", sessionId, userId, question, answer);
+                        log.warn("异步保存聊天消息失败，回滚事务也异常 errorMessage => {}", e.getMessage());
+                        log.warn("异步保存聊天消息失败，回滚事务也异常, 当前的异常栈为: \n", e);
+                    }
+                } else {
+                    log.error("异步保存聊天消息失败，事务状态已完成无法回滚 sessionId => {}, userId => {}, question => {}, answer => {} ", sessionId, userId, question, answer);
+                    log.error("异步保存聊天消息失败，事务状态已完成无法回滚 errorMessage => {}", e.getMessage());
+                    log.error("异步保存聊天消息失败，事务状态已完成无法回滚 当前的异常栈为: \n", e);
+                }
+            }
+        });
     }
 
     /**
@@ -270,8 +369,12 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @param referencesJson 引用 JSON 字符串
      * @param now            当前时间
      */
-    private void saveChatMessages(Long sessionId, Long userId, String question,
-                                  String answer, String referencesJson, LocalDateTime now) {
+    private void saveChatMessages(Long sessionId,
+                                  Long userId,
+                                  String question,
+                                  String answer,
+                                  String referencesJson,
+                                  LocalDateTime now) {
         // 保存用户消息
         ChatMessage userChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
