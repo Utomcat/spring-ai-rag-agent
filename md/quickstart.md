@@ -63,15 +63,15 @@ mysql -u root -p < doc/init_database.sql
 
 编辑 `spring-ai-rag-knowledge-database/src/main/resources/` 下的配置文件：
 
-| 配置文件 | 配置内容 |
-|---------|---------|
-| `rdb-datasource.yml` | 设置 MySQL 连接信息（用户名、密码、数据库名） |
-| `nrdb-datasource.yml` | 设置 Redis 连接信息（主机、端口、密码） |
-| `llm-model.yml` | 设置 LLM 模型配置：OpenAI API（api-key、base-url、chat.model）、Ollama（base-url、embedding.model） |
-| `vdb-datasource.yml` | 设置 Redis 向量数据库配置（索引类型、距离度量、维度） |
-| `file.yml` | 设置文件上传存储路径 |
-| `rdb.yml` | 设置需要跳过自动填充的表（可选） |
-| `mcp.yml` | 设置 MCP Server 连接信息（可选） |
+| 配置文件                  | 配置内容                                                                                 |
+|-----------------------|--------------------------------------------------------------------------------------|
+| `rdb-datasource.yml`  | 设置 MySQL 连接信息（用户名、密码、数据库名）                                                           |
+| `nrdb-datasource.yml` | 设置 Redis 连接信息（主机、端口、密码）                                                              |
+| `llm-model.yml`       | 设置 LLM 模型配置：OpenAI API（api-key、base-url、chat.model）、Ollama（base-url、embedding.model） |
+| `vdb-datasource.yml`  | 设置 Redis 向量数据库配置（索引类型、距离度量、维度）                                                       |
+| `file.yml`            | 设置文件上传存储路径                                                                           |
+| `rdb.yml`             | 设置需要跳过自动填充的表（可选）                                                                     |
+| `mcp.yml`             | 设置 MCP Server 连接信息（可选）                                                               |
 
 ## 🏗️ 构建运行
 
@@ -222,9 +222,9 @@ python main.py
 
 Windows 下设置环境变量的方式与 Linux/Mac 不同：
 
-| 环境 | 设置方式 | 示例 |
-|------|----------|------|
-| CMD | `set 变量名=值` | `set MCP_TRANSPORT=streamable-http` |
+| 环境         | 设置方式           | 示例                                       |
+|------------|----------------|------------------------------------------|
+| CMD        | `set 变量名=值`    | `set MCP_TRANSPORT=streamable-http`      |
 | PowerShell | `$env:变量名="值"` | `$env:MCP_TRANSPORT = "streamable-http"` |
 
 ### 2. 路径分隔符

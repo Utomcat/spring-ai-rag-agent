@@ -13,14 +13,14 @@
 
 ## 🛠️ 子项目技术栈
 
-| 依赖             | 版本      | 说明       |
-|----------------|---------|----------|
-| Python         | 3.14+   | 运行环境     |
-| mcp[cli]       | 1.28.1+ | MCP 协议实现 |
-| langchain      | 1.3.11  | LLM 应用框架 |
-| beautifulsoup4 | 4.15.0+ | HTML 解析  |
-| requests       | 2.34.2+ | HTTP 请求  |
-| python-dotenv  | 1.2.2+  | 环境变量管理  |
+| 依赖             | 版本      | 说明          |
+|----------------|---------|-------------|
+| Python         | 3.14+   | 运行环境        |
+| mcp[cli]       | 1.28.1+ | MCP 协议实现    |
+| langchain      | 1.3.11  | LLM 应用框架    |
+| beautifulsoup4 | 4.15.0+ | HTML 解析     |
+| requests       | 2.34.2+ | HTTP 请求     |
+| python-dotenv  | 1.2.2+  | 环境变量管理      |
 | lxml           | 6.1.1+  | XML/HTML 解析 |
 
 ## 子项目文件结构
@@ -57,11 +57,11 @@ python-mcp-server/
 
 **工具参数**：
 
-| 参数名       | 类型    | 必填 | 默认值 | 说明                    |
-|------------|-------|-----|-------|-----------------------|
-| query      | String | 是   | -     | 搜索关键词或问题             |
-| max_results | Integer | 否   | 5     | 搜索结果数量               |
-| engine     | String | 否   | duckduckgo | 搜索引擎（bing 或 duckduckgo） |
+| 参数名         | 类型      | 必填 | 默认值        | 说明                      |
+|-------------|---------|----|------------|-------------------------|
+| query       | String  | 是  | -          | 搜索关键词或问题                |
+| max_results | Integer | 否  | 5          | 搜索结果数量                  |
+| engine      | String  | 否  | duckduckgo | 搜索引擎（bing 或 duckduckgo） |
 
 **使用示例**：
 
@@ -144,12 +144,12 @@ MCP_MOUNT_PATH=
 
 ### 配置项说明
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| MCP_HOST | 0.0.0.0 | 服务器主机地址 |
-| MCP_PORT | 8084 | 服务器端口号 |
-| MCP_TRANSPORT | stdio | 传输方式（stdio/sse/streamable-http） |
-| MCP_MOUNT_PATH | - | URL 挂载路径（仅用于 sse/streamable-http） |
+| 配置项            | 默认值     | 说明                                |
+|----------------|---------|-----------------------------------|
+| MCP_HOST       | 0.0.0.0 | 服务器主机地址                           |
+| MCP_PORT       | 8084    | 服务器端口号                            |
+| MCP_TRANSPORT  | stdio   | 传输方式（stdio/sse/streamable-http）   |
+| MCP_MOUNT_PATH | -       | URL 挂载路径（仅用于 sse/streamable-http） |
 
 ### pyproject.toml
 

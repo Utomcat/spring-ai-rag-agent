@@ -318,18 +318,18 @@ mcp:
 
 以下配置项支持通过环境变量覆盖：
 
-| 环境变量 | 对应配置项 | 说明 |
-|---------|-----------|------|
-| `DB_USERNAME` | `spring.datasource.username` | 数据库用户名 |
-| `DB_PASSWORD` | `spring.datasource.password` | 数据库密码 |
-| `REDIS_HOST` | `spring.data.redis.host` | Redis 主机 |
-| `REDIS_PORT` | `spring.data.redis.port` | Redis 端口 |
-| `REDIS_PASSWORD` | `spring.data.redis.password` | Redis 密码 |
-| `XIAOMI_MIMO_OPENAI_API_KEY` | `spring.ai.openai.api-key` | OpenAI API Key |
-| `XIAOMI_MIMO_OPENAI_BASE_URL` | `spring.ai.openai.base-url` | OpenAI API 基础 URL |
-| `XIAOMI_MIMO_OPENAI_CHAT_MODEL` | `spring.ai.openai.chat.model` | 聊天模型名称 |
-| `OLLAMA_BASE_URL` | `spring.ai.ollama.base-url` | Ollama 服务地址 |
-| `OLLAMA_EMBEDDING_MODEL` | `spring.ai.ollama.embedding.model` | Embedding 模型名称 |
+| 环境变量                            | 对应配置项                              | 说明                |
+|---------------------------------|------------------------------------|-------------------|
+| `DB_USERNAME`                   | `spring.datasource.username`       | 数据库用户名            |
+| `DB_PASSWORD`                   | `spring.datasource.password`       | 数据库密码             |
+| `REDIS_HOST`                    | `spring.data.redis.host`           | Redis 主机          |
+| `REDIS_PORT`                    | `spring.data.redis.port`           | Redis 端口          |
+| `REDIS_PASSWORD`                | `spring.data.redis.password`       | Redis 密码          |
+| `XIAOMI_MIMO_OPENAI_API_KEY`    | `spring.ai.openai.api-key`         | OpenAI API Key    |
+| `XIAOMI_MIMO_OPENAI_BASE_URL`   | `spring.ai.openai.base-url`        | OpenAI API 基础 URL |
+| `XIAOMI_MIMO_OPENAI_CHAT_MODEL` | `spring.ai.openai.chat.model`      | 聊天模型名称            |
+| `OLLAMA_BASE_URL`               | `spring.ai.ollama.base-url`        | Ollama 服务地址       |
+| `OLLAMA_EMBEDDING_MODEL`        | `spring.ai.ollama.embedding.model` | Embedding 模型名称    |
 
 ## 配置文件优先级
 
