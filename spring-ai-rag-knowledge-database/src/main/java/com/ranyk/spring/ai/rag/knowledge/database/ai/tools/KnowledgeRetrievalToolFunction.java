@@ -66,7 +66,7 @@ public class KnowledgeRetrievalToolFunction {
      */
     @Tool(description = "从知识库中语义检索与用户问题相关的文档片段。当需要查找知识库中的专业信息、技术文档、业务流程时使用此工具。")
     public String retrieveKnowledge(
-            @ToolParam(description = "用户的问题或检索关键词", required = true) String question,
+            @ToolParam(description = "用户的问题或检索关键词") String question,
             @ToolParam(description = "可选的分类ID列表，用于限定检索范围。不传则全库检索", required = false) List<Long> categoryIds
     ) {
         log.info("调用知识库检索工具 - retrieveKnowledge，入参：question => {}，categoryIds => {}", question, categoryIds);
