@@ -23,8 +23,7 @@ import org.springframework.context.annotation.Configuration;
         CorsProperties.class,
         RdbProperties.class,
         DocSplitterProperties.class,
-        SystemProperties.class,
-        McpServerProperties.class
+        SystemProperties.class
 })
 public class ApplicationConfiguration {
 }
