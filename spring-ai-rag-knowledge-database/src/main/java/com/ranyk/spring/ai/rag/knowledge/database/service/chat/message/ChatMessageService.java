@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.advisor.ReferenceExtractAdvisor;
+import com.ranyk.spring.ai.rag.knowledge.database.common.constant.MessageRoleEnum;
+import com.ranyk.spring.ai.rag.knowledge.database.common.constant.SymbolEnum;
 import com.ranyk.spring.ai.rag.knowledge.database.common.exception.ServiceException;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.dto.ChatMessageDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.entity.ChatMessage;
@@ -23,7 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * CLASS_NAME: ChatMessageService.java
@@ -77,25 +82,12 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             
             """;
     /**
-     * 用户角色常量
-     */
-    private static final String ROLE_USER = "USER";
-    /**
-     * 助手角色常量
-     */
-    private static final String ROLE_ASSISTANT = "ASSISTANT";
-    /**
-     * 空 JSON 数组常量
-     */
-    private static final String EMPTY_JSON_ARRAY = "[]";
-    /**
      * 会话标题最大长度
      */
     private static final int SESSION_TITLE_MAX_LENGTH = 30;
     /**
-     * 省略号字符
+     * 聊天消息数据转换 MapStruct 接口对象
      */
-    private static final String ELLIPSIS = "…";
     private final ChatMessageMapper chatMessageMapper;
 
     /**
@@ -189,7 +181,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
 
         // 4. 序列化 references
         String referencesJson = serializeReferences(references);
-        if (referencesJson.equals(EMPTY_JSON_ARRAY)) {
+        if (referencesJson.equals(SymbolEnum.EMPTY_JSON_ARRAY.getCode())) {
             references = List.of();
         }
 
@@ -222,7 +214,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         if (Objects.isNull(sessionId) || Objects.equals(0L, sessionId)) {
             String question = chatMessageDTO.getQuestion().trim();
             String title = question.length() > SESSION_TITLE_MAX_LENGTH
-                    ? question.substring(0, SESSION_TITLE_MAX_LENGTH) + ELLIPSIS
+                    ? question.substring(0, SESSION_TITLE_MAX_LENGTH) + SymbolEnum.ELLIPSIS.getCode()
                     : question;
             ChatSessionDTO chatSessionDTO = chatSessionService.saveSessionInfo(
                     ChatSessionDTO.builder().userId(userId).title(title).build()
@@ -264,7 +256,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             return objectMapper.writeValueAsString(references);
         } catch (Exception e) {
             log.error("序列化 references 失败: {}", e.getMessage(), e);
-            return EMPTY_JSON_ARRAY;
+            return SymbolEnum.EMPTY_JSON_ARRAY.getCode();
         }
     }
 
@@ -283,9 +275,9 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         // 保存用户消息
         ChatMessage userChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
-                .role(ROLE_USER)
+                .role(MessageRoleEnum.ROLE_USER.getRole())
                 .content(question)
-                .refs(EMPTY_JSON_ARRAY)
+                .refs(SymbolEnum.EMPTY_JSON_ARRAY.getCode())
                 .createBy(userId)
                 .createTime(now)
                 .updateBy(userId)
@@ -297,7 +289,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         // 保存助手消息
         ChatMessage assistantChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
-                .role(ROLE_ASSISTANT)
+                .role(MessageRoleEnum.ROLE_ASSISTANT.getRole())
                 .content(answer)
                 .refs(referencesJson)
                 .createBy(userId)
