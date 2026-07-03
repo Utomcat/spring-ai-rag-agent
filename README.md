@@ -1,4 +1,4 @@
-# spring-ai-rag-study
+# spring-ai-rag-agent
 
 <p style="text-align: center;">
   <img src="https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white" alt="Java Version" />
