@@ -10,6 +10,7 @@ import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.ai.vectorstore.redis.autoconfigure.RedisVectorStoreProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.data.redis.autoconfigure.DataRedisProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,7 +71,7 @@ public class RedisAndRedisVectorStoreConfiguration {
     @Bean
     public RedisVectorStore redisVectorStore(
             RedisClient redisClient,
-            EmbeddingModel embeddingModel,
+            @Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel,
             ObjectProvider<ObservationRegistry> observationRegistry,
             ObjectProvider<VectorStoreObservationConvention> observationConvention,
             ObjectProvider<BatchingStrategy> batchingStrategy) {
