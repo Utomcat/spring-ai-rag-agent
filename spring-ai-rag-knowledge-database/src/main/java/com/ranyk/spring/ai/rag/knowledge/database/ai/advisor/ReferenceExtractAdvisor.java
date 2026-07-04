@@ -30,8 +30,10 @@ public class ReferenceExtractAdvisor implements CallAdvisor {
 
     /**
      * 使用 ThreadLocal 存储当前线程提取的 references
+     * 初始化为可变空列表，避免不可变列表导致的语义混淆
      */
-    private static final ThreadLocal<List<Map<String, Object>>> REFERENCES_HOLDER = ThreadLocal.withInitial(List::of);
+    private static final ThreadLocal<List<Map<String, Object>>> REFERENCES_HOLDER = 
+        ThreadLocal.withInitial(ArrayList::new);
 
     /**
      * Jackson 对象映射器
