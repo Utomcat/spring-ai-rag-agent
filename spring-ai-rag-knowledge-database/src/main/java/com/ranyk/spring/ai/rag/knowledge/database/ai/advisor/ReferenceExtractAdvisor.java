@@ -7,9 +7,13 @@ import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
+import org.springframework.ai.chat.model.Generation;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * CLASS_NAME: ReferenceExtractAdvisor.java
@@ -46,8 +50,8 @@ public class ReferenceExtractAdvisor implements CallAdvisor {
     /**
      * 拦截知识库检索工具调用结果，提取 references 供后续使用
      *
-     * @param chatClientRequest  Chat 客户端请求对象 {@link ChatClientRequest}
-     * @param callAdvisorChain   拦截器链 {@link CallAdvisorChain}
+     * @param chatClientRequest Chat 客户端请求对象 {@link ChatClientRequest}
+     * @param callAdvisorChain  拦截器链 {@link CallAdvisorChain}
      * @return Chat 客户端响应对象 {@link ChatClientResponse}
      */
     @Override
@@ -65,7 +69,7 @@ public class ReferenceExtractAdvisor implements CallAdvisor {
                     // 获取工具调用响应列表 - 使用类型安全的辅助方法
                     List<Map<String, Object>> toolCallResponses = getToolCallResponses(generation);
 
-                    if (toolCallResponses != null && !toolCallResponses.isEmpty()) {
+                    if (Objects.nonNull(toolCallResponses) && !toolCallResponses.isEmpty()) {
                         log.info("检测到 {} 个工具调用响应，开始提取 references", toolCallResponses.size());
 
                         // 遍历所有工具调用响应
@@ -81,7 +85,7 @@ public class ReferenceExtractAdvisor implements CallAdvisor {
                                 Map<String, Object> result = parseJsonToMap(toolResult);
                                 List<Map<String, Object>> documents = extractDocuments(result);
 
-                                if (documents != null && !documents.isEmpty()) {
+                                if (Objects.nonNull(documents) && !documents.isEmpty()) {
                                     // 将 references 存入 ThreadLocal
                                     REFERENCES_HOLDER.set(documents);
                                     log.info("成功提取 {} 个引用文档", documents.size());
@@ -129,7 +133,7 @@ public class ReferenceExtractAdvisor implements CallAdvisor {
     private List<Map<String, Object>> getToolCallResponses(Object generation) {
         // 这里使用了反射或其他方式获取 metadata，简化为直接访问
         // 实际代码中 generation 应该是 Generation 类型
-        var gen = (org.springframework.ai.chat.model.Generation) generation;
+        var gen = (Generation) generation;
         return gen.getMetadata().get("toolCallResponses");
     }
 
