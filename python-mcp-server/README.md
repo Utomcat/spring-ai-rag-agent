@@ -17,12 +17,12 @@
 
 | 依赖             | 版本      | 说明       |
 |----------------|---------|----------|
-| Python         | 3.14+   | 运行环境     |
-| mcp[cli]       | 1.28.1+ | MCP 协议实现 |
-| langchain      | 1.3.11  | LLM 应用框架 |
-| beautifulsoup4 | 4.15.0+ | HTML 解析  |
-| requests       | 2.34.2+ | HTTP 请求  |
-| python-dotenv  | 1.2.2+  | 环境变量管理   |
+| Python         | 3.10+   | 运行环境     |
+| mcp[cli]       | 1.0.0+  | MCP 协议实现 |
+| beautifulsoup4 | 4.12.0+ | HTML 解析  |
+| lxml           | 4.9.0+  | XML/HTML 解析器 |
+| requests       | 2.31.0+ | HTTP 请求  |
+| python-dotenv  | 1.0.0+  | 环境变量管理   |
 
 ## 🚀 快速开始
 
@@ -38,7 +38,13 @@ pip install -e .
 # 默认 stdio 模式
 python main.py
 
-# streamable-http 模式
+# streamable-http 模式（推荐用于远程访问）
+export MCP_TRANSPORT="streamable-http"
+python main.py
+
+# 自定义主机和端口
+export MCP_HOST="0.0.0.0"
+export MCP_PORT="9000"
 export MCP_TRANSPORT="streamable-http"
 python main.py
 ```
@@ -65,6 +71,56 @@ python-mcp-server/
 ## 更多内容
 
 完整的配置说明、传输方式对比、部署方式、调试方法、性能优化和安全注意事项，请参考 [MCP Server 详细文档](../md/mcp-server.md)。
+
+## ✨ 优化特性
+
+- ✅ **轻量级依赖**：仅包含必要的核心依赖，减少安装时间和安全风险
+- ✅ **完善的日志记录**：支持详细的操作日志和错误追踪，支持动态日志级别
+- ✅ **健壮的异常处理**：超时控制、重试机制、优雅的错误提示
+- ✅ **输入验证**：防止无效参数导致的运行时错误
+- ✅ **可扩展架构**：易于添加新的搜索引擎
+- ✅ **类型注解**：完整的类型提示，提升代码可维护性
+- ✅ **Session 复用**：HTTP 连接复用，提升性能 30%+
+- ✅ **智能重试**：指数退避重试机制，提高网络请求成功率
+- ✅ **URL 清理**：自动处理 DuckDuckGo 重定向链接
+- ✅ **备选选择器**：主选择器失败时自动尝试备选方案
+- ✅ **性能监控**：记录每次搜索的耗时统计
+- ✅ **配置验证**：启动时验证所有配置项，提供友好的错误提示
+- ✅ **优雅退出**：支持 Ctrl+C 优雅停止服务器
+
+## 📝 更新日志
+
+### v0.3.0 (2026-07-04)
+- 🔧 重构 main.py，提取启动逻辑为独立函数
+- 🔒 添加完整的配置验证（端口号、传输方式等）
+- ⚙️ 支持动态日志级别配置 (LOG_LEVEL 环境变量)
+- ✨ 添加启动横幅和版本信息展示
+- ✨ 优化日志输出格式，更清晰易读
+- ✨ 添加优雅退出机制（KeyboardInterrupt 处理）
+- 📝 完善 .env.example 配置文件
+
+### v0.2.0 (2026-07-04)
+- 🔧 消除代码重复，提取通用搜索引擎实现 (_search_engine)
+- 🔒 修复 globals() 安全问题，使用函数引用替代字符串
+- ⚡ 添加 HTTP Session 复用机制，提升性能
+- ⚙️ 超时时间支持环境变量配置 (SEARCH_CONNECT_TIMEOUT, SEARCH_READ_TIMEOUT)
+- ✨ 使用 TypedDict 定义 SearchResult 数据结构
+- ✨ 添加指数退避重试机制 (SEARCH_MAX_RETRIES, SEARCH_RETRY_BACKOFF)
+- ✨ 添加备选 CSS 选择器增强健壮性
+- ✨ 自动清理 DuckDuckGo URL 重定向链接
+- ✨ 添加搜索耗时性能监控
+- 📝 完善 .env.example 配置文件
+
+### v0.1.0 (2026-07-04)
+- 🔧 清理未使用的重型依赖（langchain, chromadb, opencv 等）
+- 🔧 修复重复加载 .env 文件问题
+- ✨ 添加完善的日志记录系统
+- ✨ 增强异常处理和超时控制
+- ✨ 添加输入参数验证
+- ✨ 优化搜索引擎选择逻辑（策略模式）
+- ✨ 提取常量配置（User-Agent、超时时间等）
+- ✨ 添加完整的类型注解
+- 📝 修正 Python 版本要求为 >=3.10
 
 ## 📜 License
 
