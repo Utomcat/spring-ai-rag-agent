@@ -176,22 +176,23 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
     public ChatMessageDTO ask(ChatMessageDTO chatMessageDTO) {
         // 0. 参数验证
         if (Objects.isNull(chatMessageDTO)) {
-            throw new IllegalArgumentException("聊天消息对象不能为空");
+            throw new ServiceException("parameter.abnormalities.error", new String[]{"聊天消息对象不能为空"});
         }
         if (Objects.isNull(chatMessageDTO.getUserId())) {
-            throw new IllegalArgumentException("用户 ID 不能为空");
+            throw new ServiceException("parameter.abnormalities.error", new String[]{"用户 ID 不能为空"});
         }
         String question = chatMessageDTO.getQuestion();
         if (Objects.isNull(question) || question.trim().isEmpty()) {
-            throw new IllegalArgumentException("问题内容不能为空");
+            throw new ServiceException("parameter.abnormalities.error", new String[]{"问题内容不能为空"});
         }
         // 1. 会话管理：检查或创建会话
         Long sessionId = createOrValidateSession(chatMessageDTO);
         Long userId = chatMessageDTO.getUserId();
 
-        // 2. Agent 调用：LLM 自主决定调用工具并生成回答
+        // 2. Agent 调用:LLM 自主决定调用工具并生成回答
         long startTimeNanos = System.nanoTime();
         ChatResponse chatResponse;
+        List<Map<String, Object>> references;
         try {
             final Long conversationId = sessionId;
             chatResponse = chatClient.prompt()
@@ -200,8 +201,10 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
                     .advisors(a -> a.param("conversation_id", conversationId))
                     .call()
                     .chatResponse();
+            // 成功调用后提取 references
+            references = referenceExtractAdvisor.getExtractedReferences();
         } catch (Exception e) {
-            log.error("Agent 调用异常 sessionId={}, userId={}: {}", sessionId, userId, e.getMessage(), e);
+            log.error("Agent 调用异常 sessionId => {}, userId => {}: {}", sessionId, userId, e.getMessage(), e);
             return ChatMessageDTO.builder()
                     .sessionId(sessionId)
                     .answer(AGENT_ERROR_MESSAGE)
@@ -211,16 +214,16 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             // 确保 ThreadLocal 被清理，防止内存泄漏
             referenceExtractAdvisor.clearReferences();
         }
+                
         long agentDurationMs = (System.nanoTime() - startTimeNanos) / 1_000_000L;
-        log.debug("Agent 调用完成 sessionId={}, userId={}, 耗时={}ms", sessionId, userId, agentDurationMs);
-        // 3. 提取 answer 和 references
+        log.debug("Agent 调用完成 sessionId => {}, userId => {}, 耗时 => {}ms", sessionId, userId, agentDurationMs);
+        // 3. 提取 answer
         String answer = extractAnswerFromResponse(chatResponse);
         // 处理空 answer 情况，提供默认消息
         if (answer.trim().isEmpty()) {
             answer = DEFAULT_ANSWER_MESSAGE;
-            log.warn("LLM 未生成有效回答 sessionId={}, userId={}", sessionId, userId);
+            log.warn("LLM 未生成有效回答 sessionId => {}, userId => {}", sessionId, userId);
         }
-        List<Map<String, Object>> references = referenceExtractAdvisor.getExtractedReferences();
 
         // 4. 序列化 references
         String referencesJson = serializeReferences(references);
