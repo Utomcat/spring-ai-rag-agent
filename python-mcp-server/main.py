@@ -1,91 +1,202 @@
-from script.MCP.web_search_server import mcp
-from dotenv import load_dotenv
-import os
+"""MCP Server 主启动入口。
 
-# 加载 .env 配置文件
+负责加载环境变量并启动 MCP 服务器。
+"""
+import os
+import sys
+import logging
+
+from dotenv import load_dotenv
+from script.MCP.web_search_server import mcp, get_mcp_config
+
+# 项目版本信息
+VERSION = '0.2.0'
+
+# 有效的传输方式
+VALID_TRANSPORTS = {'stdio', 'sse', 'streamable-http'}
+
+
+def setup_logging(level: str = 'INFO') -> logging.Logger:
+    """配置日志系统。
+    
+    Args:
+        level: 日志级别 (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    
+    Returns:
+        logging.Logger: 配置好的 logger 对象
+    """
+    # 转换日志级别字符串为常量
+    numeric_level = getattr(logging, level.upper(), logging.INFO)
+    
+    # 配置根 logger
+    logging.basicConfig(
+        level=numeric_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    return logging.getLogger(__name__)
+
+
+def validate_port(port_str: str) -> int:
+    """验证端口号是否有效。
+    
+    Args:
+        port_str: 端口号字符串
+    
+    Returns:
+        int: 有效的端口号
+    
+    Raises:
+        ValueError: 端口号无效时抛出
+    """
+    try:
+        port = int(port_str)
+        if not (1 <= port <= 65535):
+            raise ValueError(f'端口号必须在 1-65535 范围内，当前值: {port}')
+        return port
+    except (ValueError, TypeError) as exception:
+        raise ValueError(f'无效的端口号: {port_str}') from exception
+
+
+def validate_transport(transport: str) -> str:
+    """验证传输方式是否有效。
+    
+    Args:
+        transport: 传输方式字符串
+    
+    Returns:
+        str: 有效的传输方式（小写）
+    
+    Raises:
+        ValueError: 传输方式无效时抛出
+    """
+    transport_lower = transport.lower().strip()
+    if transport_lower not in VALID_TRANSPORTS:
+        raise ValueError(
+            f'无效的传输方式: {transport}，支持的方式: {", ".join(sorted(VALID_TRANSPORTS))}'
+        )
+    return transport_lower
+
+
+def load_configuration() -> dict:
+    """加载并验证配置。
+    
+    Returns:
+        dict: 包含 transport 和 config 的配置字典
+    
+    Raises:
+        ValueError: 配置无效时抛出
+    """
+    # 加载 .env 配置文件
+    logger.info('正在加载环境变量...')
+    load_dotenv()
+    logger.info('环境变量加载完成')
+    
+    # 读取并验证传输方式
+    transport_raw = os.getenv('MCP_TRANSPORT', 'stdio')
+    try:
+        transport = validate_transport(transport_raw)
+    except ValueError as exception:
+        logger.error(str(exception))
+        raise
+    
+    # 读取并验证 MCP 配置
+    try:
+        config = get_mcp_config()
+        # 额外验证端口号
+        config['port'] = validate_port(str(config['port']))
+    except (ValueError, TypeError) as exception:
+        logger.error(f'配置验证失败: {exception}')
+        raise
+    
+    return {
+        'transport': transport,
+        'config': config
+    }
+
+
+def print_banner():
+    """打印启动横幅。"""
+    banner = f'''
+╔══════════════════════════════════════════════════════════╗
+║           Python MCP Server v{VERSION:<39}               ║
+║           Web Search Tool for Spring AI RAG              ║
+╚══════════════════════════════════════════════════════════╝
+'''
+    print(banner)
+
+
+def start_server(transport: str, config: dict):
+    """启动 MCP 服务器。
+    
+    Args:
+        transport: 传输方式 (stdio, sse, streamable-http)
+        config: MCP 服务器配置字典
+    """
+    logger.info('=' * 60)
+    logger.info('MCP 服务器启动配置:')
+    logger.info(f'  - 传输方式: {transport}')
+    logger.info(f'  - 主机地址: {config["host"]}')
+    logger.info(f'  - 端口号: {config["port"]}')
+    logger.info(f'  - 挂载路径: {config["mount_path"]}')
+    logger.info('=' * 60)
+    
+    # 根据传输方式决定是否需要 host/port/mount_path
+    if transport == 'stdio':
+        logger.info('使用 stdio 传输方式，host/port/mount_path 参数将被忽略')
+        logger.info('MCP 服务器已就绪，等待连接...')
+        mcp.run(transport=transport)
+    else:
+        listen_addr = f'{config["host"]}:{config["port"]}{config["mount_path"]}'
+        logger.info(f'使用 {transport} 传输方式，监听 {listen_addr}')
+        logger.info(f'MCP 服务器已就绪，端点地址: {listen_addr}')
+        mcp.run(
+            transport=transport,
+            host=config['host'],
+            port=config['port'],
+            mount_path=config['mount_path']
+        )
+
+
+# 先加载 .env，再配置日志（支持通过 LOG_LEVEL 环境变量动态调整日志级别）
 load_dotenv()
+log_level = os.getenv('LOG_LEVEL', 'INFO')
+logger = setup_logging(log_level)
 
 if __name__ == '__main__':
-    """
-    启动 MCP 服务器, 参数说明:
+    """启动 MCP 服务器。
     
-    - host: 服务器主机地址
-    - port: 服务器端口号
-    - transport: 传输方式, 可选值如下:
-        - stdio (标准输入输出)
-            - 通信方式：通过进程的标准输入(stdin)和标准输出(stdout)进行通信
-            - 适用场景：
-                本地运行的 MCP 服务器
-                作为子进程被其他应用启动
-                Spring AI 等框架集成时最常用
-            - 优点：
-                - 简单直接，无需网络配置
-                - 安全性高，只在本地进程间通信
-                - 易于调试和管理生命周期
-            - 缺点：
-                - 只能本地使用，无法远程访问
-                - 需要父进程管理子进程
-        - sse (Server-Sent Events)
-            - 通信方式：基于 HTTP 的单向服务器推送协议
-            - 适用场景：
-                - 需要浏览器或 HTTP 客户端连接
-                - 服务器向客户端推送实时数据
-            - 优点：
-                - 基于 HTTP，防火墙友好
-                - 支持跨域通信
-                - 可以实现远程访问
-            - 缺点：
-                - 单向通信（服务器→客户端）
-                - 需要额外的机制处理客户端到服务器的请求
-                - 配置相对复杂
-        - streamable-http
-            - 通信方式：基于 HTTP 的双向流式通信
-            - 适用场景：
-                - 需要完整的 HTTP 协议支持
-                - 远程 MCP 服务器部署
-                - 需要负载均衡或代理的场景
-            - 优点：
-                - 双向通信
-                - 支持远程访问
-                - 可以利用现有的 HTTP 基础设施（负载均衡、认证等）
-            - 缺点：
-                - 配置最复杂
-                - 需要处理 HTTP 相关的各种问题（超时、连接池等）
-                - 性能开销相对较大
-    - mount_path: MCP 服务器在使用 HTTP 相关传输方式（sse 或 streamable-http）时的 URL 路径配置
-        - 作用: 定了 MCP 服务端点在 HTTP 服务器上的挂载路径（URL 路径前缀）
-        - 使用场景:
-            - 使用 stdio 时
-                - mount_path 不生效，可以忽略
-                - 因为 stdio 是通过标准输入输出通信，不涉及 HTTP URL
-            - 使用 sse 时
-                - 客户端通过 https://host:port/{mount_path} 访问
-                - 默认值通常是 /sse 或 /message
-            - 使用 streamable-http 时
-                - 客户端通过 https://host:port/{mount_path} 访问
-                - 默认值通常是 /mcp
-        - 使用示例
-        ```python
-            # 示例 1: 默认路径
-            mcp.run(transport="streamable-http")
-            # 访问: https://localhost:8000/mcp
-            
-            # 示例 2: 自定义路径
-            mcp.run(transport="streamable-http", mount_path="/custom/path")
-            # 访问: https://localhost:8000/custom/path
-            
-            # 示例 3: 带端口和主机
-            mcp.run(
-                transport="streamable-http",
-                host="0.0.0.0",
-                port=9000,
-                mount_path="/api/v1/mcp"
-            )
-            # 访问: https://0.0.0.0:9000/api/v1/mcp
-        ```
+    支持的传输方式：
+    - stdio: 标准输入输出，适用于本地进程间通信
+    - sse: Server-Sent Events，基于 HTTP 的单向推送
+    - streamable-http: 基于 HTTP 的双向流式通信
+    
+    配置参数通过环境变量设置：
+    - MCP_TRANSPORT: 传输方式 (默认: stdio)
+    - MCP_HOST: 服务器主机地址 (默认: 127.0.0.1)
+    - MCP_PORT: 服务器端口号 (默认: 8084)
+    - MCP_MOUNT_PATH: URL 挂载路径 (默认: /mcp)
+    - LOG_LEVEL: 日志级别 (默认: INFO)
     """
-    # 从环境变量读取配置,提供默认值
-    transport = os.getenv("MCP_TRANSPORT", "stdio")
+    try:
+        # 打印启动横幅
+        print_banner()
         
-    # 启动 MCP 服务器
-    mcp.run(transport=transport)
+        # 加载并验证配置
+        settings = load_configuration()
+        
+        # 启动服务器
+        start_server(settings['transport'], settings['config'])
+        
+    except ValueError as e:
+        logger.error(f'配置错误: {e}')
+        logger.error('请检查 .env 文件或环境变量设置')
+        sys.exit(1)
+    except KeyboardInterrupt:
+        logger.info('\n收到中断信号，正在优雅退出...')
+        logger.info('MCP 服务器已停止')
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f'启动失败: {e}', exc_info=True)
+        sys.exit(1)
