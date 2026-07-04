@@ -3,30 +3,22 @@
 提供基于 MCP 协议的网络搜索工具，支持多种搜索引擎。
 """
 import logging
-import os
 import time
 from typing import TypedDict
 from urllib.parse import quote_plus, urlparse, parse_qs
 
 import requests
 from bs4 import BeautifulSoup
-from mcp.server.fastmcp import FastMCP
 
-# 配置日志
-logger = logging.getLogger(__name__)
+from config.constants import (
+    MAX_RESULTS_LIMIT,
+    REQUEST_TIMEOUT,
+    MAX_RETRIES,
+    RETRY_BACKOFF_FACTOR, READ_TIMEOUT,
+)
+from server import mcp
+from utils.http_client import create_http_session
 
-# 常量定义
-DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-MAX_RESULTS_LIMIT = 20  # 最大搜索结果数量限制
-
-# 从环境变量读取超时配置（单位：秒）
-CONNECT_TIMEOUT = int(os.getenv('SEARCH_CONNECT_TIMEOUT', '5'))
-READ_TIMEOUT = int(os.getenv('SEARCH_READ_TIMEOUT', '10'))
-REQUEST_TIMEOUT = (CONNECT_TIMEOUT, READ_TIMEOUT)  # (连接超时, 读取超时)
-
-# 重试配置
-MAX_RETRIES = int(os.getenv('SEARCH_MAX_RETRIES', '2'))
-RETRY_BACKOFF_FACTOR = float(os.getenv('SEARCH_RETRY_BACKOFF', '1.5'))
 
 # 搜索结果数据结构
 class SearchResult(TypedDict):
@@ -71,32 +63,8 @@ SEARCH_ENGINES = {
 }
 
 
-def get_mcp_config() -> dict:
-    """从环境变量读取 MCP 服务器配置。
-    
-    Returns:
-        dict: 包含 host, port, mount_path 的配置字典
-    """
-    return {
-        'host': os.getenv('MCP_HOST', '127.0.0.1'),
-        'port': int(os.getenv('MCP_PORT', '8084')),
-        'mount_path': os.getenv('MCP_MOUNT_PATH', '/mcp'),
-    }
-
-
-def create_http_session() -> requests.Session:
-    """创建配置好的 HTTP Session 对象。
-    
-    Returns:
-        requests.Session: 配置好 User-Agent 和 headers 的会话对象
-    """
-    session = requests.Session()
-    session.headers.update({
-        'User-Agent': DEFAULT_USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-    })
-    return session
+# 配置日志
+logger = logging.getLogger(__name__)
 
 
 def _clean_duckduckgo_url(url: str) -> str:
@@ -237,17 +205,6 @@ def _search_engine(
         logger.error(f'{name} 搜索出错，耗时 {elapsed_time:.2f}秒: {str(e)}', exc_info=True)
         raise
 
-
-# 创建 MCP 实例
-config = get_mcp_config()
-mcp = FastMCP(
-    name='Web Search Server',
-    host=config['host'],
-    port=config['port'],
-    mount_path=config['mount_path']
-)
-
-logger.info(f'MCP Server 配置: host={config["host"]}, port={config["port"]}, mount_path={config["mount_path"]}')
 
 @mcp.tool()
 def web_search(query: str, max_results: int = 5, engine: str = 'duckduckgo') -> str:
