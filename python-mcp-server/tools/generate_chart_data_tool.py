@@ -6,7 +6,6 @@ import logging
 from typing import List, Optional
 
 from server.mcp_server import mcp
-from visualization.chart_generator import ChartDataGenerator
 
 # 配置日志
 logger = logging.getLogger(__name__)

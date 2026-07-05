@@ -3,7 +3,6 @@
 提供fetch_data工具供LLM调用从各种数据源获取数据。
 """
 import logging
-from typing import Optional
 
 from server.mcp_server import mcp
 from datasource.factory import DataSourceFactory

@@ -41,7 +41,7 @@ def fetch_webpage(
     extract_tables: bool = True,
     extract_links: bool = False,
     extract_images: bool = False
-) -> str:
+) -> str | None:
     """
     访问指定URL并提取网页内容。
 
@@ -98,9 +98,11 @@ def fetch_webpage(
     # ==================== 缓存检查 ====================
     cache_key = _generate_cache_key(url, mode, max_length, extract_tables, extract_links, extract_images)
     cached_result = webpage_cache.get(cache_key)
-    if cached_result:
+    if cached_result is not None:
         logger.info(f'缓存命中: {url}')
-        return cached_result + '\n\n[注: 此结果来自缓存]'
+        # 类型断言：确保返回值为字符串
+        result_str: str = str(cached_result) + '\n\n[注: 此结果来自缓存]'
+        return result_str
 
     # ==================== 发送HTTP请求 ====================
     try:

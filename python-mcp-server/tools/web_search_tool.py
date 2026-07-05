@@ -3,7 +3,6 @@
 提供web_search工具供LLM调用进行网络搜索。
 """
 import logging
-from typing import List
 
 from server.mcp_server import mcp
 from search.engine import SearchEngineFactory
@@ -58,7 +57,7 @@ def web_search(query: str, max_results: int = 5, engine: str = 'duckduckgo') -> 
     cached_result = cache_manager.get(cache_key)
     if cached_result:
         logger.info('缓存命中，直接返回结果')
-        return cached_result
+        return str(cached_result)
 
     # ==================== 执行搜索 ====================
     try:

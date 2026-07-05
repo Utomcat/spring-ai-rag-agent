@@ -6,7 +6,6 @@ import logging
 from typing import Optional
 
 from server.mcp_server import mcp
-from analyzer.report_generator import ReportGenerator
 
 # 配置日志
 logger = logging.getLogger(__name__)
