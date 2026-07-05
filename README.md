@@ -69,22 +69,22 @@
 
 ## 🛠️ 技术栈
 
-| 类别        | 技术                                          |
-|-----------|---------------------------------------------|
-| 框架        | Spring Boot 4.1.1-SNAPSHOT, Spring AI 2.0.0 |
-| Java 版本   | Java 21                                     |
-| 关系型数据库    | MySQL 9.7.0 / MariaDB 3.5.9                 |
-| 向量数据库     | Redis（使用 Jedis 连接）                          |
-| LLM       | OpenAI 兼容 API (小米 Mimo v2.5-pro-ultraspeed) |
-| Embedding | Ollama (embeddinggemma:latest)              |
-| ORM       | MyBatis Plus 3.5.16                         |
-| 安全        | Spring Security + JWT                       |
-| 工具库       | Lombok, MapStruct, Hutool                   |
-| 文档解析      | Tika, Markdown Reader                       |
-| 数据校验      | Spring Boot Starter Validation              |
-| 虚拟线程      | Spring Boot Virtual Threads                 |
-| MCP       | Spring AI MCP Client (WebFlux)              |
-| Agent框架   | Spring AI Alibaba Agent Framework           |
+| 类别        | 技术                                                |
+|-----------|---------------------------------------------------|
+| 框架        | Spring Boot 4.1.1-SNAPSHOT, Spring AI 2.0.0       |
+| Java 版本   | Java 21                                           |
+| 关系型数据库    | MySQL 9.7.0 / MariaDB 3.5.9                       |
+| 向量数据库     | Redis（使用 Jedis 连接）                                |
+| LLM       | OpenAI 兼容 API (小米 Mimo v2.5-pro-ultraspeed)       |
+| Embedding | Ollama (embeddinggemma:latest)                    |
+| ORM       | MyBatis Plus 3.5.16                               |
+| 安全        | Spring Security + JWT                             |
+| 工具库       | Lombok, MapStruct, Hutool                         |
+| 文档解析      | Tika, Markdown Reader                             |
+| 数据校验      | Spring Boot Starter Validation                    |
+| 虚拟线程      | Spring Boot Virtual Threads                       |
+| MCP       | Spring AI MCP Client (WebFlux)                    |
+| Agent框架   | Spring AI Alibaba Agent Framework(暂未使用,后续会逐步集成使用) |
 
 ## 📁 项目结构
 
