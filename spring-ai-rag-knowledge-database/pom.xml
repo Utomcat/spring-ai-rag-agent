@@ -179,6 +179,12 @@
 			<artifactId>hutool-all</artifactId>
 			<scope>compile</scope>
 		</dependency>
+
+		<!-- Jackson YAML support for Skills configuration -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>
