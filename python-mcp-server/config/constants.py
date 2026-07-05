@@ -35,9 +35,17 @@ MIN_RESULTS = 1
 CACHE_TTL_SEARCH = 300  # 5分钟
 # 分析报告缓存TTL（秒）
 CACHE_TTL_ANALYSIS = 1800  # 30分钟
+# 网页内容缓存TTL（秒）
+CACHE_TTL_WEBPAGE = int(os.getenv('WEBPAGE_CACHE_TTL', '600'))  # 默认10分钟
+# 网页缓存最大条目数
+WEBPAGE_CACHE_MAX_SIZE = int(os.getenv('WEBPAGE_CACHE_MAX_SIZE', '100'))
 
 # ==================== 限流配置 ====================
-# 时间窗口内最大请求数
+# 时间窗口内最大请求数(全局)
 RATE_LIMIT_MAX_REQUESTS = 10
 # 时间窗口（秒）
 RATE_LIMIT_TIME_WINDOW = 60
+# 单个URL的请求频率限制(次/分钟)
+WEBPAGE_RATE_LIMIT_PER_URL = int(os.getenv('WEBPAGE_RATE_LIMIT_PER_URL', '5'))
+# URL限流时间窗口(秒)
+WEBPAGE_RATE_LIMIT_WINDOW = int(os.getenv('WEBPAGE_RATE_LIMIT_WINDOW', '60'))
