@@ -6,7 +6,7 @@ import os
 import logging
 
 from dotenv import load_dotenv
-from script.MCP.web_search_server import mcp
+from server.mcp_server import mcp
 from server import get_mcp_config
 from utils.validator import validate_port, validate_transport
 
