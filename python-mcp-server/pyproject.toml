@@ -1,11 +1,27 @@
 [project]
 name = "python-mcp-server"
-version = "0.1.0"
+version = "1.0.0"
+description = "Python MCP Server for Web Search and Data Analysis"
 requires-python = ">=3.10"
 dependencies = [
+    # MCP框架
+    "mcp[cli]>=1.0.0",
+    # HTTP客户端
+    "requests>=2.31.0",
+    # HTML解析
     "beautifulsoup4>=4.12.0",
     "lxml>=4.9.0",
-    "mcp[cli]>=1.0.0",
+    # 数据处理
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    # 数据验证
+    "pydantic>=2.0.0",
+    # Web服务器
+    "uvicorn>=0.50.0",
+    # 表格格式化
+    "tabulate>=0.9.0",
+    # 环境配置
     "python-dotenv>=1.0.0",
-    "requests>=2.31.0",
+    "typer==0.26.8",
+    "pandas-stubs>=2.3.3.260113",
 ]

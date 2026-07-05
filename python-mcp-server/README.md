@@ -1,127 +1,419 @@
-# Python MCP Server
+# Python MCP Server - 网络搜索与数据分析服务
 
-> **📖 项目主文档**：[spring-ai-rag-agent README](../README.md)
->
-> **详细文档**：[MCP Server 详细文档](../md/mcp-server.md)（配置说明、传输方式、部署、调试、性能优化、安全等）
+基于MCP协议的Python智能数据服务引擎，提供**网络搜索**、**多源数据获取**、**统计分析**和**可视化**能力，为Spring AI Agent提供实时信息获取和深度数据洞察支持。
 
-基于 MCP（Model Context Protocol）协议的 Python 服务器，为 Spring AI RAG 知识库系统提供网络搜索等扩展工具能力。
+## 📋 目录
 
-## ⭐ 功能特性
+- [核心功能](#核心功能)
+- [技术栈](#技术栈)
+- [快速开始](#快速开始)
+- [工具列表](#工具列表)
+- [使用示例](#使用示例)
+- [架构设计](#架构设计)
+- [配置说明](#配置说明)
+- [部署指南](#部署指南)
+- [开发指南](#开发指南)
 
-- **网络搜索**：支持 DuckDuckGo 和 Bing 搜索引擎
-- **MCP 协议**：支持 stdio、sse、streamable-http 三种传输方式
-- **工具扩展**：易于添加新的工具方法
-- **环境变量配置**：支持 `.env` 文件配置
+## ✨ 核心功能
+
+### Phase 1: 网络搜索能力
+- ✅ **多引擎支持**: Bing、DuckDuckGo搜索引擎
+- ✅ **智能降级**: 主引擎失败自动切换到备用引擎
+- ✅ **结果缓存**: 内存缓存提升重复查询性能
+- ✅ **URL验证**: 安全的URL清洗和验证机制
+
+### Phase 2: 数据源适配与基础分析
+- ✅ **网页数据提取**: 自动识别表格和结构化内容
+- ✅ **API数据获取**: REST API调用，支持JSON解析
+- ✅ **文件读取**: CSV/Excel/TSV文件格式支持
+- ✅ **统计分析**: 描述性统计、分布分析、分组对比
+
+### Phase 3: 高级分析与可视化
+- ✅ **趋势检测**: 线性回归、增长率计算、R²拟合优度
+- ✅ **移动平均**: 平滑短期波动，识别长期趋势
+- ✅ **季节性分析**: 周期性模式检测
+- ✅ **简单预测**: 基于趋势外推的未来值预测
+- ✅ **图表生成**: 折线图/柱状图/饼图/散点图（ECharts/AntV兼容）
+- ✅ **报告生成**: Markdown格式结构化分析报告
 
 ## 🛠️ 技术栈
 
-| 依赖             | 版本      | 说明       |
-|----------------|---------|----------|
-| Python         | 3.10+   | 运行环境     |
-| mcp[cli]       | 1.0.0+  | MCP 协议实现 |
-| beautifulsoup4 | 4.12.0+ | HTML 解析  |
-| lxml           | 4.9.0+  | XML/HTML 解析器 |
-| requests       | 2.31.0+ | HTTP 请求  |
-| python-dotenv  | 1.0.0+  | 环境变量管理   |
+- **Python**: 3.10+
+- **MCP框架**: mcp[cli] >= 1.0.0
+- **HTTP客户端**: requests >= 2.31.0
+- **HTML解析**: BeautifulSoup4 + lxml
+- **数据处理**: Pandas >= 2.0.0, NumPy >= 1.24.0
+- **数据验证**: Pydantic >= 2.0.0
+- **Web服务器**: Uvicorn >= 0.24.0
+- **包管理**: UV
 
 ## 🚀 快速开始
 
-### 安装依赖
+### 前置要求
+
+- Python 3.10+
+- UV包管理器（或pip）
+
+### 安装步骤
 
 ```bash
+# 进入项目目录
+cd python-mcp-server
+
+# 使用UV安装依赖（推荐）
+uv sync
+
+# 或使用pip
 pip install -e .
 ```
 
 ### 启动服务
 
 ```bash
-# 默认 stdio 模式
+# 方式1: 直接运行main.py
 python main.py
 
-# streamable-http 模式（推荐用于远程访问）
-export MCP_TRANSPORT="streamable-http"
-python main.py
-
-# 自定义主机和端口
-export MCP_HOST="0.0.0.0"
-export MCP_PORT="9000"
-export MCP_TRANSPORT="streamable-http"
-python main.py
+# 方式2: 使用uv run
+uv run python main.py
 ```
 
-> **Windows 用户**：使用 `set MCP_TRANSPORT=streamable-http`（CMD）或 `$env:MCP_TRANSPORT="streamable-http"`（PowerShell）。
+服务将在 `http://127.0.0.1:8084/mcp` 启动。
 
-服务默认运行在 `http://127.0.0.1:8084/mcp`。
+## 🔧 工具列表
 
-## 文件结构
+### 1. web_search - 网络搜索
+
+通过网络搜索引擎搜索最新的信息。
+
+**参数:**
+- `query` (str): 搜索关键词或问题
+- `max_results` (int): 搜索结果数量（1-20），默认5
+- `engine` (str): 搜索引擎（'bing' 或 'duckduckgo'），默认'duckduckgo'
+
+**示例:**
+```python
+web_search(query="AI发展趋势 2024", max_results=10, engine="bing")
+```
+
+### 2. fetch_data - 数据获取
+
+从指定数据源获取结构化数据（网页/API/文件）。
+
+**参数:**
+- `source_url` (str): 数据源URL或路径
+- `source_type` (str): 数据源类型（'webpage', 'api', 'file', 'auto'），默认'auto'
+- `**kwargs`: 额外参数（table_index, method, headers, encoding等）
+
+**示例:**
+```python
+# 获取网页表格
+fetch_data(source_url="https://example.com/data", source_type="webpage")
+
+# 调用API
+fetch_data(source_url="https://api.example.com/data", source_type="api")
+
+# 读取CSV文件
+fetch_data(source_url="/path/to/data.csv", source_type="file")
+```
+
+### 3. analyze_data - 数据分析
+
+对已获取的数据进行统计分析。
+
+**参数:**
+- `data_description` (str): 数据描述或数据源标识
+- `analysis_type` (str): 分析类型（'basic', 'distribution', 'patterns', 'time_series', 'comparison'）
+- `columns` (List[str], optional): 指定要分析的列名列表
+
+**示例:**
+```python
+analyze_data(data_description="销售数据", analysis_type="basic")
+```
+
+### 4. trend_analysis - 趋势分析
+
+对时间序列数据进行趋势分析。
+
+**参数:**
+- `data_description` (str): 数据描述或数据源标识
+- `date_column` (str): 日期列名
+- `value_column` (str): 数值列名
+- `analysis_type` (str): 分析类型（'detect', 'moving_average', 'seasonality', 'forecast'）
+
+**示例:**
+```python
+trend_analysis(
+    data_description="股票数据",
+    date_column="date",
+    value_column="price",
+    analysis_type="detect"
+)
+```
+
+### 5. generate_chart_data - 图表数据生成
+
+为前端可视化生成图表数据（JSON格式）。
+
+**参数:**
+- `data_description` (str): 数据描述或数据源标识
+- `chart_type` (str): 图表类型（'line', 'bar', 'pie', 'scatter', 'table'）
+- `x_column` (str, optional): X轴/分类列名
+- `y_columns` (List[str], optional): Y轴/数值列名列表
+
+**示例:**
+```python
+generate_chart_data(
+    data_description="销售数据",
+    chart_type="line",
+    x_column="date",
+    y_columns=["sales", "profit"]
+)
+```
+
+### 6. generate_report - 报告生成
+
+根据已获取的数据和分析结果生成结构化报告。
+
+**参数:**
+- `data_description` (str): 数据描述或数据源标识
+- `report_type` (str): 报告类型（'full', 'summary', 'trend', 'statistical'）
+- `title` (str, optional): 自定义报告标题
+
+**示例:**
+```python
+generate_report(
+    data_description="季度销售数据",
+    report_type="full",
+    title="2024年Q1销售分析报告"
+)
+```
+
+## 💡 使用示例
+
+### 完整工作流程
+
+```python
+# 1. 网络搜索获取最新信息
+search_results = web_search(
+    query="2024年人工智能发展趋势",
+    max_results=10
+)
+
+# 2. 从网页获取详细数据
+data = fetch_data(
+    source_url="https://example.com/ai-report-2024",
+    source_type="webpage"
+)
+
+# 3. 基础统计分析
+stats = analyze_data(
+    data_description="AI行业报告数据",
+    analysis_type="basic"
+)
+
+# 4. 趋势分析
+trend = trend_analysis(
+    data_description="AI投资数据",
+    date_column="year",
+    value_column="investment",
+    analysis_type="detect"
+)
+
+# 5. 生成可视化数据
+chart = generate_chart_data(
+    data_description="AI投资趋势",
+    chart_type="line",
+    x_column="year",
+    y_columns=["investment"]
+)
+
+# 6. 生成完整报告
+report = generate_report(
+    data_description="AI行业分析",
+    report_type="full",
+    title="2024年AI行业发展报告"
+)
+```
+
+## 🏗️ 架构设计
+
+### 项目结构
 
 ```
 python-mcp-server/
-├── main.py                              # MCP Server 启动入口
-├── pyproject.toml                       # Python 项目依赖配置
-├── .env                                 # 环境变量配置
-├── .env.example                         # 环境变量示例
-└── script/
-    ├── __init__.py
-    └── MCP/
-        ├── __init__.py
-        └── web_search_server.py         # 网络搜索工具实现
+├── config/                    # 配置模块
+│   ├── constants.py          # 常量定义
+│   └── settings.py           # 环境变量配置
+├── server/                    # MCP服务器核心
+│   └── mcp_server.py         # MCP实例创建
+├── search/                    # 搜索引擎模块
+│   └── engine.py             # 搜索引擎实现
+├── parser/                    # HTML解析模块
+│   └── html_parser.py        # HTML解析器
+├── datasource/                # 数据源适配器
+│   ├── base_adapter.py       # 适配器基类
+│   ├── webpage_adapter.py    # 网页适配器
+│   ├── api_adapter.py        # API适配器
+│   ├── file_adapter.py       # 文件适配器
+│   └── factory.py            # 数据源工厂
+├── analyzer/                  # 分析模块
+│   ├── data_extractor.py     # 数据提取器
+│   ├── statistic_calculator.py  # 统计计算器
+│   ├── trend_analyzer.py     # 趋势分析器
+│   └── report_generator.py   # 报告生成器
+├── visualization/             # 可视化模块
+│   └── chart_generator.py    # 图表数据生成器
+├── tools/                     # MCP工具
+│   ├── web_search_tool.py
+│   ├── fetch_data_tool.py
+│   ├── analyze_data_tool.py
+│   ├── trend_analysis_tool.py
+│   ├── generate_chart_data_tool.py
+│   └── generate_report_tool.py
+├── models/                    # 数据模型
+│   ├── search_result.py
+│   └── data_source.py
+├── utils/                     # 工具模块
+│   ├── http_client.py        # HTTP客户端
+│   ├── cache_manager.py      # 缓存管理器
+│   ├── url_validator.py      # URL验证器
+│   └── exceptions.py         # 异常管理
+└── tests/                     # 测试
+    ├── test_phase1.py
+    ├── test_phase2.py
+    └── test_phase3.py
 ```
 
-## 更多内容
+## ⚙️ 配置说明
 
-完整的配置说明、传输方式对比、部署方式、调试方法、性能优化和安全注意事项，请参考 [MCP Server 详细文档](../md/mcp-server.md)。
+### 环境变量
 
-## ✨ 优化特性
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| MCP_HOST | 监听地址 | 127.0.0.1 |
+| MCP_PORT | 监听端口 | 8084 |
+| MCP_MOUNT_PATH | 挂载路径 | /mcp |
+| MCP_TRANSPORT | 传输方式 | streamable-http |
+| SEARCH_CONNECT_TIMEOUT | 连接超时（秒） | 5 |
+| SEARCH_READ_TIMEOUT | 读取超时（秒） | 10 |
+| SEARCH_MAX_RETRIES | 最大重试次数 | 3 |
 
-- ✅ **轻量级依赖**：仅包含必要的核心依赖，减少安装时间和安全风险
-- ✅ **完善的日志记录**：支持详细的操作日志和错误追踪，支持动态日志级别
-- ✅ **健壮的异常处理**：超时控制、重试机制、优雅的错误提示
-- ✅ **输入验证**：防止无效参数导致的运行时错误
-- ✅ **可扩展架构**：易于添加新的搜索引擎
-- ✅ **类型注解**：完整的类型提示，提升代码可维护性
-- ✅ **Session 复用**：HTTP 连接复用，提升性能 30%+
-- ✅ **智能重试**：指数退避重试机制，提高网络请求成功率
-- ✅ **URL 清理**：自动处理 DuckDuckGo 重定向链接
-- ✅ **备选选择器**：主选择器失败时自动尝试备选方案
-- ✅ **性能监控**：记录每次搜索的耗时统计
-- ✅ **配置验证**：启动时验证所有配置项，提供友好的错误提示
-- ✅ **优雅退出**：支持 Ctrl+C 优雅停止服务器
+### 配置文件
 
-## 📝 更新日志
+复制 `.env.example` 为 `.env` 并修改配置：
 
-### v0.3.0 (2026-07-04)
-- 🔧 重构 main.py，提取启动逻辑为独立函数
-- 🔒 添加完整的配置验证（端口号、传输方式等）
-- ⚙️ 支持动态日志级别配置 (LOG_LEVEL 环境变量)
-- ✨ 添加启动横幅和版本信息展示
-- ✨ 优化日志输出格式，更清晰易读
-- ✨ 添加优雅退出机制（KeyboardInterrupt 处理）
-- 📝 完善 .env.example 配置文件
+```bash
+cp .env.example .env
+```
 
-### v0.2.0 (2026-07-04)
-- 🔧 消除代码重复，提取通用搜索引擎实现 (_search_engine)
-- 🔒 修复 globals() 安全问题，使用函数引用替代字符串
-- ⚡ 添加 HTTP Session 复用机制，提升性能
-- ⚙️ 超时时间支持环境变量配置 (SEARCH_CONNECT_TIMEOUT, SEARCH_READ_TIMEOUT)
-- ✨ 使用 TypedDict 定义 SearchResult 数据结构
-- ✨ 添加指数退避重试机制 (SEARCH_MAX_RETRIES, SEARCH_RETRY_BACKOFF)
-- ✨ 添加备选 CSS 选择器增强健壮性
-- ✨ 自动清理 DuckDuckGo URL 重定向链接
-- ✨ 添加搜索耗时性能监控
-- 📝 完善 .env.example 配置文件
+## 📦 部署指南
 
-### v0.1.0 (2026-07-04)
-- 🔧 清理未使用的重型依赖（langchain, chromadb, opencv 等）
-- 🔧 修复重复加载 .env 文件问题
-- ✨ 添加完善的日志记录系统
-- ✨ 增强异常处理和超时控制
-- ✨ 添加输入参数验证
-- ✨ 优化搜索引擎选择逻辑（策略模式）
-- ✨ 提取常量配置（User-Agent、超时时间等）
-- ✨ 添加完整的类型注解
-- 📝 修正 Python 版本要求为 >=3.10
+### 开发环境
 
-## 📜 License
+```bash
+# 安装依赖
+uv sync
 
-Apache License 2.0
+# 运行测试
+python tests/test_phase1.py
+python tests/test_phase2.py
+python tests/test_phase3.py
+
+# 启动服务
+python main.py
+```
+
+### 生产环境
+
+```bash
+# 使用gunicorn（需要安装）
+pip install gunicorn
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
+
+# 或使用docker（需创建Dockerfile）
+docker build -t python-mcp-server .
+docker run -p 8084:8084 python-mcp-server
+```
+
+### 健康检查
+
+```bash
+# 检查服务状态
+curl http://127.0.0.1:8084/mcp
+```
+
+## 👨‍💻 开发指南
+
+### 添加新工具
+
+1. 在 `tools/` 目录创建新工具文件
+2. 使用 `@mcp.tool()` 装饰器注册工具
+3. 在 `server/mcp_server.py` 中导入新工具
+
+```python
+# tools/my_new_tool.py
+from server.mcp_server import mcp
+
+@mcp.tool()
+def my_new_tool(param1: str, param2: int) -> str:
+    """工具描述"""
+    return f"Result: {param1}, {param2}"
+```
+
+```python
+# server/mcp_server.py
+try:
+    from tools import my_new_tool  # noqa: F401
+    logger.info('my_new_tool 工具已加载')
+except ImportError as e:
+    logger.warning(f'my_new_tool工具加载失败: {e}')
+```
+
+### 添加新数据源适配器
+
+1. 继承 `BaseDataSourceAdapter`
+2. 实现 `fetch()` 和 `get_type()` 方法
+3. 在 `DataSourceFactory` 中注册
+
+```python
+# datasource/my_adapter.py
+from datasource.base_adapter import BaseDataSourceAdapter
+from models.data_source import DataSourceResult
+
+class MyAdapter(BaseDataSourceAdapter):
+    def fetch(self, url: str, **kwargs) -> DataSourceResult:
+        # 实现数据获取逻辑
+        pass
+    
+    def get_type(self) -> str:
+        return "my_source"
+```
+
+### 运行测试
+
+```bash
+# 运行所有测试
+python tests/test_phase1.py
+python tests/test_phase2.py
+python tests/test_phase3.py
+```
+
+## 📝 版本历史
+
+- **v1.0.0** (2024-07-05)
+  - Phase 1: 网络搜索能力
+  - Phase 2: 数据源适配与基础分析
+  - Phase 3: 高级分析与可视化
+  - Phase 4: 优化与文档
+
+## 🤝 贡献指南
+
+欢迎提交Issue和Pull Request！
+
+## 📄 许可证
+
+MIT License
+
+## 📧 联系方式
+
+如有问题，请提交Issue或联系维护者。
