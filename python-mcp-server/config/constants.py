@@ -49,3 +49,44 @@ RATE_LIMIT_TIME_WINDOW = 60
 WEBPAGE_RATE_LIMIT_PER_URL = int(os.getenv('WEBPAGE_RATE_LIMIT_PER_URL', '5'))
 # URL限流时间窗口(秒)
 WEBPAGE_RATE_LIMIT_WINDOW = int(os.getenv('WEBPAGE_RATE_LIMIT_WINDOW', '60'))
+
+# ==================== Redis缓存配置 ====================
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.getenv('REDIS_PORT', '6379'))
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', '') or None
+REDIS_TIMEOUT = int(os.getenv('REDIS_TIMEOUT', '5'))
+REDIS_CACHE_ENABLED = os.getenv('REDIS_CACHE_ENABLED', 'true').lower() == 'true'
+REDIS_MAX_CONNECTIONS = int(os.getenv('REDIS_MAX_CONNECTIONS', '20'))
+
+# 双 DB 架构配置
+REDIS_HOT_DATA_DB = int(os.getenv('REDIS_HOT_DATA_DB', '1'))
+REDIS_FULL_DATA_DB = int(os.getenv('REDIS_FULL_DATA_DB', '2'))
+
+# 热点数据配置
+HOT_DATA_CACHE_MAX_SIZE = int(os.getenv('HOT_DATA_CACHE_MAX_SIZE', '50'))
+HOT_DATA_CACHE_TTL = int(os.getenv('HOT_DATA_CACHE_TTL', '300'))
+
+# 完整数据配置
+FULL_DATA_CACHE_MAX_SIZE = int(os.getenv('FULL_DATA_CACHE_MAX_SIZE', '500'))
+FULL_DATA_CACHE_TTL = int(os.getenv('FULL_DATA_CACHE_TTL', '1800'))
+
+# 缓存预热配置
+CACHE_WARMER_ENABLED = os.getenv('CACHE_WARMER_ENABLED', 'false').lower() == 'true'
+CACHE_WARMER_KEYS = [k.strip() for k in os.getenv('CACHE_WARMER_KEYS', '').split(',') if k.strip()]
+
+# 监控配置
+CACHE_MONITOR_ENABLED = os.getenv('CACHE_MONITOR_ENABLED', 'false').lower() == 'true'
+PROMETHEUS_PORT = int(os.getenv('PROMETHEUS_PORT', '9090'))
+
+# 多实例同步配置
+CACHE_SYNC_ENABLED = os.getenv('CACHE_SYNC_ENABLED', 'false').lower() == 'true'
+CACHE_SYNC_CHANNEL = os.getenv('CACHE_SYNC_CHANNEL', 'mcp-cache-sync')
+
+# 热点数据追踪配置
+HOT_DATA_TRACKER_ENABLED = os.getenv('HOT_DATA_TRACKER_ENABLED', 'false').lower() == 'true'
+HOT_DATA_THRESHOLD = int(os.getenv('HOT_DATA_THRESHOLD', '10'))
+HOT_DATA_WINDOW = int(os.getenv('HOT_DATA_WINDOW', '3600'))
+HOT_DATA_PROMOTION_INTERVAL = int(os.getenv('HOT_DATA_PROMOTION_INTERVAL', '300'))
+
+# 环境标识
+APP_ENVIRONMENT = os.getenv('APP_ENVIRONMENT', 'dev')
