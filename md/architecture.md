@@ -316,6 +316,6 @@ flowchart TD
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-06</span>
   <a href="#架构设计">⬆️ 返回顶部</a>
 </div>

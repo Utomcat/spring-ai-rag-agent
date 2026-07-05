@@ -1,5 +1,8 @@
 # fetch_webpage 工具使用指南
 
+> **← 返回主文档**：[README.md](../README.md)  
+> **← 返回完整技术文档**：[Python MCP Server](python-mcp-server.md)
+
 ## 概述
 
 `fetch_webpage` 是一个新增的MCP工具,用于访问指定URL并提取网页的详细内容。它提供了三种提取模式,可以智能识别主要内容区域、提取结构化数据或获取全文内容。
@@ -12,6 +15,10 @@
 - ✅ **元数据提取**: 自动提取标题、描述、作者、发布时间等
 - ✅ **可选扩展**: 支持提取页面链接和图片信息
 - ✅ **安全机制**: URL验证、请求超时控制
+- ✅ **智能缓存**: 自动缓存抓取结果,避免重复请求(默认10分钟TTL)
+- ✅ **速率限制**: URL级别的访问频率控制,防止被目标网站封禁(默认5次/分钟)
+- ✅ **动态页面扩展**: 完整实现Playwright适配器,支持JavaScript渲染页面
+- ✅ **LRU淘汰**: 缓存达到最大容量时自动淘汰最近最少使用的项
 
 ## 基本用法
 
@@ -197,6 +204,18 @@ result = fetch_webpage(url="https://example.com/404-page")
 #       URL: https://example.com/404-page
 ```
 
+### 限流触发
+
+```python
+# 快速连续请求同一URL超过限制
+for i in range(7):
+    result = fetch_webpage(url="https://example.com")
+    
+# 第6次请求会被限流:
+# "错误: 访问频率受限: 该URL在60秒内已访问5次
+# 请等待45秒后重试,或访问其他URL"
+```
+
 ## 最佳实践
 
 1. **优先使用summary模式**: 智能摘要模式能自动识别主要内容,去除噪音,适合大多数场景
@@ -204,6 +223,8 @@ result = fetch_webpage(url="https://example.com/404-page")
 3. **按需启用links/images**: 只在确实需要时才开启,减少返回数据量
 4. **结合其他工具使用**: fetch_webpage通常与web_search配合使用,先搜索再深入阅读
 5. **注意网站robots.txt**: 尊重网站的爬虫规则
+6. **监控缓存使用情况**: 定期使用 `get_webpage_cache_stats()` 查看缓存状态
+7. **及时清理缓存**: 对于频繁更新的网站,可使用 `clear_webpage_cache(url="...")` 清除特定缓存
 
 ## 技术实现
 
@@ -211,10 +232,22 @@ result = fetch_webpage(url="https://example.com/404-page")
 - **智能提取**: 基于常见内容容器选择器(article, main等)
 - **内容清洗**: 自动移除脚本、样式、导航、广告等元素
 - **HTTP客户端**: 复用项目现有的HttpClient,支持超时和重试
+- **缓存管理**: CacheManager with LRU淘汰策略
+- **速率限制**: URLRateLimiter滑动窗口算法
+- **动态页面**: Playwright浏览器自动化(需单独安装)
 
 ## 注意事项
 
 - 某些网站可能有反爬虫机制,导致抓取失败
-- JavaScript动态渲染的内容可能无法提取
+- JavaScript动态渲染的内容需要安装Playwright才能正确提取
 - 需要登录才能访问的页面无法抓取
 - 建议遵守目标网站的robots.txt协议和使用条款
+- 缓存命中时会返回 `[注: 此结果来自缓存]` 标记
+- 大量缓存条目可能占用较多内存,注意监控 `WEBPAGE_CACHE_MAX_SIZE`
+
+---
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新:2026-07-06</span>
+  <a href="#fetch_webpage-工具使用指南">⬆️ 返回顶部</a>
+</div>

@@ -55,9 +55,9 @@ mysql -u root -p < doc/init_database.sql
 **默认管理员账号**：
 
 - 用户名：`admin`
-- 密码：`admin`
+- 密码：`12345678`
 
-> 注意：请根据自己安装的数据库信息进行修改用户名和密码，给出的默认管理员账号仅是本人自己的数据库配置。
+> 注意：上述的账号均属于当前系统的账号, 请根据实际情况进行自行修改。
 
 ## ⚙️ 修改配置
 
@@ -110,7 +110,7 @@ curl http://localhost:8083/api/user/me
 ```bash
 curl -X POST http://localhost:8083/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "admin"}'
+  -d '{"username": "admin", "password": "12345678"}'
 ```
 
 成功登录后会返回 JWT Token。
@@ -274,6 +274,6 @@ Get-Content -Path logs\application.log -Wait
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 更新日期：2026-07-04</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-06</span>
   <a href="#快速开始">⬆️ 返回顶部</a>
 </div>

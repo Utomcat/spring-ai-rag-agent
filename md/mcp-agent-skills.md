@@ -1,4 +1,6 @@
-# MCP + Agent + Skills 第一阶段实现 - 使用指南
+# MCP + Agent + Skills 使用指南
+
+> **← 返回主文档**：[README.md](../README.md)
 
 ## 📦 已实现的核心组件
 
@@ -263,7 +265,6 @@ AbstractMcpProvider provider = router.routeToServer("python-web-search");
 
 ### 健康检查
 ```java
-
 @Autowired
 private McpOrchestrator orchestrator;
 
@@ -344,3 +345,10 @@ A: 所有组件都有详细的日志输出,设置日志级别为 DEBUG 可以看
 4. 扩展更多的 Provider 和 Skills
 
 祝您使用愉快! 🚀
+
+---
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-06</span>
+  <a href="#mcp--agent--skills-使用指南">⬆️ 返回顶部</a>
+</div>

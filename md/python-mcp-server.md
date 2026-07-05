@@ -1,6 +1,9 @@
-# Python MCP Server - 网络搜索与数据分析服务
+# Python MCP Server 完整技术文档
 
-基于MCP协议的Python智能数据服务引擎，提供**网络搜索**、**多源数据获取**、**统计分析**和**可视化**能力，为Spring AI Agent提供实时信息获取和深度数据洞察支持。
+> **← 返回主文档**：[README.md](../README.md)  
+> **← 返回概览**：[MCP Server 概览](mcp-server.md)
+
+基于 MCP (Model Context Protocol) 协议的 Python 智能数据服务引擎,为 Spring AI Agent 提供**网络搜索**、**多源数据获取**、**统计分析**和**可视化**能力。
 
 ## 📋 目录
 
@@ -13,6 +16,9 @@
 - [配置说明](#配置说明)
 - [部署指南](#部署指南)
 - [开发指南](#开发指南)
+- [版本历史](#版本历史)
+
+---
 
 ## ✨ 核心功能
 
@@ -24,35 +30,49 @@
 
 ### Phase 2: 数据源适配与基础分析
 - ✅ **网页数据提取**: 自动识别表格和结构化内容
-- ✅ **API数据获取**: REST API调用，支持JSON解析
+- ✅ **API数据获取**: REST API调用,支持JSON解析
 - ✅ **文件读取**: CSV/Excel/TSV文件格式支持
 - ✅ **统计分析**: 描述性统计、分布分析、分组对比
 
 ### Phase 3: 高级分析与可视化
 - ✅ **趋势检测**: 线性回归、增长率计算、R²拟合优度
-- ✅ **移动平均**: 平滑短期波动，识别长期趋势
+- ✅ **移动平均**: 平滑短期波动,识别长期趋势
 - ✅ **季节性分析**: 周期性模式检测
 - ✅ **简单预测**: 基于趋势外推的未来值预测
-- ✅ **图表生成**: 折线图/柱状图/饼图/散点图（ECharts/AntV兼容）
+- ✅ **图表生成**: 折线图/柱状图/饼图/散点图(ECharts/AntV兼容)
 - ✅ **报告生成**: Markdown格式结构化分析报告
+
+### Phase 4: 优化增强 (v1.2.0)
+- ✅ **智能缓存**: TTL过期策略,参数感知的缓存键
+- ✅ **URL限流**: URL级别速率限制,防止被封禁
+- ✅ **管理工具**: 缓存和限流的查询、清除、重置等管理功能
+- ✅ **Playwright适配器**: 完整实现,支持JavaScript渲染页面抓取
+- ✅ **LRU淘汰**: 缓存达到最大容量时自动淘汰最近最少使用的项
+
+---
 
 ## 🛠️ 技术栈
 
-- **Python**: 3.10+
-- **MCP框架**: mcp[cli] >= 1.0.0
-- **HTTP客户端**: requests >= 2.31.0
-- **HTML解析**: BeautifulSoup4 + lxml
-- **数据处理**: Pandas >= 2.0.0, NumPy >= 1.24.0
-- **数据验证**: Pydantic >= 2.0.0
-- **Web服务器**: Uvicorn >= 0.24.0
-- **包管理**: UV
+| 依赖 | 版本 | 说明 |
+|------|------|------|
+| Python | 3.10+ | 运行环境 |
+| mcp[cli] | >= 1.0.0 | MCP 协议实现 |
+| requests | >= 2.31.0 | HTTP 请求 |
+| beautifulsoup4 + lxml | - | HTML/XML 解析 |
+| Pandas | >= 2.0.0 | 数据处理 |
+| NumPy | >= 1.24.0 | 数值计算 |
+| Pydantic | >= 2.0.0 | 数据验证 |
+| Uvicorn | >= 0.24.0 | Web服务器 |
+| Playwright | 可选 | 动态页面抓取(需单独安装) |
+
+---
 
 ## 🚀 快速开始
 
 ### 前置要求
 
 - Python 3.10+
-- UV包管理器（或pip）
+- UV包管理器(或pip)
 
 ### 安装步骤
 
@@ -60,7 +80,7 @@
 # 进入项目目录
 cd python-mcp-server
 
-# 使用UV安装依赖（推荐）
+# 使用UV安装依赖(推荐)
 uv sync
 
 # 或使用pip
@@ -75,9 +95,15 @@ python main.py
 
 # 方式2: 使用uv run
 uv run python main.py
+
+# 方式3: HTTP流式通信
+export MCP_TRANSPORT="streamable-http"
+python main.py
 ```
 
 服务将在 `http://127.0.0.1:8084/mcp` 启动。
+
+---
 
 ## 🔧 工具列表
 
@@ -87,8 +113,8 @@ uv run python main.py
 
 **参数:**
 - `query` (str): 搜索关键词或问题
-- `max_results` (int): 搜索结果数量（1-20），默认5
-- `engine` (str): 搜索引擎（'bing' 或 'duckduckgo'），默认'duckduckgo'
+- `max_results` (int): 搜索结果数量(1-20),默认5
+- `engine` (str): 搜索引擎('bing' 或 'duckduckgo'),默认'duckduckgo'
 
 **示例:**
 ```python
@@ -97,12 +123,12 @@ web_search(query="AI发展趋势 2024", max_results=10, engine="bing")
 
 ### 2. fetch_data - 数据获取
 
-从指定数据源获取结构化数据（网页/API/文件）。
+从指定数据源获取结构化数据(网页/API/文件)。
 
 **参数:**
 - `source_url` (str): 数据源URL或路径
-- `source_type` (str): 数据源类型（'webpage', 'api', 'file', 'auto'），默认'auto'
-- `**kwargs`: 额外参数（table_index, method, headers, encoding等）
+- `source_type` (str): 数据源类型('webpage', 'api', 'file', 'auto'),默认'auto'
+- `**kwargs`: 额外参数(table_index, method, headers, encoding等)
 
 **示例:**
 ```python
@@ -122,7 +148,7 @@ fetch_data(source_url="/path/to/data.csv", source_type="file")
 
 **参数:**
 - `data_description` (str): 数据描述或数据源标识
-- `analysis_type` (str): 分析类型（'basic', 'distribution', 'patterns', 'time_series', 'comparison'）
+- `analysis_type` (str): 分析类型('basic', 'distribution', 'patterns', 'time_series', 'comparison')
 - `columns` (List[str], optional): 指定要分析的列名列表
 
 **示例:**
@@ -138,7 +164,7 @@ analyze_data(data_description="销售数据", analysis_type="basic")
 - `data_description` (str): 数据描述或数据源标识
 - `date_column` (str): 日期列名
 - `value_column` (str): 数值列名
-- `analysis_type` (str): 分析类型（'detect', 'moving_average', 'seasonality', 'forecast'）
+- `analysis_type` (str): 分析类型('detect', 'moving_average', 'seasonality', 'forecast')
 
 **示例:**
 ```python
@@ -152,11 +178,11 @@ trend_analysis(
 
 ### 5. generate_chart_data - 图表数据生成
 
-为前端可视化生成图表数据（JSON格式）。
+为前端可视化生成图表数据(JSON格式)。
 
 **参数:**
 - `data_description` (str): 数据描述或数据源标识
-- `chart_type` (str): 图表类型（'line', 'bar', 'pie', 'scatter', 'table'）
+- `chart_type` (str): 图表类型('line', 'bar', 'pie', 'scatter', 'table')
 - `x_column` (str, optional): X轴/分类列名
 - `y_columns` (List[str], optional): Y轴/数值列名列表
 
@@ -176,7 +202,7 @@ generate_chart_data(
 
 **参数:**
 - `data_description` (str): 数据描述或数据源标识
-- `report_type` (str): 报告类型（'full', 'summary', 'trend', 'statistical'）
+- `report_type` (str): 报告类型('full', 'summary', 'trend', 'statistical')
 - `title` (str, optional): 自定义报告标题
 
 **示例:**
@@ -201,11 +227,11 @@ generate_report(
 
 **参数:**
 - `url` (str): 要抓取的网页URL地址
-- `mode` (str): 提取模式（'summary', 'full', 'structured'），默认'summary'
-- `max_length` (int): 最大文本长度限制，默认10000
-- `extract_tables` (bool): 是否提取表格数据，默认True
-- `extract_links` (bool): 是否提取页面链接，默认False
-- `extract_images` (bool): 是否提取图片信息，默认False
+- `mode` (str): 提取模式('summary', 'full', 'structured'),默认'summary'
+- `max_length` (int): 最大文本长度限制,默认10000
+- `extract_tables` (bool): 是否提取表格数据,默认True
+- `extract_links` (bool): 是否提取页面链接,默认False
+- `extract_images` (bool): 是否提取图片信息,默认False
 
 **示例:**
 ```python
@@ -226,6 +252,8 @@ fetch_webpage(
     extract_images=True
 )
 ```
+
+详细说明请参考 [fetch_webpage 使用指南](fetch-webpage-usage.md)。
 
 ### 8. get_webpage_cache_stats - 获取缓存统计
 
@@ -290,6 +318,8 @@ reset_webpage_rate_limit(url="https://example.com")
 get_webpage_rate_limit_stats()
 ```
 
+---
+
 ## 💡 使用示例
 
 ### 完整工作流程
@@ -337,6 +367,10 @@ report = generate_report(
 )
 ```
 
+更多场景示例请参考 [fetch_webpage 使用指南](fetch-webpage-usage.md#使用场景)。
+
+---
+
 ## 🏗️ 架构设计
 
 ### 项目结构
@@ -369,7 +403,7 @@ python-mcp-server/
 ├── tools/                     # MCP工具
 │   ├── web_search_tool.py
 │   ├── fetch_data_tool.py
-│   ├── fetch_webpage_tool.py  # 新增: 网页内容抓取
+│   ├── fetch_webpage_tool.py  # 网页内容抓取
 │   ├── analyze_data_tool.py
 │   ├── trend_analysis_tool.py
 │   ├── generate_chart_data_tool.py
@@ -388,8 +422,10 @@ python-mcp-server/
     ├── test_phase1.py
     ├── test_phase2.py
     ├── test_phase3.py
-    └── test_fetch_webpage.py  # 新增: 网页抓取工具测试
+    └── test_fetch_webpage.py  # 网页抓取工具测试
 ```
+
+---
 
 ## ⚙️ 配置说明
 
@@ -401,21 +437,23 @@ python-mcp-server/
 | MCP_PORT | 监听端口 | 8084 |
 | MCP_MOUNT_PATH | 挂载路径 | /mcp |
 | MCP_TRANSPORT | 传输方式 | streamable-http |
-| SEARCH_CONNECT_TIMEOUT | 连接超时（秒） | 5 |
-| SEARCH_READ_TIMEOUT | 读取超时（秒） | 10 |
+| SEARCH_CONNECT_TIMEOUT | 连接超时(秒) | 5 |
+| SEARCH_READ_TIMEOUT | 读取超时(秒) | 10 |
 | SEARCH_MAX_RETRIES | 最大重试次数 | 3 |
-| WEBPAGE_CACHE_TTL | 网页缓存TTL（秒） | 600 (10分钟) |
+| WEBPAGE_CACHE_TTL | 网页缓存TTL(秒) | 600 (10分钟) |
 | WEBPAGE_CACHE_MAX_SIZE | 网页缓存最大条目数 | 100 |
 | WEBPAGE_RATE_LIMIT_PER_URL | 单个URL每分钟最大请求数 | 5 |
-| WEBPAGE_RATE_LIMIT_WINDOW | URL限流时间窗口（秒） | 60 |
+| WEBPAGE_RATE_LIMIT_WINDOW | URL限流时间窗口(秒) | 60 |
 
 ### 配置文件
 
-复制 `.env.example` 为 `.env` 并修改配置：
+复制 `.env.example` 为 `.env` 并修改配置:
 
 ```bash
 cp .env.example .env
 ```
+
+---
 
 ## 📦 部署指南
 
@@ -437,11 +475,11 @@ python main.py
 ### 生产环境
 
 ```bash
-# 使用gunicorn（需要安装）
+# 使用gunicorn(需要安装)
 pip install gunicorn
 gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
 
-# 或使用docker（需创建Dockerfile）
+# 或使用docker(需创建Dockerfile)
 docker build -t python-mcp-server .
 docker run -p 8084:8084 python-mcp-server
 ```
@@ -452,6 +490,8 @@ docker run -p 8084:8084 python-mcp-server
 # 检查服务状态
 curl http://127.0.0.1:8084/mcp
 ```
+
+---
 
 ## 👨‍💻 开发指南
 
@@ -507,7 +547,10 @@ class MyAdapter(BaseDataSourceAdapter):
 python tests/test_phase1.py
 python tests/test_phase2.py
 python tests/test_phase3.py
+python tests/test_fetch_webpage.py
 ```
+
+---
 
 ## 📝 版本历史
 
@@ -528,9 +571,48 @@ python tests/test_phase3.py
   - Phase 3: 高级分析与可视化
   - Phase 4: 优化与文档
 
+---
+
+## ❓ 常见问题
+
+### Q: MCP Server 启动失败?
+
+A: 请检查:
+- Python 版本是否 >= 3.10
+- 依赖是否已安装(`pip install -e .`)
+- 端口是否被占用
+
+### Q: Java 应用无法连接到 MCP Server?
+
+A: 请检查:
+- MCP Server 是否已启动
+- 传输方式是否一致
+- 网络是否可达
+- 防火墙是否允许连接
+
+### Q: fetch_webpage 抓取动态页面失败?
+
+A: JavaScript渲染的页面需要安装Playwright:
+```bash
+pip install playwright
+playwright install
+```
+
+### Q: 如何调整缓存和限流参数?
+
+A: 修改 `.env` 文件或设置环境变量:
+```bash
+WEBPAGE_CACHE_TTL=300              # 改为5分钟
+WEBPAGE_RATE_LIMIT_PER_URL=10      # 提高到10次/分钟
+```
+
+更多问题和解决方案请参考各专项文档。
+
+---
+
 ## 🤝 贡献指南
 
-欢迎提交Issue和Pull Request！
+欢迎提交Issue和Pull Request!
 
 ## 📄 许可证
 
@@ -538,4 +620,11 @@ MIT License
 
 ## 📧 联系方式
 
-如有问题，请提交Issue或联系维护者。
+如有问题,请提交Issue或联系维护者。
+
+---
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新:2026-07-06</span>
+  <a href="#python-mcp-server-完整技术文档">⬆️ 返回顶部</a>
+</div>

@@ -1,4 +1,7 @@
-# fetch_webpage 工具优化说明
+# Python MCP Server 优化说明 (v1.1.0)
+
+> **← 返回主文档**：[README.md](../README.md)  
+> **← 返回完整技术文档**：[Python MCP Server](python-mcp-server.md)
 
 ## 概述
 
@@ -244,13 +247,6 @@ python tests/test_optimized_fetch.py
 
 ---
 
-## 📚 相关文档
-
-- [fetch_webpage使用指南](file://E:\Workspace\Idea_workspace\SpringAI\spring-ai-rag-study\python-mcp-server\FETCH_WEBPAGE_USAGE.md)
-- [项目README](file://E:\Workspace\Idea_workspace\SpringAI\spring-ai-rag-study\python-mcp-server\README.md)
-
----
-
 ## 🎯 后续优化方向
 
 1. **分布式缓存**: 集成Redis支持多实例共享缓存
@@ -263,3 +259,10 @@ python tests/test_optimized_fetch.py
 
 **优化完成时间**: 2026-07-06  
 **版本**: v1.1.0 (优化版)
+
+---
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新:2026-07-06</span>
+  <a href="#python-mcp-server-优化说明-v110">⬆️ 返回顶部</a>
+</div>

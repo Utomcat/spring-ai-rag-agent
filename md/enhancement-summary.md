@@ -1,5 +1,8 @@
 # Python MCP Server 优化增强版 (v1.2.0)
 
+> **← 返回主文档**：[README.md](../README.md)  
+> **← 返回完整技术文档**：[Python MCP Server](python-mcp-server.md)
+
 ## 📋 概述
 
 本次优化在v1.1.0的基础上,进一步增强了网页抓取工具的功能性和可管理性,新增了4个管理工具、完整实现了Playwright动态页面适配器,并增强了缓存系统的LRU淘汰能力。
@@ -301,14 +304,6 @@ python tests/test_new_features.py
 
 ---
 
-## 📚 相关文档
-
-- [fetch_webpage使用指南](file://E:\Workspace\Idea_workspace\SpringAI\spring-ai-rag-study\python-mcp-server\FETCH_WEBPAGE_USAGE.md)
-- [优化说明文档](file://E:\Workspace\Idea_workspace\SpringAI\spring-ai-rag-study\python-mcp-server\OPTIMIZATION_SUMMARY.md)
-- [项目README](file://E:\Workspace\Idea_workspace\SpringAI\spring-ai-rag-study\python-mcp-server\README.md)
-
----
-
 ## 🎯 后续优化方向
 
 1. **分布式缓存**: 集成Redis支持多实例共享缓存
@@ -323,3 +318,10 @@ python tests/test_new_features.py
 **优化完成时间**: 2026-07-06  
 **版本**: v1.2.0 (优化增强版)  
 **贡献者**: AI Assistant
+
+---
+
+<div style="display: flex; justify-content: space-between; align-items: center;">
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新:2026-07-06</span>
+  <a href="#python-mcp-server-优化增强版-v120">⬆️ 返回顶部</a>
+</div>
