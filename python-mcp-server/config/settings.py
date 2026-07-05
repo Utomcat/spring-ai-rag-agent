@@ -4,6 +4,10 @@
 """
 import os
 from typing import Dict
+from dotenv import load_dotenv
+
+# 确保 .env 文件已加载(防止在其他模块导入时环境变量未就绪)
+load_dotenv()
 
 
 def get_mcp_config() -> Dict:
