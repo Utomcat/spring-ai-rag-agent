@@ -68,3 +68,9 @@ try:
     logger.info('generate_report 工具已加载')
 except ImportError as e:
     logger.warning(f'generate_report工具加载失败: {e}')
+
+try:
+    from tools import fetch_webpage_tool  # noqa: F401
+    logger.info('fetch_webpage 工具已加载')
+except ImportError as e:
+    logger.warning(f'fetch_webpage工具加载失败: {e}')
