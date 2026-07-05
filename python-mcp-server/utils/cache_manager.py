@@ -1,9 +1,10 @@
 """结果缓存管理器。"""
 import logging
 import time
-from typing import Any, Optional, Dict
 from collections import OrderedDict
-from config.constants import CACHE_TTL_SEARCH, CACHE_TTL_WEBPAGE, WEBPAGE_CACHE_MAX_SIZE
+from typing import Any, Optional, Dict
+
+from config.constants import CACHE_TTL_SEARCH, WEBPAGE_CACHE_MAX_SIZE
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ class CacheManager:
             del self.timestamps[key]
         
         # 检查是否需要LRU淘汰
-        if self.max_size > 0 and len(self.cache) >= self.max_size:
+        if 0 < self.max_size <= len(self.cache):
             self._evict_lru()
         
         # 添加到末尾(最近使用)
