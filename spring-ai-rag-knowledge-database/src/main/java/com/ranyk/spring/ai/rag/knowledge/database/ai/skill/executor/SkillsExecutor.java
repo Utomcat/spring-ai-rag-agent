@@ -2,6 +2,9 @@ package com.ranyk.spring.ai.rag.knowledge.database.ai.skill.executor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.ranyk.spring.ai.rag.knowledge.database.common.exception.AiException;
+import com.ranyk.spring.ai.rag.knowledge.database.handle.ServiceExceptionHandler;
+import com.ranyk.spring.ai.rag.knowledge.database.utils.ExecutorUtils;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.skill.handler.SkillHandler;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.skill.model.SkillDefinition;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.skill.model.SkillExecutionResult;
@@ -14,7 +17,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * CLASS_NAME: SkillsExecutor.java
@@ -31,22 +33,23 @@ public class SkillsExecutor {
     private final SkillProperties skillProperties;
     private final ExecutorService executorService;
     private final ObjectMapper yamlMapper;
+    private final SkillRetryStrategy retryStrategy;
+    private final SkillCircuitBreaker circuitBreaker;
+    private final SkillRateLimiter rateLimiter;
     
     public SkillsExecutor(SkillRegistry skillRegistry, SkillProperties skillProperties) {
         this.skillRegistry = skillRegistry;
         this.skillProperties = skillProperties;
         this.yamlMapper = new ObjectMapper(new YAMLFactory());
+        this.retryStrategy = SkillRetryStrategy.createDefault();
+        this.circuitBreaker = SkillCircuitBreaker.createDefault();
+        this.rateLimiter = new SkillRateLimiter(10); // 默认每秒10个请求
         
         // 初始化线程池
         if (skillProperties.getAsyncEnabled()) {
-            this.executorService = Executors.newFixedThreadPool(
+            this.executorService = ExecutorUtils.createFixedThreadPool(
                     skillProperties.getAsyncPoolSize(),
-                    r -> {
-                        Thread thread = new Thread(r);
-                        thread.setName("skill-executor-" + thread.getId());
-                        thread.setDaemon(true);
-                        return thread;
-                    }
+                    "skill-executor"
             );
             log.info("Skills 异步执行器已初始化,线程池大小: {}", skillProperties.getAsyncPoolSize());
         } else {
@@ -56,7 +59,7 @@ public class SkillsExecutor {
     }
     
     /**
-     * 同步执行单个 Skill
+     * 同步执行单个 Skill(带统一异常处理)
      *
      * @param skillId Skill ID
      * @param params  参数
@@ -93,20 +96,52 @@ public class SkillsExecutor {
                 }
             }
             
-            // 执行 Skill
+            // 执行 Skill (带限流、熔断保护和重试)
             log.debug("开始执行 Skill [{}]", skillId);
-            Object result = handler.execute(params);
+            
+            // 1. 限流检查
+            if (!rateLimiter.tryAcquire(skillId, 1, skillProperties.getTimeoutSeconds(), java.util.concurrent.TimeUnit.SECONDS)) {
+                String errorMsg = String.format("Skill [%s] 请求频率超过限制", skillId);
+                log.warn(errorMsg);
+                return SkillExecutionResult.failure(skillId, errorMsg, "RATE_LIMIT_EXCEEDED");
+            }
+            
+            // 2. 带超时的执行(使用 ServiceExceptionHandler 包装)
+            Object result = ServiceExceptionHandler.safeExecute(
+                () -> executeWithTimeout(skillId, () -> circuitBreaker.execute(skillId, () -> retryStrategy.executeWithRetry(() -> handler.execute(params))), skillProperties.getTimeoutSeconds()),
+                "Skill 执行失败"
+            );
+            
             long executionTime = System.currentTimeMillis() - startTime;
             
             log.info("Skill [{}] 执行成功,耗时: {}ms", skillId, executionTime);
             return SkillExecutionResult.success(skillId, result, executionTime);
             
+        } catch (AiException e) {
+            // 已处理的 AI 异常
+            long executionTime = System.currentTimeMillis() - startTime;
+            log.error("Skill [{}] 执行失败: {}", skillId, e.getMessage(), e);
+            String errorCode = e.getCode() != null ? e.getCode() : "AI_EXCEPTION";
+            return SkillExecutionResult.failure(skillId, e.getMessage(), errorCode);
         } catch (Exception e) {
+            // 其他异常转换为 AiException
             long executionTime = System.currentTimeMillis() - startTime;
             String errorMsg = String.format("Skill [%s] 执行失败: %s", skillId, e.getMessage());
             log.error(errorMsg, e);
             return SkillExecutionResult.failure(skillId, errorMsg, "EXECUTION_ERROR");
         }
+    }
+    
+    /**
+     * 带超时控制的执行
+     *
+     * @param skillId   Skill ID
+     * @param operation 要执行的操作
+     * @param timeoutSeconds 超时时间(秒)
+     * @return 执行结果
+     */
+    private Object executeWithTimeout(String skillId, java.util.function.Supplier<Object> operation, int timeoutSeconds) {
+        return ExecutorUtils.executeWithTimeout(operation, executorService, timeoutSeconds, "Skill [" + skillId + "]");
     }
     
     /**
@@ -132,9 +167,7 @@ public class SkillsExecutor {
      * @return 执行结果列表
      */
     public List<SkillExecutionResult> batchExecute(List<String> skillIds, List<Map<String, Object>> params) {
-        if (skillIds.size() != params.size()) {
-            throw new IllegalArgumentException("skillIds 和 params 数量不匹配");
-        }
+        ExecutorUtils.validateListSizesMatch(skillIds, params, "skillIds", "params");
         
         List<SkillExecutionResult> results = new ArrayList<>();
         for (int i = 0; i < skillIds.size(); i++) {
@@ -155,9 +188,7 @@ public class SkillsExecutor {
             List<String> skillIds, 
             List<Map<String, Object>> params) {
         
-        if (skillIds.size() != params.size()) {
-            throw new IllegalArgumentException("skillIds 和 params 数量不匹配");
-        }
+        ExecutorUtils.validateListSizesMatch(skillIds, params, "skillIds", "params");
         
         List<CompletableFuture<SkillExecutionResult>> futures = new ArrayList<>();
         for (int i = 0; i < skillIds.size(); i++) {
@@ -247,17 +278,6 @@ public class SkillsExecutor {
      * 关闭执行器
      */
     public void shutdown() {
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-            try {
-                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                    executorService.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                executorService.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-            log.info("Skills 执行器已关闭");
-        }
+        ExecutorUtils.safeShutdown(executorService, 5, "Skills 执行器");
     }
 }
