@@ -188,6 +188,108 @@ generate_report(
 )
 ```
 
+### 7. fetch_webpage - 网页内容抓取
+
+访问指定URL并提取网页的详细内容。
+
+**特性:**
+- ✅ **智能缓存**: 自动缓存抓取结果,避免重复请求(默认10分钟TTL)
+- ✅ **速率限制**: URL级别的访问频率控制,防止被目标网站封禁(默认5次/分钟)
+- ✅ **动态页面扩展**: 完整实现Playwright适配器,支持JavaScript渲染页面
+- ✅ **LRU淘汰**: 缓存达到最大容量时自动淘汰最近最少使用的项
+- ✅ **管理工具**: 提供缓存和限流的查询、清除、重置等管理功能
+
+**参数:**
+- `url` (str): 要抓取的网页URL地址
+- `mode` (str): 提取模式（'summary', 'full', 'structured'），默认'summary'
+- `max_length` (int): 最大文本长度限制，默认10000
+- `extract_tables` (bool): 是否提取表格数据，默认True
+- `extract_links` (bool): 是否提取页面链接，默认False
+- `extract_images` (bool): 是否提取图片信息，默认False
+
+**示例:**
+```python
+# 智能摘要模式(推荐用于文章阅读)
+fetch_webpage(url="https://example.com/article")
+
+# 全文模式(需要完整内容)
+fetch_webpage(url="https://example.com/page", mode="full")
+
+# 结构化模式(提取表格数据)
+fetch_webpage(url="https://example.com/data", mode="structured", extract_tables=True)
+
+# 提取链接和图片
+fetch_webpage(
+    url="https://example.com/news",
+    mode="summary",
+    extract_links=True,
+    extract_images=True
+)
+```
+
+### 8. get_webpage_cache_stats - 获取缓存统计
+
+查看网页缓存的使用情况统计信息。
+
+**返回:**
+- 总缓存条目数
+- 活跃条目数
+- 过期条目数
+- 缓存TTL
+- 最大容量和使用率
+
+**示例:**
+```python
+get_webpage_cache_stats()
+```
+
+### 9. clear_webpage_cache - 清除缓存
+
+清除网页缓存,可以清除所有缓存或指定URL的缓存。
+
+**参数:**
+- `url` (str, optional): 可选,指定要清除的URL。不提供则清除所有缓存
+
+**示例:**
+```python
+# 清除所有缓存
+clear_webpage_cache()
+
+# 清除指定URL的缓存
+clear_webpage_cache(url="https://example.com/article")
+```
+
+### 10. reset_webpage_rate_limit - 重置限流记录
+
+重置网页访问的限流计数,可以重置单个URL或所有URL。
+
+**参数:**
+- `url` (str, optional): 可选,指定要重置的URL。不提供则重置所有URL
+
+**示例:**
+```python
+# 重置所有限流记录
+reset_webpage_rate_limit()
+
+# 重置指定URL的限流记录
+reset_webpage_rate_limit(url="https://example.com")
+```
+
+### 11. get_webpage_rate_limit_stats - 获取限流统计
+
+查看当前所有URL的访问频率统计信息。
+
+**返回:**
+- 监控URL总数
+- 活跃URL数
+- 限流阈值配置
+- 接近限流的URL列表及剩余次数
+
+**示例:**
+```python
+get_webpage_rate_limit_stats()
+```
+
 ## 💡 使用示例
 
 ### 完整工作流程
@@ -255,6 +357,7 @@ python-mcp-server/
 │   ├── webpage_adapter.py    # 网页适配器
 │   ├── api_adapter.py        # API适配器
 │   ├── file_adapter.py       # 文件适配器
+│   ├── dynamic_page_adapter.py  # 动态页面适配器(Playwright完整实现)
 │   └── factory.py            # 数据源工厂
 ├── analyzer/                  # 分析模块
 │   ├── data_extractor.py     # 数据提取器
@@ -266,6 +369,7 @@ python-mcp-server/
 ├── tools/                     # MCP工具
 │   ├── web_search_tool.py
 │   ├── fetch_data_tool.py
+│   ├── fetch_webpage_tool.py  # 新增: 网页内容抓取
 │   ├── analyze_data_tool.py
 │   ├── trend_analysis_tool.py
 │   ├── generate_chart_data_tool.py
@@ -275,13 +379,16 @@ python-mcp-server/
 │   └── data_source.py
 ├── utils/                     # 工具模块
 │   ├── http_client.py        # HTTP客户端
-│   ├── cache_manager.py      # 缓存管理器
+│   ├── cache_manager.py      # 缓存管理器(支持LRU淘汰)
 │   ├── url_validator.py      # URL验证器
+│   ├── url_rate_limiter.py   # URL速率限制器
+│   ├── content_cleaner.py    # 内容清洗工具
 │   └── exceptions.py         # 异常管理
 └── tests/                     # 测试
     ├── test_phase1.py
     ├── test_phase2.py
-    └── test_phase3.py
+    ├── test_phase3.py
+    └── test_fetch_webpage.py  # 新增: 网页抓取工具测试
 ```
 
 ## ⚙️ 配置说明
@@ -297,6 +404,10 @@ python-mcp-server/
 | SEARCH_CONNECT_TIMEOUT | 连接超时（秒） | 5 |
 | SEARCH_READ_TIMEOUT | 读取超时（秒） | 10 |
 | SEARCH_MAX_RETRIES | 最大重试次数 | 3 |
+| WEBPAGE_CACHE_TTL | 网页缓存TTL（秒） | 600 (10分钟) |
+| WEBPAGE_CACHE_MAX_SIZE | 网页缓存最大条目数 | 100 |
+| WEBPAGE_RATE_LIMIT_PER_URL | 单个URL每分钟最大请求数 | 5 |
+| WEBPAGE_RATE_LIMIT_WINDOW | URL限流时间窗口（秒） | 60 |
 
 ### 配置文件
 
@@ -400,6 +511,17 @@ python tests/test_phase3.py
 
 ## 📝 版本历史
 
+- **v1.2.0** (2026-07-06) - 优化增强版
+  - ✨ 新增4个管理工具: get_webpage_cache_stats, clear_webpage_cache, reset_webpage_rate_limit, get_webpage_rate_limit_stats
+  - 🚀 完整实现Playwright动态页面适配器,支持JavaScript渲染页面抓取
+  - 🎯 CacheManager增强: 支持LRU淘汰策略,自动管理缓存容量
+  - 📊 改进统计信息: 添加使用率百分比,更直观的监控数据
+  
+- **v1.1.0** (2026-07-06) - 功能优化版
+  - ✅ 智能缓存机制: TTL过期策略,参数感知的缓存键
+  - ⏱️ URL级别速率限制: 滑动窗口算法,防止被封禁
+  - 🔧 动态页面扩展: 预留Selenium/Playwright适配器接口
+  
 - **v1.0.0** (2024-07-05)
   - Phase 1: 网络搜索能力
   - Phase 2: 数据源适配与基础分析
