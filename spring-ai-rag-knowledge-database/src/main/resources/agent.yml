@@ -1,0 +1,52 @@
+# Agents 配置
+ai:
+  agent:
+    # 是否启用 Agent 功能
+    enabled: true
+    
+    # 默认超时时间(秒)
+    default-timeout: 60
+    
+    # 默认最大重试次数
+    default-max-retries: 3
+    
+    # 是否启用异步执行
+    async-enabled: true
+    
+    # 异步线程池大小
+    async-pool-size: 5
+    
+    # 子 Agent 列表
+    sub-agents:
+      # 研究专用 Agent
+      - name: research-agent
+        type: specialized
+        description: "研究专用 Agent,负责信息检索和分析"
+        tools:
+          - web_search
+          - document_analyze
+        enabled: true
+        max-retries: 3
+        timeout-seconds: 90
+      
+      # 编码专用 Agent
+      - name: coding-agent
+        type: specialized
+        description: "编码专用 Agent,负责代码生成和审查"
+        tools:
+          - code_generate
+          - code_review
+        enabled: true
+        max-retries: 2
+        timeout-seconds: 120
+      
+      # 数据分析 Agent
+      - name: data-analysis-agent
+        type: specialized
+        description: "数据分析 Agent,负责数据处理和可视化"
+        tools:
+          - data_process
+          - chart_generate
+        enabled: true
+        max-retries: 3
+        timeout-seconds: 60

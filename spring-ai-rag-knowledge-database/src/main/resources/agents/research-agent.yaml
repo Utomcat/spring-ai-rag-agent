@@ -1,0 +1,9 @@
+name: research-agent
+type: specialized
+description: "研究专用 Agent,负责信息检索和分析"
+tools:
+  - web_search
+  - document_analyze
+enabled: true
+maxRetries: 3
+timeoutSeconds: 90
