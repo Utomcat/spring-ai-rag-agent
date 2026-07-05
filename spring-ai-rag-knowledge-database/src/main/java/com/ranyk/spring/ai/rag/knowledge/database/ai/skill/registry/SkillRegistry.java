@@ -1,5 +1,6 @@
 package com.ranyk.spring.ai.rag.knowledge.database.ai.skill.registry;
 
+import com.ranyk.spring.ai.rag.knowledge.database.common.cache.ResultCache;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.skill.handler.SkillHandler;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.skill.model.SkillDefinition;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,12 @@ public class SkillRegistry {
     private final Map<String, SkillHandler> skillHandlers = new ConcurrentHashMap<>();
     
     /**
+     * Skill 查询结果缓存 (skillId -> SkillDefinition)
+     * 最大1000条,默认5分钟过期
+     */
+    private final ResultCache<String, SkillDefinition> skillCache = new ResultCache<>(1000, 300);
+    
+    /**
      * 注册 Skill
      *
      * @param definition Skill 定义
@@ -49,10 +56,15 @@ public class SkillRegistry {
         // 检查是否已存在
         if (skillDefinitions.containsKey(skillId)) {
             log.warn("Skill [{}] 已存在,将被覆盖", skillId);
+            // 清除旧缓存
+            skillCache.remove(skillId);
         }
         
         skillDefinitions.put(skillId, definition);
         skillHandlers.put(skillId, handler);
+        
+        // 更新缓存
+        skillCache.put(skillId, definition);
         
         log.info("Skill [{}] 注册成功: {}", skillId, definition.getName());
     }
@@ -67,6 +79,9 @@ public class SkillRegistry {
         SkillDefinition removed = skillDefinitions.remove(skillId);
         skillHandlers.remove(skillId);
         
+        // 清除缓存
+        skillCache.remove(skillId);
+        
         if (removed != null) {
             log.info("Skill [{}] 已注销", skillId);
             return true;
@@ -77,17 +92,18 @@ public class SkillRegistry {
     }
     
     /**
-     * 获取 Skill 定义
+     * 获取 Skill 定义(带缓存优化)
      *
      * @param skillId Skill ID
      * @return Skill 定义,不存在返回 null
      */
     public SkillDefinition getSkillDefinition(String skillId) {
-        return skillDefinitions.get(skillId);
+        // 使用缓存获取,未命中时从内存加载
+        return skillCache.get(skillId, () -> skillDefinitions.get(skillId));
     }
     
     /**
-     * 获取 Skill Handler
+     * 获取 Skill Handler(带缓存优化)
      *
      * @param skillId Skill ID
      * @return Skill Handler,不存在返回 null
@@ -168,6 +184,19 @@ public class SkillRegistry {
         int count = skillDefinitions.size();
         skillDefinitions.clear();
         skillHandlers.clear();
+        
+        // 清空缓存
+        skillCache.clear();
+        
         log.info("已清空所有 {} 个 Skills", count);
+    }
+    
+    /**
+     * 获取缓存统计信息
+     *
+     * @return 缓存统计字符串
+     */
+    public String getCacheStats() {
+        return skillCache.getStats();
     }
 }
