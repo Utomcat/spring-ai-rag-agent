@@ -1,11 +1,15 @@
 package com.ranyk.spring.ai.rag.knowledge.database.config;
 
+import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.invoker.AgentChatClient;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.invoker.AgentInvoker;
+import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.invoker.ToolRegistry;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.model.AgentDefinition;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.registry.AgentRegistry;
 import com.ranyk.spring.ai.rag.knowledge.database.config.properties.AgentProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,12 +40,31 @@ public class AgentConfiguration {
     }
     
     /**
+     * 注册 ToolRegistry
+     */
+    @Bean
+    public ToolRegistry toolRegistry() {
+        log.info("初始化 ToolRegistry");
+        return new ToolRegistry();
+    }
+    
+    /**
+     * 注册 AgentChatClient
+     */
+    @Bean
+    public AgentChatClient agentChatClient(ChatClient.Builder chatClientBuilder, MeterRegistry meterRegistry) {
+        log.info("初始化 AgentChatClient");
+        return new AgentChatClient(chatClientBuilder, meterRegistry);
+    }
+    
+    /**
      * 注册 AgentInvoker
      */
     @Bean
-    public AgentInvoker agentInvoker(AgentRegistry agentRegistry) {
+    public AgentInvoker agentInvoker(AgentRegistry agentRegistry, AgentChatClient agentChatClient, 
+                                    ToolRegistry toolRegistry) {
         log.info("初始化 AgentInvoker");
-        AgentInvoker invoker = new AgentInvoker(agentRegistry, agentProperties);
+        AgentInvoker invoker = new AgentInvoker(agentRegistry, agentProperties, agentChatClient, toolRegistry);
         
         // 从配置文件注册子 Agents
         registerSubAgents(agentRegistry);
