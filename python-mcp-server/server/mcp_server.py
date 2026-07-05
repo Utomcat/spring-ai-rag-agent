@@ -1,7 +1,11 @@
 import logging
 import os
+from dotenv import load_dotenv
 
 from mcp.server.fastmcp import FastMCP
+
+# 确保 .env 文件已加载(防止在其他模块导入时环境变量未就绪)
+load_dotenv()
 
 # 配置日志
 logger = logging.getLogger(__name__)
