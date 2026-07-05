@@ -44,13 +44,15 @@
 
 ### Python MCP Server
 
-| 文档                                              | 说明                         |
-|-------------------------------------------------|----------------------------|
-| [MCP Server 概览](md/mcp-server.md)               | Python MCP Server 子项目介绍    |
-| [完整技术文档](md/python-mcp-server.md)               | 工具列表、架构设计、配置说明等详细说明        |
-| [fetch_webpage 使用指南](md/fetch-webpage-usage.md) | 网页内容抓取工具详细说明               |
-| [优化说明 v1.1.0](md/optimization-summary.md)       | 缓存、限流和动态页面扩展功能             |
-| [增强说明 v1.2.0](md/enhancement-summary.md)        | 管理工具、Playwright适配器和LRU淘汰策略 |
+| 文档                                                | 说明                         |
+|---------------------------------------------------|----------------------------|
+| [MCP Server 概览](md/mcp-server.md)                 | Python MCP Server 子项目介绍    |
+| [完整技术文档](md/python-mcp-server.md)                 | 工具列表、架构设计、配置说明等详细说明        |
+| [fetch_webpage 使用指南](md/fetch-webpage-usage.md)   | 网页内容抓取工具详细说明               |
+| [优化说明 v1.1.0](md/optimization-summary.md)         | 缓存、限流和动态页面扩展功能             |
+| [增强说明 v1.2.0](md/enhancement-summary.md)          | 管理工具、Playwright适配器和LRU淘汰策略 |
+| [Redis双层缓存实施报告](md/redis-cache-implementation.md) | Redis双DB架构缓存系统完整实施报告       |
+| [Redis缓存快速启动](md/quickstart-redis-cache.md)       | 5分钟快速开始指南                  |
 
 ## 📖 项目概述
 
@@ -66,6 +68,7 @@
 - **多模块设计**：Java 后端 + Python MCP Server 双模块协同工作
 - **虚拟线程**：基于 JDK 21 虚拟线程提升并发性能
 - **Skills 执行引擎**：支持技能注册、批量执行、链式执行和异步执行
+- **Redis双层缓存**：热点数据（DB 1）+ 完整数据（DB 2）分离存储，智能晋升机制
 
 ## 🛠️ 技术栈
 
@@ -109,7 +112,9 @@ spring-ai-rag-agent/
 │   ├── python-mcp-server.md             # Python MCP Server 完整技术文档
 │   ├── fetch-webpage-usage.md           # fetch_webpage 工具使用指南
 │   ├── optimization-summary.md          # v1.1.0 优化说明
-│   └── enhancement-summary.md           # v1.2.0 增强说明
+│   ├── enhancement-summary.md           # v1.2.0 增强说明
+│   ├── redis-cache-implementation.md    # Redis双层缓存实施报告
+│   └── quickstart-redis-cache.md        # Redis缓存快速启动指南
 │
 ├── python-mcp-server/                   # Python MCP Server(扩展工具能力)
 │   ├── main.py                          # MCP Server 启动入口
@@ -173,7 +178,15 @@ spring-ai-rag-agent/
 │   ├── utils/                           # 工具模块
 │   │   ├── __init__.py
 │   │   ├── http_client.py               # HTTP 客户端
-│   │   ├── cache_manager.py             # 缓存管理器
+│   │   ├── cache_manager.py             # 内存缓存管理器（旧版）
+│   │   ├── cache_interface.py           # 统一缓存接口定义
+│   │   ├── hot_data_cache_manager.py    # 热点数据缓存管理器（Redis DB 1）
+│   │   ├── full_data_cache_manager.py   # 完整数据缓存管理器（Redis DB 2）
+│   │   ├── dual_layer_cache_manager.py  # 双层缓存管理器（对外统一接口）
+│   │   ├── cache_warmer.py              # 缓存预热模块
+│   │   ├── cache_monitor.py             # Prometheus监控模块
+│   │   ├── cache_sync.py                # 多实例同步模块
+│   │   ├── hot_data_tracker.py          # 热点数据追踪模块
 │   │   ├── url_rate_limiter.py          # URL 限流器
 │   │   ├── url_validator.py             # URL 验证器
 │   │   ├── validator.py                 # 通用验证器
@@ -364,6 +377,28 @@ spring-ai-rag-agent/
 - **v1.0.0**：基础网络搜索、数据源适配（网页/API/文件）、统计分析
 - **v1.1.0**：智能缓存（TTL过期策略）、URL 限流（滑动窗口算法）、动态页面扩展预留
 - **v1.2.0**：管理工具（4个运维工具）、Playwright 完整实现、LRU 淘汰策略、缓存容量管理
+- **v1.3.0**：Redis双层缓存架构（热点DB 1 + 完整DB 2）、智能晋升机制、Prometheus监控、多实例同步、缓存预热
+
+### Redis双层缓存架构
+
+#### 核心特性
+
+- **双DB隔离**：热点数据（Redis DB 1）+ 完整数据（Redis DB 2）分离存储
+- **智能晋升**：基于访问频率自动将热点数据从完整层提升到热点层
+- **降级策略**：Redis不可用时自动切换到内存缓存，保证服务可用性
+- **多实例同步**：基于Redis Pub/Sub实现分布式环境下的缓存一致性
+- **监控指标**：集成Prometheus导出命中率、操作延迟等关键指标
+- **缓存预热**：系统启动时预加载热点数据，提升初始响应速度
+
+#### 性能优势
+
+- **热点数据快速访问**：独立DB通道，默认5分钟TTL，容量50条
+- **完整数据长期保留**：大容量存储，默认30分钟TTL，容量500条
+- **命名空间隔离**：不同环境使用不同的key前缀，避免冲突
+
+详细文档请参考：
+- [Redis双层缓存实施报告](md/redis-cache-implementation.md)
+- [Redis缓存快速启动指南](md/quickstart-redis-cache.md)
 
 详细文档请参考 [Python MCP Server 完整技术文档](md/python-mcp-server.md)
 
