@@ -3,6 +3,8 @@ package com.ranyk.spring.ai.rag.knowledge.database.ai.agent.invoker;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.model.AgentDefinition;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.model.AgentExecutionResult;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.agent.registry.AgentRegistry;
+import com.ranyk.spring.ai.rag.knowledge.database.utils.ConcurrentUtils;
+import com.ranyk.spring.ai.rag.knowledge.database.utils.ExecutorUtils;
 import com.ranyk.spring.ai.rag.knowledge.database.config.properties.AgentProperties;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,22 +25,22 @@ public class AgentInvoker {
     
     private final AgentRegistry agentRegistry;
     private final AgentProperties agentProperties;
+    private final AgentChatClient agentChatClient;
+    private final ToolRegistry toolRegistry;
     private final ExecutorService executorService;
     
-    public AgentInvoker(AgentRegistry agentRegistry, AgentProperties agentProperties) {
+    public AgentInvoker(AgentRegistry agentRegistry, AgentProperties agentProperties, 
+                       AgentChatClient agentChatClient, ToolRegistry toolRegistry) {
         this.agentRegistry = agentRegistry;
         this.agentProperties = agentProperties;
+        this.agentChatClient = agentChatClient;
+        this.toolRegistry = toolRegistry;
         
         // 初始化线程池
         if (agentProperties.getAsyncEnabled()) {
-            this.executorService = Executors.newFixedThreadPool(
+            this.executorService = ExecutorUtils.createFixedThreadPool(
                     agentProperties.getAsyncPoolSize(),
-                    r -> {
-                        Thread thread = new Thread(r);
-                        thread.setName("agent-invoker-" + thread.getId());
-                        thread.setDaemon(true);
-                        return thread;
-                    }
+                    "agent-invoker"
             );
             log.info("Agent 异步调用器已初始化,线程池大小: {}", agentProperties.getAsyncPoolSize());
         } else {
@@ -73,13 +75,21 @@ public class AgentInvoker {
                 return AgentExecutionResult.failure(agentName, errorMsg, "AGENT_DISABLED");
             }
             
-            // TODO: 实现真实的 Agent 调用逻辑
-            // 这里需要集成 Spring AI 的 ChatClient 和 Function Calling
+            // 构建系统提示词
+            String systemPrompt = buildSystemPrompt(definition);
             
             log.info("开始调用 Agent [{}], 任务: {}", agentName, prompt);
             
-            // 模拟执行
-            String result = String.format("Agent [%s] 处理结果: %s", agentName, prompt);
+            // 执行真实的 LLM 调用
+            String result;
+            if (definition.getTools() != null && !definition.getTools().isEmpty()) {
+                // 带工具的调用
+                result = agentChatClient.executeWithTools(systemPrompt, prompt, definition.getTools());
+            } else {
+                // 普通调用
+                result = agentChatClient.execute(systemPrompt, prompt);
+            }
+            
             long executionTime = System.currentTimeMillis() - startTime;
             
             log.info("Agent [{}] 调用成功,耗时: {}ms", agentName, executionTime);
@@ -109,31 +119,34 @@ public class AgentInvoker {
     }
     
     /**
-     * 并行调用多个 Agents
+     * 并行调用多个 Agents(使用 ConcurrentUtils 优化)
      *
      * @param agentNames Agent 名称列表
      * @param prompt     提示词
      * @return 执行结果列表
      */
     public List<AgentExecutionResult> parallelInvoke(List<String> agentNames, String prompt) {
-        List<CompletableFuture<AgentExecutionResult>> futures = agentNames.stream()
-                .map(name -> invokeAsync(name, prompt))
-                .collect(Collectors.toList());
+        if (agentNames == null || agentNames.isEmpty()) {
+            return Collections.emptyList();
+        }
         
-        // 等待所有任务完成
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(
-                futures.toArray(new CompletableFuture[0])
+        log.info("开始并行调用 {} 个 Agents", agentNames.size());
+        long startTime = System.currentTimeMillis();
+        
+        // 使用 ConcurrentUtils 进行并行处理
+        List<AgentExecutionResult> results = ConcurrentUtils.parallelProcess(
+            agentNames,
+            name -> invoke(name, prompt),
+            executorService,
+            agentProperties.getDefaultTimeout(),
+            "Agent 并行调用"
         );
         
-        try {
-            allFutures.get(agentProperties.getDefaultTimeout(), TimeUnit.SECONDS);
-            return futures.stream()
-                    .map(CompletableFuture::join)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("并行调用 Agents 失败", e);
-            throw new RuntimeException("并行调用失败: " + e.getMessage(), e);
-        }
+        long elapsed = System.currentTimeMillis() - startTime;
+        log.info("并行调用完成,耗时: {}ms, 成功: {}/{}", 
+                elapsed, results.size(), agentNames.size());
+        
+        return results;
     }
     
     /**
@@ -183,20 +196,39 @@ public class AgentInvoker {
     }
     
     /**
+     * 构建系统提示词
+     *
+     * @param definition Agent 定义
+     * @return 系统提示词
+     */
+    private String buildSystemPrompt(AgentDefinition definition) {
+        StringBuilder sb = new StringBuilder();
+        
+        if (definition.getDescription() != null) {
+            sb.append(definition.getDescription()).append("\n\n");
+        }
+        
+        if (definition.getTools() != null && !definition.getTools().isEmpty()) {
+            sb.append("你可以使用以下工具:\n");
+            for (String toolName : definition.getTools()) {
+                ToolRegistry.ToolDefinition toolDef = toolRegistry.getToolDefinition(toolName);
+                if (toolDef != null) {
+                    sb.append("- ").append(toolName).append(": ")
+                      .append(toolDef.getDescription()).append("\n");
+                }
+            }
+            sb.append("\n");
+        }
+        
+        sb.append("请根据用户的问题提供帮助。");
+        
+        return sb.toString();
+    }
+    
+    /**
      * 关闭调用器
      */
     public void shutdown() {
-        if (executorService != null && !executorService.isShutdown()) {
-            executorService.shutdown();
-            try {
-                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                    executorService.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                executorService.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
-            log.info("Agent 调用器已关闭");
-        }
+        ExecutorUtils.safeShutdown(executorService, 5, "Agent 调用器");
     }
 }
