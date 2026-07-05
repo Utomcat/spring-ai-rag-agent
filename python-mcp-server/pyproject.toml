@@ -24,4 +24,8 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "typer==0.26.8",
     "pandas-stubs>=2.3.3.260113",
+    # Redis缓存
+    "redis>=5.0.0",
+    # 监控指标
+    "prometheus-client>=0.19.0",
 ]
