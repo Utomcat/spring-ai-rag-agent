@@ -11,13 +11,15 @@ from server.mcp_server import mcp
 from utils.http_client import HttpClient
 from utils.content_cleaner import ContentCleaner
 from utils.url_validator import UrlValidator
-from utils.cache_manager import CacheManager
+from utils.dual_layer_cache_manager import DualLayerCacheManager
 from utils.url_rate_limiter import UrlRateLimiter
 from config.constants import (
     CONNECT_TIMEOUT, 
     READ_TIMEOUT,
-    CACHE_TTL_WEBPAGE,
-    WEBPAGE_CACHE_MAX_SIZE
+    HOT_DATA_CACHE_TTL,
+    HOT_DATA_CACHE_MAX_SIZE,
+    FULL_DATA_CACHE_TTL,
+    FULL_DATA_CACHE_MAX_SIZE
 )
 
 # 配置日志
@@ -26,8 +28,13 @@ logger = logging.getLogger(__name__)
 # HTTP客户端实例
 http_client = HttpClient(timeout=(CONNECT_TIMEOUT, READ_TIMEOUT))
 
-# 网页内容缓存管理器
-webpage_cache = CacheManager(ttl=CACHE_TTL_WEBPAGE, max_size=WEBPAGE_CACHE_MAX_SIZE)
+# 网页内容双层缓存管理器
+webpage_cache = DualLayerCacheManager(
+    hot_ttl=HOT_DATA_CACHE_TTL,
+    hot_max_size=HOT_DATA_CACHE_MAX_SIZE,
+    full_ttl=FULL_DATA_CACHE_TTL,
+    full_max_size=FULL_DATA_CACHE_MAX_SIZE
+)
 
 # URL级别速率限制器
 url_rate_limiter = UrlRateLimiter()

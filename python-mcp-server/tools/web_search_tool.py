@@ -7,13 +7,26 @@ import logging
 from server.mcp_server import mcp
 from search.engine import SearchEngineFactory
 from config.constants import MAX_RESULTS_LIMIT, MIN_RESULTS
-from utils.cache_manager import CacheManager
+from utils.dual_layer_cache_manager import DualLayerCacheManager
+from config.constants import (
+    MAX_RESULTS_LIMIT, 
+    MIN_RESULTS,
+    HOT_DATA_CACHE_TTL,
+    HOT_DATA_CACHE_MAX_SIZE,
+    FULL_DATA_CACHE_TTL,
+    FULL_DATA_CACHE_MAX_SIZE
+)
 
 # 配置日志
 logger = logging.getLogger(__name__)
 
-# 全局缓存管理器
-cache_manager = CacheManager()
+# 全局双层缓存管理器
+cache_manager = DualLayerCacheManager(
+    hot_ttl=HOT_DATA_CACHE_TTL,
+    hot_max_size=HOT_DATA_CACHE_MAX_SIZE,
+    full_ttl=FULL_DATA_CACHE_TTL,
+    full_max_size=FULL_DATA_CACHE_MAX_SIZE
+)
 
 
 @mcp.tool()
