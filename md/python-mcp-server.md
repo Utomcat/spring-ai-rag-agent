@@ -53,17 +53,17 @@
 
 ## 🛠️ 技术栈
 
-| 依赖 | 版本 | 说明 |
-|------|------|------|
-| Python | 3.10+ | 运行环境 |
-| mcp[cli] | >= 1.0.0 | MCP 协议实现 |
-| requests | >= 2.31.0 | HTTP 请求 |
-| beautifulsoup4 + lxml | - | HTML/XML 解析 |
-| Pandas | >= 2.0.0 | 数据处理 |
-| NumPy | >= 1.24.0 | 数值计算 |
-| Pydantic | >= 2.0.0 | 数据验证 |
-| Uvicorn | >= 0.24.0 | Web服务器 |
-| Playwright | 可选 | 动态页面抓取(需单独安装) |
+| 依赖                    | 版本        | 说明            |
+|-----------------------|-----------|---------------|
+| Python                | 3.10+     | 运行环境          |
+| mcp[cli]              | >= 1.0.0  | MCP 协议实现      |
+| requests              | >= 2.31.0 | HTTP 请求       |
+| beautifulsoup4 + lxml | -         | HTML/XML 解析   |
+| Pandas                | >= 2.0.0  | 数据处理          |
+| NumPy                 | >= 1.24.0 | 数值计算          |
+| Pydantic              | >= 2.0.0  | 数据验证          |
+| Uvicorn               | >= 0.24.0 | Web服务器        |
+| Playwright            | 可选        | 动态页面抓取(需单独安装) |
 
 ---
 
@@ -431,19 +431,19 @@ python-mcp-server/
 
 ### 环境变量
 
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| MCP_HOST | 监听地址 | 127.0.0.1 |
-| MCP_PORT | 监听端口 | 8084 |
-| MCP_MOUNT_PATH | 挂载路径 | /mcp |
-| MCP_TRANSPORT | 传输方式 | streamable-http |
-| SEARCH_CONNECT_TIMEOUT | 连接超时(秒) | 5 |
-| SEARCH_READ_TIMEOUT | 读取超时(秒) | 10 |
-| SEARCH_MAX_RETRIES | 最大重试次数 | 3 |
-| WEBPAGE_CACHE_TTL | 网页缓存TTL(秒) | 600 (10分钟) |
-| WEBPAGE_CACHE_MAX_SIZE | 网页缓存最大条目数 | 100 |
-| WEBPAGE_RATE_LIMIT_PER_URL | 单个URL每分钟最大请求数 | 5 |
-| WEBPAGE_RATE_LIMIT_WINDOW | URL限流时间窗口(秒) | 60 |
+| 变量名                        | 说明            | 默认值             |
+|----------------------------|---------------|-----------------|
+| MCP_HOST                   | 监听地址          | 127.0.0.1       |
+| MCP_PORT                   | 监听端口          | 8084            |
+| MCP_MOUNT_PATH             | 挂载路径          | /mcp            |
+| MCP_TRANSPORT              | 传输方式          | streamable-http |
+| SEARCH_CONNECT_TIMEOUT     | 连接超时(秒)       | 5               |
+| SEARCH_READ_TIMEOUT        | 读取超时(秒)       | 10              |
+| SEARCH_MAX_RETRIES         | 最大重试次数        | 3               |
+| WEBPAGE_CACHE_TTL          | 网页缓存TTL(秒)    | 600 (10分钟)      |
+| WEBPAGE_CACHE_MAX_SIZE     | 网页缓存最大条目数     | 100             |
+| WEBPAGE_RATE_LIMIT_PER_URL | 单个URL每分钟最大请求数 | 5               |
+| WEBPAGE_RATE_LIMIT_WINDOW  | URL限流时间窗口(秒)  | 60              |
 
 ### 配置文件
 

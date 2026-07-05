@@ -116,14 +116,14 @@ fetch_webpage(
 
 ## 参数说明
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `url` | str | 必填 | 要抓取的网页URL地址 |
-| `mode` | str | 'summary' | 提取模式: 'summary'(智能摘要), 'full'(全文), 'structured'(结构化) |
-| `max_length` | int | 10000 | 最大文本长度限制(字符数) |
-| `extract_tables` | bool | True | 是否提取表格数据(structured模式有效) |
-| `extract_links` | bool | False | 是否提取页面链接 |
-| `extract_images` | bool | False | 是否提取图片信息 |
+| 参数               | 类型   | 默认值       | 说明                                                   |
+|------------------|------|-----------|------------------------------------------------------|
+| `url`            | str  | 必填        | 要抓取的网页URL地址                                          |
+| `mode`           | str  | 'summary' | 提取模式: 'summary'(智能摘要), 'full'(全文), 'structured'(结构化) |
+| `max_length`     | int  | 10000     | 最大文本长度限制(字符数)                                        |
+| `extract_tables` | bool | True      | 是否提取表格数据(structured模式有效)                             |
+| `extract_links`  | bool | False     | 是否提取页面链接                                             |
+| `extract_images` | bool | False     | 是否提取图片信息                                             |
 
 ## 使用场景
 

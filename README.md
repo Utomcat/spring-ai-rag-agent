@@ -28,29 +28,29 @@
 
 ### 快速入门
 
-| 文档 | 说明 |
-|------|------|
-| [快速开始](md/quickstart.md) | 环境准备、安装部署、运行指南 |
-| [配置文件](md/configuration.md) | 各配置文件详解和环境变量支持 |
-| [API 接口](md/api.md) | 完整的 REST API 接口文档 |
+| 文档                          | 说明                |
+|-----------------------------|-------------------|
+| [快速开始](md/quickstart.md)    | 环境准备、安装部署、运行指南    |
+| [配置文件](md/configuration.md) | 各配置文件详解和环境变量支持    |
+| [API 接口](md/api.md)         | 完整的 REST API 接口文档 |
 
 ### 核心概念
 
-| 文档 | 说明 |
-|------|------|
-| [架构设计](md/architecture.md) | 总体架构、分层设计和核心流程图 |
-| [Function Calling](md/function-calling.md) | Agent 工具扩展和 MCP 协议支持 |
+| 文档                                             | 说明                              |
+|------------------------------------------------|---------------------------------|
+| [架构设计](md/architecture.md)                     | 总体架构、分层设计和核心流程图                 |
+| [Function Calling](md/function-calling.md)     | Agent 工具扩展和 MCP 协议支持            |
 | [MCP + Agent + Skills](md/mcp-agent-skills.md) | MCP + Agent + Skills 第一阶段实现使用指南 |
 
 ### Python MCP Server
 
-| 文档 | 说明 |
-|------|------|
-| [MCP Server 概览](md/mcp-server.md) | Python MCP Server 子项目介绍 |
-| [完整技术文档](md/python-mcp-server.md) | 工具列表、架构设计、配置说明等详细说明 |
-| [fetch_webpage 使用指南](md/fetch-webpage-usage.md) | 网页内容抓取工具详细说明 |
-| [优化说明 v1.1.0](md/optimization-summary.md) | 缓存、限流和动态页面扩展功能 |
-| [增强说明 v1.2.0](md/enhancement-summary.md) | 管理工具、Playwright适配器和LRU淘汰策略 |
+| 文档                                              | 说明                         |
+|-------------------------------------------------|----------------------------|
+| [MCP Server 概览](md/mcp-server.md)               | Python MCP Server 子项目介绍    |
+| [完整技术文档](md/python-mcp-server.md)               | 工具列表、架构设计、配置说明等详细说明        |
+| [fetch_webpage 使用指南](md/fetch-webpage-usage.md) | 网页内容抓取工具详细说明               |
+| [优化说明 v1.1.0](md/optimization-summary.md)       | 缓存、限流和动态页面扩展功能             |
+| [增强说明 v1.2.0](md/enhancement-summary.md)        | 管理工具、Playwright适配器和LRU淘汰策略 |
 
 ## 📖 项目概述
 
