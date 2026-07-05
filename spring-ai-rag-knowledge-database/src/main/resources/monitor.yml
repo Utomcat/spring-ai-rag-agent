@@ -1,0 +1,37 @@
+# Actuator 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露的端点
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+    
+    # Prometheus 端点配置
+    prometheus:
+      enabled: true
+    
+  # 指标配置
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    
+    # 自定义标签
+    tags:
+      application: ${spring.application.name}
+    
+    # 分布统计配置
+    distribution:
+      percentiles-histogram:
+        skill.execution: true
+        agent.invocation: true
+      sla:
+        skill.execution: 100ms, 500ms, 1s, 5s, 10s
+        agent.invocation: 100ms, 500ms, 1s, 5s, 10s
+  
+  # 健康检查配置
+  health:
+    show-details: when-authorized
+    probes:
+      enabled: true

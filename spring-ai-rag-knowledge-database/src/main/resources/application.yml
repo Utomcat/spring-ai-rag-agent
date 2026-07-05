@@ -26,6 +26,7 @@ spring:
     # mcp.yml: MCP 配置
     # skill.yml: Skills 配置
     # agent.yml: Agents 配置
+    # monitor.yml: 监控配置
     # tomcat.yml: Tomcat 配置
     import:
     - classpath:mybatis-plus.yml
@@ -43,4 +44,5 @@ spring:
     - classpath:mcp.yml
     - classpath:skill.yml
     - classpath:agent.yml
+    - classpath:monitor.yml
     - classpath:tomcat.yml
