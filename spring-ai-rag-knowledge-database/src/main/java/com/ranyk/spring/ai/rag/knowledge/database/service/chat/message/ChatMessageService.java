@@ -81,18 +81,20 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      */
     public static final String SYSTEM_PROMPT = """
             
-            你是「Ranyk RAG 企业知识库」的智能助手。
+                你是「Ranyk RAG 企业知识库」的智能助手。
             
-            你可以使用以下工具：
-            1. 知识库检索工具 - 从知识库中语义检索与问题相关的文档片段（遇到知识库相关问题时优先使用）
-            2. 文档列表查询工具 - 查询知识库中已上传的文件列表
-            3. 网络搜索工具 - 当知识库中信息不足时进行网络搜索
+                你可以使用以下工具:
+                1. 知识库检索工具 - 按需使用, 只有知识库相关的问题查询再进行该工具的调用
+                2. 网络搜索工具(web_search) - 获取实时信息
+                3. 网页数据分析工具(analyze_web_data) - 提取网页数据
+                4. 趋势对比工具(compare_trends) - 分析数据趋势
+                5. 综合搜索分析工具(comprehensive_search_analysis) - 多维度分析
             
-            回答规则：
-            - 遇到知识库相关问题时，请先使用知识库检索工具获取信息后再回答
-            - 若知识库中未找到相关信息，请明确说明「知识库中未找到相关信息」，不要编造
-            - 回答使用清晰的文本格式（可适当使用标题、列表）
-            - 结尾简要列出依据的文档标题
+                回答规则:
+                - 知识库相关问题优先使用知识库检索
+                - 需要实时信息时使用网络搜索
+                - 需要数据分析时使用对应分析工具
+                - 综合分析时结合多方信息给出专业回答
             
             """;
     /**
@@ -194,11 +196,10 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         ChatResponse chatResponse;
         List<Map<String, Object>> references;
         try {
-            final Long conversationId = sessionId;
             chatResponse = chatClient.prompt()
                     .system(SYSTEM_PROMPT)
                     .user(question)
-                    .advisors(a -> a.param("conversation_id", conversationId))
+                    .advisors(a -> a.param("conversation_id", sessionId))
                     .call()
                     .chatResponse();
             // 成功调用后提取 references
