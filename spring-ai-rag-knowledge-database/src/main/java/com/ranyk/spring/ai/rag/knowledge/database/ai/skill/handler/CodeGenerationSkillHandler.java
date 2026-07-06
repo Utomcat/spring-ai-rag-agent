@@ -55,16 +55,12 @@ public class CodeGenerationSkillHandler implements SkillHandler {
      * 根据语言和框架生成代码模板
      */
     private String generateCode(String description, String language, String framework) {
-        switch (language.toLowerCase()) {
-            case "java":
-                return generateJavaCode(description, framework);
-            case "python":
-                return generatePythonCode(description, framework);
-            case "sql":
-                return generateSQLCode(description);
-            default:
-                throw new IllegalArgumentException("不支持的编程语言: " + language);
-        }
+        return switch (language.toLowerCase()) {
+            case "java" -> generateJavaCode(description, framework);
+            case "python" -> generatePythonCode(description, framework);
+            case "sql" -> generateSQLCode(description);
+            default -> throw new IllegalArgumentException("不支持的编程语言: " + language);
+        };
     }
     
     /**
@@ -157,21 +153,18 @@ public class CodeGenerationSkillHandler implements SkillHandler {
      * 生成 SQL 代码
      */
     private String generateSQLCode(String description) {
-        StringBuilder sb = new StringBuilder();
-        
-        sb.append("-- SQL Query\n");
-        sb.append("-- ").append(description).append("\n\n");
-        sb.append("SELECT \n");
-        sb.append("    column1,\n");
-        sb.append("    column2,\n");
-        sb.append("    COUNT(*) as total\n");
-        sb.append("FROM table_name\n");
-        sb.append("WHERE condition = 'value'\n");
-        sb.append("GROUP BY column1, column2\n");
-        sb.append("HAVING total > 0\n");
-        sb.append("ORDER BY total DESC\n");
-        sb.append("LIMIT 100;\n");
-        
-        return sb.toString();
+
+        return "-- SQL Query\n" +
+                "-- " + description + "\n\n" +
+                "SELECT \n" +
+                "    column1,\n" +
+                "    column2,\n" +
+                "    COUNT(*) as total\n" +
+                "FROM table_name\n" +
+                "WHERE condition = 'value'\n" +
+                "GROUP BY column1, column2\n" +
+                "HAVING total > 0\n" +
+                "ORDER BY total DESC\n" +
+                "LIMIT 100;\n";
     }
 }
