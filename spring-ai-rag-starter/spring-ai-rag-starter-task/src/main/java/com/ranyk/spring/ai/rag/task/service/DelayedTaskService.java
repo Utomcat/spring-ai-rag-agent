@@ -1,10 +1,10 @@
-package com.ranyk.spring.ai.rag.knowledge.database.service.task;
+package com.ranyk.spring.ai.rag.task.service;
 
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.*;
@@ -19,14 +19,14 @@ import java.util.function.Supplier;
  * @date: 2026-07-02
  */
 @Slf4j
-@Service
+@Component
 @SuppressWarnings("unused")
 public class DelayedTaskService {
 
     /**
      * 虚拟线程定时任务调度器对象
      */
-    private final ScheduledExecutorService scheduler;
+    private final ScheduledExecutorService virtualThreadScheduler;
     /**
      * 虚拟线程执行器对象
      */
@@ -35,14 +35,23 @@ public class DelayedTaskService {
     /**
      * 构造方法 - 向 Spring IOC 容器中注册 DelayedTaskService 类型的 Bean, 同时通过 DI 进行依赖注入相关对象
      *
-     * @param scheduler             虚拟线程定时任务调度器对象
-     * @param virtualThreadExecutor 虚拟线程执行器对象
+     * @param virtualThreadScheduler 虚拟线程定时任务调度器对象
+     * @param virtualThreadExecutor  虚拟线程执行器对象
      */
     @Autowired
-    public DelayedTaskService(@Qualifier("virtualThreadScheduler") ScheduledExecutorService scheduler,
+    public DelayedTaskService(@Qualifier("virtualThreadScheduler") ScheduledExecutorService virtualThreadScheduler,
                               @Qualifier("virtualThreadExecutor") ExecutorService virtualThreadExecutor) {
-        this.scheduler = scheduler;
+        this.virtualThreadScheduler = virtualThreadScheduler;
         this.virtualThreadExecutor = virtualThreadExecutor;
+    }
+
+    /**
+     * 立即执行任务（无返回值） - 延迟 0 秒执行
+     *
+     * @param task 要执行的任务
+     */
+    public void execute(Runnable task) {
+        executeAfterDelay(task, 0L, TimeUnit.SECONDS);
     }
 
     /**
@@ -55,7 +64,7 @@ public class DelayedTaskService {
      */
     public ScheduledFuture<?> executeAfterDelay(Runnable task, long delay, TimeUnit unit) {
         log.info("调度延迟任务: 延迟 {} {}", delay, unit);
-        return scheduler.schedule(() -> virtualThreadExecutor.execute(() -> {
+        return virtualThreadScheduler.schedule(() -> virtualThreadExecutor.execute(() -> {
             try {
                 log.info("[{}] 开始执行延迟任务", LocalDateTime.now());
                 task.run();
@@ -79,7 +88,7 @@ public class DelayedTaskService {
 
         CompletableFuture<T> future = new CompletableFuture<>();
 
-        scheduler.schedule(() -> virtualThreadExecutor.execute(() -> {
+        virtualThreadScheduler.schedule(() -> virtualThreadExecutor.execute(() -> {
             try {
                 log.info("[{}] 开始执行延迟任务(带返回值)", LocalDateTime.now());
                 T result = task.get();
@@ -123,7 +132,7 @@ public class DelayedTaskService {
     /**
      * 周期性执行任务（固定延迟）
      *
-     * @param task   要执行的任务
+     * @param task         要执行的任务
      * @param initialDelay 初始延迟
      * @param period       周期时间
      * @param unit         时间单位
@@ -132,7 +141,7 @@ public class DelayedTaskService {
     public ScheduledFuture<?> executePeriodically(Runnable task, long initialDelay, long period, TimeUnit unit) {
         log.info("调度周期性任务: 初始延迟 {} {}, 周期 {} {}", initialDelay, unit, period, unit);
 
-        return scheduler.scheduleAtFixedRate(() -> virtualThreadExecutor.execute(() -> {
+        return virtualThreadScheduler.scheduleAtFixedRate(() -> virtualThreadExecutor.execute(() -> {
             try {
                 log.info("[{}] 执行周期性任务", LocalDateTime.now());
                 task.run();
@@ -148,12 +157,12 @@ public class DelayedTaskService {
     @PreDestroy
     public void shutdown() {
         log.info("开始关闭虚拟线程相关 Bean , 进行资源释放...");
-        scheduler.shutdown();
+        virtualThreadScheduler.shutdown();
         virtualThreadExecutor.shutdown();
         try {
-            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
+            if (!virtualThreadScheduler.awaitTermination(5, TimeUnit.SECONDS)) {
                 log.warn("虚拟线程定时任务调度器正常关闭失败, 执行强制关闭...");
-                scheduler.shutdownNow();
+                virtualThreadScheduler.shutdownNow();
             }
             if (!virtualThreadExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                 log.warn("虚拟线程执行器正常关闭失败, 执行强制关闭...");
@@ -161,7 +170,7 @@ public class DelayedTaskService {
             }
             log.info("虚拟线程相关 Bean 关闭完成, 资源已成功释放.");
         } catch (InterruptedException e) {
-            scheduler.shutdownNow();
+            virtualThreadScheduler.shutdownNow();
             virtualThreadExecutor.shutdownNow();
             Thread.currentThread().interrupt();
             log.error("关闭虚拟线程相关 Bean 时被中断: ");
