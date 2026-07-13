@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.ranyk</groupId>
+		<artifactId>spring-ai-rag-starter</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>spring-ai-rag-starter-vector-store</artifactId>
+
+	<name>spring-ai-rag-starter-vector-store</name>
+
+	<description>Spring AI RAG 向量存储配置 starter</description>
+
+	<packaging>jar</packaging>
+
+	<properties>
+		<java.version>21</java.version>
+	</properties>
+
+	<dependencies>
+		<!-- spring-ai-advisors-vector-store -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-advisors-vector-store</artifactId>
+		</dependency>
+
+		<!-- spring-ai-vector-store-advisor -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-vector-store-advisor</artifactId>
+		</dependency>
+
+		<!-- spring-ai-starter-vector-store-redis -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-vector-store-redis</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ranyk</groupId>
+			<artifactId>spring-ai-rag-starter-base</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ranyk</groupId>
+			<artifactId>spring-ai-rag-starter-redis</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ranyk</groupId>
+			<artifactId>spring-ai-rag-starter-llm</artifactId>
+		</dependency>
+	</dependencies>
+
+</project>

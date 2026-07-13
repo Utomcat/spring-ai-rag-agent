@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.ranyk</groupId>
+		<artifactId>spring-ai-rag</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>spring-ai-rag-starter</artifactId>
+
+	<name>spring-ai-rag-starter</name>
+
+	<description>starter 包</description>
+
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>spring-ai-rag-starter-agent</module>
+		<module>spring-ai-rag-starter-annotations</module>
+		<module>spring-ai-rag-starter-base</module>
+		<module>spring-ai-rag-starter-chat-memory</module>
+		<module>spring-ai-rag-starter-common</module>
+		<module>spring-ai-rag-starter-datasource</module>
+		<module>spring-ai-rag-starter-document-splitter</module>
+		<module>spring-ai-rag-starter-international</module>
+		<module>spring-ai-rag-starter-llm</module>
+		<module>spring-ai-rag-starter-log</module>
+		<module>spring-ai-rag-starter-mcp</module>
+		<module>spring-ai-rag-starter-redis</module>
+		<module>spring-ai-rag-starter-security</module>
+		<module>spring-ai-rag-starter-skill</module>
+		<module>spring-ai-rag-starter-tool</module>
+		<module>spring-ai-rag-starter-vector-store</module>
+		<module>spring-ai-rag-starter-web</module>
+	</modules>
+
+	<properties>
+		<java.version>21</java.version>
+	</properties>
+
+</project>

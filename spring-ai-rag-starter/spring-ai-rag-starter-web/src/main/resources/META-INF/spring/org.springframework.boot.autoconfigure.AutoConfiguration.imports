@@ -1,0 +1,8 @@
+com.ranyk.spring.ai.rag.web.config.I18nConfiguration
+com.ranyk.spring.ai.rag.web.config.WebMvcConfiguration
+com.ranyk.spring.ai.rag.web.config.TomcatConfiguration
+com.ranyk.spring.ai.rag.web.config.FaviconConfiguration
+com.ranyk.spring.ai.rag.web.config.UploadBootstrapConfiguration
+
+
+

@@ -1,0 +1,2 @@
+com.ranyk.spring.ai.rag.base.config.JacksonConfiguration
+com.ranyk.spring.ai.rag.base.config.VirtualThreadConfiguration

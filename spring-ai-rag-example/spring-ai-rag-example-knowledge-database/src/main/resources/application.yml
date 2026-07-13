@@ -1,0 +1,38 @@
+# Spring 配置
+spring:
+  # 应用配置
+  application:
+    # 服务名配置
+    name: spring-ai-rag-example-knowledge-database
+  # Spring 配置文件
+  config:
+    # 配置文件导入 导入其他配置, 拆分配置文件, 避免主配置文件太多配置, 过于臃肿, 配置文件说明
+    # mybatis-plus.yml: MyBatis-Plus 配置
+    # nrdb-datasource.yml: 非关系型数据库数据源配置
+    # rdb-datasource.yml: 关系型数据库数据源配置
+    # vdb-datasource.yml: 向量数据库数据源配置
+    # llm-model.yml: LLM 模型配置
+    # file.yml: 文件和文件上传相关配置
+    # language.yml: 语言配置
+    # log.yml: 日志配置
+    # jwt.yml: JWT 配置
+    # rdb.yml: 关系型数据库配置
+    # doc-splitter.yml: 文档分割配置
+    # system.yml: 系统配置
+    # mcp.yml: MCP 配置
+    # tomcat.yml: Tomcat 配置
+    import:
+      - classpath:mybatis-plus.yml
+      - classpath:nrdb-datasource.yml
+      - classpath:rdb-datasource.yml
+      - classpath:vdb-datasource.yml
+      - classpath:llm-model.yml
+      - classpath:file.yml
+      - classpath:language.yml
+      - classpath:log.yml
+      - classpath:jwt.yml
+      - classpath:rdb.yml
+      - classpath:doc-splitter.yml
+      - classpath:system.yml
+      - classpath:mcp.yml
+      - classpath:tomcat.yml

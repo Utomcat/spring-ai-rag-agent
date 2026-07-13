@@ -1,5 +1,0 @@
-logging:
-  level:
-    org.springframework.ai.chat.client.advisor: error
-    org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: error
-    com.ranyk.spring.ai.rag.knowledge.database: debug

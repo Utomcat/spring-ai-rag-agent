@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "web-search": {
-      "command": "python",
-      "args": ["python-mcp-server/script/MCP/web_search_server.py"]
-    }
-  }
-}

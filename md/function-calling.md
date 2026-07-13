@@ -50,7 +50,7 @@ public String getAllDocumentsFileName(
 - "查找技术文档中的相关内容"
 - 其他需要从知识库中获取专业知识的问题
 
-**实现位置**：`com.ranyk.spring.ai.rag.knowledge.database.ai.tools.KnowledgeRetrievalToolFunction`
+**实现位置**：`com.ranyk.spring.ai.rag.tool.ai.tools.KnowledgeRetrievalToolFunction`
 
 **工具方法签名**：
 

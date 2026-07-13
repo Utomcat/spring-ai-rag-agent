@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.ranyk</groupId>
+		<artifactId>spring-ai-rag-starter</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>spring-ai-rag-starter-redis</artifactId>
+
+	<name>spring-ai-rag-starter-redis</name>
+
+	<description>Spring AI RAG Redis 配置 starter</description>
+
+	<packaging>jar</packaging>
+
+	<properties>
+		<java.version>21</java.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- spring-boot-starter-data-redis Spring AI RedisVectorStoreAutoConfiguration 仅在存在 JedisConnectionFactory 时生效（不用 Lettuce）。 因此改用 Jedis，并从 starter 中排除 Lettuce。 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>io.lettuce</groupId>
+					<artifactId>lettuce-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Jedis -->
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ranyk</groupId>
+			<artifactId>spring-ai-rag-starter-base</artifactId>
+		</dependency>
+	</dependencies>
+</project>
