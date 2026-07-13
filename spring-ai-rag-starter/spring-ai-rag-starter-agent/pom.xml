@@ -22,10 +22,10 @@
 
 	<dependencies>
 		<!-- spring-ai-starter-alibaba-agent-framework -->
-<!--		<dependency>
+		<dependency>
 			<groupId>com.alibaba.cloud.ai</groupId>
 			<artifactId>spring-ai-alibaba-agent-framework</artifactId>
-		</dependency>-->
+		</dependency>
 
 		<!-- spring-ai-autoconfigure-model-chat-client -->
 		<dependency>
@@ -56,6 +56,11 @@
 		<dependency>
 			<groupId>com.ranyk</groupId>
 			<artifactId>spring-ai-rag-starter-mcp</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.ranyk</groupId>
+			<artifactId>spring-ai-rag-starter-chat-memory</artifactId>
 		</dependency>
 	</dependencies>
 
