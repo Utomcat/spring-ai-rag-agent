@@ -1,6 +1,5 @@
 package com.ranyk.spring.ai.rag.knowledge.database.service.chat.message;
 
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,6 +14,8 @@ import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.mapstruct.
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.session.dto.ChatSessionDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.repository.chat.message.ChatMessageRepository;
 import com.ranyk.spring.ai.rag.knowledge.database.service.chat.session.ChatSessionService;
+import com.ranyk.spring.ai.rag.knowledge.database.service.task.ChatMessageAsyncTask;
+import com.ranyk.spring.ai.rag.task.service.DelayedTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AbstractMessage;
@@ -24,10 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
@@ -36,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 
 /**
  * CLASS_NAME: ChatMessageService.java
@@ -75,13 +72,17 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      */
     private final DocumentToolFunction documentToolFunction;
     /**
-     * 虚拟线程执行器 - 用于异步执行数据库操作
-     */
-    private final ExecutorService virtualThreadExecutor;
-    /**
      * Spring 编程式事务管理器 - 用于手动控制事务边界
      */
     private final PlatformTransactionManager transactionManager;
+    /**
+     * 聊天消息数据转换 MapStruct 接口对象
+     */
+    private final ChatMessageMapper chatMessageMapper;
+    /**
+     * 延迟任务服务 - 用于处理延迟任务，如消息发送、任务调度等
+     */
+    private final DelayedTaskService delayedTaskService;
     /**
      * 系统提示：Agent 模式下的系统提示词 - 告知 LLM 可用工具及使用规则
      */
@@ -115,10 +116,6 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * LLM 未生成有效回答时的默认消息
      */
     private static final String DEFAULT_ANSWER_MESSAGE = "抱歉，我暂时无法回答这个问题，请稍后再试。";
-    /**
-     * 聊天消息数据转换 MapStruct 接口对象
-     */
-    private final ChatMessageMapper chatMessageMapper;
 
     /**
      * 构造方法 - 由 Spring IOC 容器创建当前 Bean 实例对象时，自动注入相关依赖的 Bean 实例对象
@@ -130,8 +127,8 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @param documentToolFunction    文档工具函数 {@link DocumentToolFunction}
      * @param chatMessageMapper       聊天消息数据转换 MapStruct 接口对象 {@link ChatMessageMapper}
      * @param referenceExtractAdvisor 引用提取 Advisor {@link ReferenceExtractAdvisor}
-     * @param virtualThreadExecutor   虚拟线程执行器 {@link ExecutorService}
      * @param transactionManager      平台事务管理器 {@link PlatformTransactionManager}
+     * @param delayedTaskService      延迟任务服务 {@link DelayedTaskService}
      */
     @Autowired
     public ChatMessageService(ChatMessageRepository chatMessageRepository,
@@ -141,8 +138,8 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
                               DocumentToolFunction documentToolFunction,
                               ChatMessageMapper chatMessageMapper,
                               ReferenceExtractAdvisor referenceExtractAdvisor,
-                              ExecutorService virtualThreadExecutor,
-                              PlatformTransactionManager transactionManager) {
+                              PlatformTransactionManager transactionManager,
+                              DelayedTaskService delayedTaskService) {
         this.chatMessageRepository = chatMessageRepository;
         this.chatSessionService = chatSessionService;
         this.chatClient = chatClient;
@@ -150,8 +147,8 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         this.documentToolFunction = documentToolFunction;
         this.chatMessageMapper = chatMessageMapper;
         this.referenceExtractAdvisor = referenceExtractAdvisor;
-        this.virtualThreadExecutor = virtualThreadExecutor;
         this.transactionManager = transactionManager;
+        this.delayedTaskService = delayedTaskService;
     }
 
     /**
@@ -224,7 +221,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             // 确保 ThreadLocal 被清理，防止内存泄漏
             referenceExtractAdvisor.clearReferences();
         }
-                
+
         long agentDurationMs = (System.nanoTime() - startTimeNanos) / 1_000_000L;
         log.debug("Agent 调用完成 sessionId => {}, userId => {}, 耗时 => {}ms", sessionId, userId, agentDurationMs);
         // 3. 提取 answer
@@ -269,47 +266,16 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
                                        String answer,
                                        String referencesJson,
                                        LocalDateTime now) {
-        virtualThreadExecutor.execute(() -> {
-            TransactionStatus status = null;
-            try {
-                // 使用编程式事务确保两个数据库操作的原子性
-                DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-                def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-                def.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
-                def.setTimeout(30);
-                // 开始事务
-                status = transactionManager.getTransaction(def);
-
-                // 保存聊天消息
-                saveChatMessages(sessionId, userId, question, answer, referencesJson, now);
-                log.debug("异步保存聊天消息完成 sessionId => {}, userId => {}", sessionId, userId);
-
-                // 更新会话时间
-                updateSessionUpdateTime(sessionId, userId, now);
-                log.debug("异步更新会话时间完成 sessionId => {}, userId => {}", sessionId, userId);
-                // 提交事务
-                transactionManager.commit(status);
-                log.info("异步保存聊天消息成功 sessionId => {}, userId => {}, questionLength => {}, answerLength => {}", sessionId, userId, StrUtil.isNotBlank(question) ? question.length() : 0, StrUtil.isNotBlank(answer) ? answer.length() : 0);
-            } catch (Exception e) {
-                // 回滚事务
-                if (Objects.nonNull(status) && !status.isCompleted()) {
-                    try {
-                        transactionManager.rollback(status);
-                        log.warn("异步保存聊天消息失败，已回滚事务, 当前的会话和会话消息信息为 sessionId => {}, userId => {}, question => {}, answer => {} ", sessionId, userId, question, answer);
-                        log.warn("异步保存聊天消息失败，已回滚事务 errorMessage => {}", e.getMessage());
-                        log.warn("异步保存聊天消息失败，已回滚事务, 当前的异常栈为: \n", e);
-                    } catch (Exception rollbackEx) {
-                        log.warn("异步保存聊天消息失败，回滚事务也异常, 当前的会话和会话消息信息为 sessionId => {}, userId => {}, question => {}, answer => {} ", sessionId, userId, question, answer);
-                        log.warn("异步保存聊天消息失败，回滚事务也异常 errorMessage => {}", e.getMessage());
-                        log.warn("异步保存聊天消息失败，回滚事务也异常, 当前的异常栈为: \n", e);
-                    }
-                } else {
-                    log.error("异步保存聊天消息失败，事务状态已完成无法回滚 sessionId => {}, userId => {}, question => {}, answer => {} ", sessionId, userId, question, answer);
-                    log.error("异步保存聊天消息失败，事务状态已完成无法回滚 errorMessage => {}", e.getMessage());
-                    log.error("异步保存聊天消息失败，事务状态已完成无法回滚 当前的异常栈为: \n", e);
-                }
-            }
-        });
+        delayedTaskService.execute(ChatMessageAsyncTask.builder()
+                .sessionId(sessionId)
+                .userId(userId)
+                .question(question)
+                .answer(answer)
+                .referencesJson(referencesJson)
+                .now(now)
+                .chatMessageService(this)
+                .transactionManager(transactionManager)
+                .build());
     }
 
     /**
@@ -382,12 +348,12 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @param referencesJson 引用 JSON 字符串
      * @param now            当前时间
      */
-    private void saveChatMessages(Long sessionId,
-                                  Long userId,
-                                  String question,
-                                  String answer,
-                                  String referencesJson,
-                                  LocalDateTime now) {
+    public void saveChatMessages(Long sessionId,
+                                 Long userId,
+                                 String question,
+                                 String answer,
+                                 String referencesJson,
+                                 LocalDateTime now) {
         // 保存用户消息
         ChatMessage userChatMessage = ChatMessage.builder()
                 .sessionId(sessionId)
@@ -424,7 +390,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @param userId    用户 ID
      * @param now       当前时间
      */
-    private void updateSessionUpdateTime(Long sessionId, Long userId, LocalDateTime now) {
+    public void updateSessionUpdateTime(Long sessionId, Long userId, LocalDateTime now) {
         chatSessionService.touchUpdateTime(ChatSessionDTO.builder()
                 .id(sessionId)
                 .updateTime(now)
