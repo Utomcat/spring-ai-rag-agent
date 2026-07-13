@@ -30,6 +30,9 @@ public class TaskConfiguration {
     @Bean
     public DelayedTaskService delayedTaskService(ScheduledExecutorService virtualThreadScheduler,
                                                  ExecutorService virtualThreadExecutor) {
+        log.debug("========================== 创建 DelayedTaskService Bean 对象 start ====================================");
+        log.debug("创建 DelayedTaskService Bean 中 ... ");
+        log.debug("========================== 创建 DelayedTaskService Bean 对象 end   =================================");
         return new DelayedTaskService(virtualThreadScheduler, virtualThreadExecutor);
     }
 
