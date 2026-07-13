@@ -18,6 +18,7 @@ import com.ranyk.spring.ai.rag.knowledge.database.service.task.ChatMessageAsyncT
 import com.ranyk.spring.ai.rag.task.service.DelayedTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AbstractMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
@@ -83,27 +84,6 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * 延迟任务服务 - 用于处理延迟任务，如消息发送、任务调度等
      */
     private final DelayedTaskService delayedTaskService;
-    /**
-     * 系统提示：Agent 模式下的系统提示词 - 告知 LLM 可用工具及使用规则
-     */
-    public static final String SYSTEM_PROMPT = """
-            
-                你是「Ranyk RAG 企业知识库」的智能助手。
-            
-                你可以使用以下工具:
-                1. 知识库检索工具 - 按需使用, 只有知识库相关的问题查询再进行该工具的调用
-                2. 网络搜索工具(web_search) - 获取实时信息
-                3. 网页数据分析工具(analyze_web_data) - 提取网页数据
-                4. 趋势对比工具(compare_trends) - 分析数据趋势
-                5. 综合搜索分析工具(comprehensive_search_analysis) - 多维度分析
-            
-                回答规则:
-                - 知识库相关问题优先使用知识库检索
-                - 需要实时信息时使用网络搜索
-                - 需要数据分析时使用对应分析工具
-                - 综合分析时结合多方信息给出专业回答
-            
-            """;
     /**
      * 会话标题最大长度
      */
@@ -175,7 +155,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
     }
 
     /**
-     * 根据用户问题，获取 Agent 生成的回复 - Agent 自主决策模式
+     * 根据用户问题，获取 Agent 生成的回复 - Agent 自主决策模式 - 使用 OpenAI Client 进行大模型调用
      *
      * @param chatMessageDTO 聊天消息数据传输对象 {@link ChatMessageDTO}
      * @return 聊天消息数据传输对象 {@link ChatMessageDTO}
@@ -202,9 +182,8 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         List<Map<String, Object>> references;
         try {
             chatResponse = chatClient.prompt()
-                    .system(SYSTEM_PROMPT)
                     .user(question)
-                    .advisors(a -> a.param("conversation_id", sessionId))
+                    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                     .tools(documentToolFunction)
                     .call()
                     .chatResponse();
