@@ -79,6 +79,12 @@
 			<artifactId>spring-ai-rag-starter-agent</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>com.ranyk</groupId>
+			<artifactId>spring-ai-rag-starter-task</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 </project>

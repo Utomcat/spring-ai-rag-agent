@@ -596,6 +596,14 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- spring-ai-rag-starter-task -->
+            <dependency>
+                <groupId>com.ranyk</groupId>
+                <artifactId>spring-ai-rag-starter-task</artifactId>
+                <version>${project.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
             <!-- spring-ai-rag-starter-tool -->
             <dependency>
                 <groupId>com.ranyk</groupId>

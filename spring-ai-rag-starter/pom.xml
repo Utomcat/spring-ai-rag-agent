@@ -31,6 +31,7 @@
 		<module>spring-ai-rag-starter-redis</module>
 		<module>spring-ai-rag-starter-security</module>
 		<module>spring-ai-rag-starter-skill</module>
+		<module>spring-ai-rag-starter-task</module>
 		<module>spring-ai-rag-starter-tool</module>
 		<module>spring-ai-rag-starter-vector-store</module>
 		<module>spring-ai-rag-starter-web</module>
