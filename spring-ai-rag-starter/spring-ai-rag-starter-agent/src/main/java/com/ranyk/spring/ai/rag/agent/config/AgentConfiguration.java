@@ -1,11 +1,15 @@
 package com.ranyk.spring.ai.rag.agent.config;
 
+import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.ranyk.spring.ai.rag.agent.advisor.CustomSimpleLoggerAdvisor;
 import com.ranyk.spring.ai.rag.agent.advisor.ReferenceExtractAdvisor;
+import com.ranyk.spring.ai.rag.base.config.properties.SystemProperties;
 import com.ranyk.spring.ai.rag.tool.ai.tools.KnowledgeRetrievalToolFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -26,22 +30,44 @@ import tools.jackson.databind.ObjectMapper;
 public class AgentConfiguration {
 
     /**
+     * 创建 ReactAgent 对象, 注册全局的 Agent 对象, 使用 Spring AI Alibaba
+     *
+     * @param systemProperties 系统属性对象
+     * @param openAiChatModel  OpenAiChatModel 对象
+     * @return ReactAgent 对象
+     */
+    @Bean
+    public ReactAgent reactAgent(SystemProperties systemProperties, OpenAiChatModel openAiChatModel) {
+        log.info("创建 ReactAgent 对象, 注册全局的 Agent 对象, 使用 Spring AI Alibaba");
+        return ReactAgent.builder()
+                .name(systemProperties.getAgentName())
+                .model(openAiChatModel)
+                .build();
+    }
+
+    /**
      * 创建 ChatClient 对象, 注册全局的 ChatClient 对象, 使用 Open AI 方式
      *
      * @param openAiChatModel                OpenAiChatModel 对象
-     * @param customSimpleLoggerAdvisor      自定义简单日志记录顾问
+     * @param systemProperties               系统属性对象
      * @param simpleLoggerAdvisor            Spring AI 自带简单日志记录顾问
-     * @param knowledgeRetrievalToolFunction 知识库检索工具函数
      * @param referenceExtractAdvisor        引用提取顾问
+     * @param inMemoryChatMemoryAdvisor      内存聊天记忆顾问
+     * @param customSimpleLoggerAdvisor      自定义简单日志记录顾问
+     * @param mcpToolCallbackProvider        MCP Server 回调提供者
+     * @param knowledgeRetrievalToolFunction 知识库检索工具函数
      * @return ChatClient 对象
      */
     @Bean
     public ChatClient chatClient(
             OpenAiChatModel openAiChatModel,
-            CustomSimpleLoggerAdvisor customSimpleLoggerAdvisor,
-            SimpleLoggerAdvisor simpleLoggerAdvisor,
-            @Lazy KnowledgeRetrievalToolFunction knowledgeRetrievalToolFunction,
-            @Lazy ReferenceExtractAdvisor referenceExtractAdvisor
+            @Lazy SystemProperties systemProperties,
+            @Lazy SimpleLoggerAdvisor simpleLoggerAdvisor,
+            @Lazy ReferenceExtractAdvisor referenceExtractAdvisor,
+            MessageChatMemoryAdvisor inMemoryChatMemoryAdvisor,
+            @Lazy CustomSimpleLoggerAdvisor customSimpleLoggerAdvisor,
+            @Lazy SyncMcpToolCallbackProvider mcpToolCallbackProvider,
+            @Lazy KnowledgeRetrievalToolFunction knowledgeRetrievalToolFunction
     ) {
         log.debug("================================= 创建 ChatClient 对象 start =================================");
         log.debug("正在创建 ChatClient, 当前使用 OpenAI 方式创建 ChatClient 对象 ...");
@@ -52,6 +78,8 @@ public class AgentConfiguration {
         return ChatClient
                 // 设置 ChatClient 对象的 ChatModel
                 .builder(openAiChatModel)
+                // 设置 ChatClient 对象的默认系统提示词
+                .defaultSystem(systemProperties.getSystemPrompt())
                 // 设置 ChatClient 对象的默认 Advisor 对象，可设置多个（顺序很重要）
                 .defaultAdvisors(
                         // 引用提取 Advisor - 拦截工具调用结果提取 references
@@ -59,16 +87,16 @@ public class AgentConfiguration {
                         // 自定义简单日志记录顾问
                         customSimpleLoggerAdvisor,
                         // Spring AI 自带简单日志记录顾问
-                        simpleLoggerAdvisor
+                        simpleLoggerAdvisor,
+                        // 内存聊天记忆顾问 - 用于短期记忆
+                        inMemoryChatMemoryAdvisor
                 )
                 // 设置 ChatClient 对象的工具，可以设置多个，自定义的 Spring AI Function Callback 工具、MCP Server 工具均在此处设置
                 .defaultTools(
                         // 知识库检索工具 - 供 Agent 自主调用进行向量检索
-                        knowledgeRetrievalToolFunction
-                        // Spring AI Function Callback 工具 - 知识库文档工具
-                        // documentToolFunction,
+                        knowledgeRetrievalToolFunction,
                         // MCP Server 工具
-                        // mcpToolCallbackProvider
+                        mcpToolCallbackProvider
                 )
                 // 构建 ChatClient 对象
                 .build();
