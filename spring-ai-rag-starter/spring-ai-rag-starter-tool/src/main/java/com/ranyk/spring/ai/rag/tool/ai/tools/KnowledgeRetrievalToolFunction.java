@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  *
  * @author ranyk
  * @version V1.0
- * @description: 知识库检索 AI 工具类 - 供 Agent 自主调用进行向量检索
+ * @description: 知识库检索 AI 工具类 - 供 Agent 自主调用进行向量检索 - Spring AI 原生方式
  * @date: 2026-07-04
  */
 @Slf4j
