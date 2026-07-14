@@ -6,18 +6,28 @@
 
 ```mermaid
 graph TB
+    %% ══════════════════════════════════════
+    %% 第一层：客户端
+    %% ══════════════════════════════════════
     subgraph Client[客户端]
         Browser[Web 浏览器]
         App[移动 App]
         ThirdParty[第三方系统]
     end
 
+    %% ══════════════════════════════════════
+    %% 第二层：接入层
+    %% ══════════════════════════════════════
     subgraph Gateway[接入层]
         Nginx[Nginx / 负载均衡]
         CORS[CORS 跨域处理]
     end
 
-    subgraph Application[Spring Boot 应用 - spring-ai-rag-knowledge-database]
+    %% ══════════════════════════════════════
+    %% 第三层：Spring Boot 应用（独立）
+    %% ══════════════════════════════════════
+    subgraph Application[Spring Boot 应用 - spring-ai-rag-example-knowledge-database]
+
         subgraph Security[安全认证层]
             JWTFilter[JWT 认证过滤器]
             SecurityConfig[Spring Security]
@@ -46,19 +56,6 @@ graph TB
             LogService[日志服务]
         end
 
-        subgraph AI[AI 能力层]
-            ChatClient[ChatClient]
-            AgentFramework[Agent Framework<br/>自主工具调用]
-            FunctionCallback[Function Callback<br/>工具调用]
-            VectorStoreAdvisor[VectorStoreAdvisor]
-            EmbeddingModel[EmbeddingModel]
-            ChatMemory[ChatMemory]
-            DocumentSplitter[文档切分器]
-            DocumentReader[文档读取器<br/>Tika / Markdown]
-            McpClient[MCP Client<br/>外部工具调用]
-            CustomAdvisors[自定义 Advisors<br/>日志记录 / 引用提取]
-        end
-
         subgraph Repository[数据访问层]
             UserRepo[用户 Repository]
             CategoryRepo[分类 Repository]
@@ -70,22 +67,51 @@ graph TB
         end
     end
 
+    %% ══════════════════════════════════════
+    %% 第四层：异步任务层（独立于应用）
+    %% ══════════════════════════════════════
+    subgraph AsyncTask[异步任务层]
+        DelayedTask[延迟任务<br/>虚拟线程异步处理]
+    end
+
+    %% ══════════════════════════════════════
+    %% 第五层：AI 能力层（独立于应用）
+    %% ══════════════════════════════════════
+    subgraph AI[AI 能力层]
+        ChatClient[ChatClient]
+        ReactAgent[ReactAgent<br/>Spring AI Alibaba ReAct]
+        ToolFunctions[@Tool 注解工具<br/>知识检索 / 文档查询]
+        ChatMemory[ChatMemory<br/>MessageWindowChatMemory]
+        CustomAdvisors[自定义 Advisors<br/>日志记录 / 引用提取]
+        VectorStoreAdvisor[VectorStoreAdvisor]
+        McpClient[MCP Client<br/>SyncMcpToolCallbackProvider]
+        EmbeddingModel[EmbeddingModel]
+        DocumentSplitter[文档切分器<br/>TokenTextSplitter]
+        DocumentReader[文档读取器<br/>Tika / Markdown]
+    end
+
+    %% ══════════════════════════════════════
+    %% 第六层：数据存储层（最底层）
+    %% ══════════════════════════════════════
     subgraph Data[数据存储层]
-        MySQL[(MySQL / MariaDB<br/>关系型数据库)]
-        Ollama[Ollama<br/>Embedding 服务]
-        Redis[(Redis<br/>向量数据库 + 缓存)]
-        OpenAI[OpenAI 兼容 API<br/>LLM 服务]
         McpServer[MCP Server<br/>外部工具服务]
+        Ollama[Ollama<br/>Embedding 服务]
+        OpenAI[OpenAI 兼容 API<br/>LLM 服务]
+        Redis[(Redis<br/>向量数据库 + 缓存)]
+        MySQL[(MySQL / MariaDB<br/>关系型数据库)]
         FileSystem[本地文件系统<br/>文档存储]
     end
 
+    %% ────────── 客户端 → 接入层 ──────────
     Browser --> Nginx
     App --> Nginx
     ThirdParty --> Nginx
     Nginx --> CORS
     CORS --> JWTFilter
-    JWTFilter --> API
     SecurityConfig -.-> JWTFilter
+    JWTFilter --> API
+
+    %% ────────── API → Service（垂直下行） ──────────
     AuthApi --> AuthService
     UserApi --> UserService
     CategoryApi --> CategoryService
@@ -93,23 +119,17 @@ graph TB
     ChatSessionApi --> ChatSessionService
     ChatMessageApi --> ChatMessageService
     StatsApi --> StatsService
+
+    %% ────────── Service 内部调用 ──────────
     AuthService --> UserService
     DocumentService --> FileService
     DocumentService --> RagIngestService
     ChatMessageService --> ChatSessionService
     StatsService --> UserService
     StatsService --> DocumentService
-    StatsService --> LogService
-    RagIngestService --> DocumentReader
-    RagIngestService --> DocumentSplitter
-    RagIngestService --> EmbeddingModel
-    ChatMessageService --> ChatClient
-    ChatClient --> AgentFramework
-    AgentFramework --> FunctionCallback
-    ChatClient --> VectorStoreAdvisor
-    ChatClient --> ChatMemory
-    ChatClient --> McpClient
-    ChatClient --> CustomAdvisors
+    StatsService --> ChatMessageService
+
+    %% ────────── Service → Repository（垂直下行） ──────────
     UserService --> UserRepo
     CategoryService --> CategoryRepo
     DocumentService --> DocumentRepo
@@ -117,6 +137,8 @@ graph TB
     ChatMessageService --> ChatMessageRepo
     LogService --> LogRepo
     StatsService --> StatsRepo
+
+    %% ────────── Repository → MySQL ──────────
     UserRepo --> MySQL
     CategoryRepo --> MySQL
     DocumentRepo --> MySQL
@@ -124,10 +146,31 @@ graph TB
     ChatMessageRepo --> MySQL
     LogRepo --> MySQL
     StatsRepo --> MySQL
-    EmbeddingModel --> Ollama
-    VectorStoreAdvisor --> Redis
-    ChatClient --> OpenAI
+
+    %% ────────── Service → AI 能力层（跨层调用） ──────────
+    ChatMessageService --> ChatClient
+    RagIngestService --> DocumentReader
+    RagIngestService --> DocumentSplitter
+    RagIngestService --> EmbeddingModel
+
+    %% ────────── Service → 异步任务层 ──────────
+    ChatMessageService --> DelayedTask
+
+    %% ────────── AI 内部调用 ──────────
+    ChatClient --> ReactAgent
+    ReactAgent --> ToolFunctions
+    ChatClient --> ChatMemory
+    ChatClient --> CustomAdvisors
+    ChatClient --> VectorStoreAdvisor
+    ChatClient --> McpClient
+
+    %% ────────── AI → 数据存储层 ──────────
     McpClient --> McpServer
+    EmbeddingModel --> Ollama
+    ChatClient --> OpenAI
+    VectorStoreAdvisor --> Redis
+
+    %% ────────── Service → 数据存储层 ──────────
     FileService --> FileSystem
 ```
 
@@ -185,6 +228,7 @@ graph TD
         StatsService2[StatsService]
         SystemLogService[SystemLogService]
         DelayedTaskService2[DelayedTaskService]
+        ChatMessageAsyncTask[ChatMessageAsyncTask]
     end
 
     subgraph L1[接口层 API]
@@ -237,7 +281,7 @@ flowchart TD
     SaveMeta --> End([结束])
 ```
 
-### RAG 问答流程（Agent 架构）
+### RAG 问答流程
 
 ```mermaid
 flowchart TD
@@ -247,12 +291,12 @@ flowchart TD
     GetSession -->|是| LoadSession[加载会话及历史消息<br/>ChatMemory]
     GetSession -->|否| CreateSession[创建新会话<br/>t_chat_session]
     CreateSession --> LoadSession
-    LoadSession --> AgentCall[Agent 自主决策]
-    AgentCall --> IntentDetect{意图识别}
-    IntentDetect -->|需要知识库检索| CallRetrieval[调用 retrieveKnowledge 工具<br/>向量相似度检索]
-    IntentDetect -->|需要文件列表| CallDocList[调用 getAllDocumentsFileName 工具<br/>查询文件列表]
-    IntentDetect -->|需要网络搜索| CallMcp[调用 MCP Server 工具<br/>网络搜索等]
-    IntentDetect -->|直接回答| DirectAnswer[直接生成回答]
+    LoadSession --> ChatClientCall[ChatClient 调用]
+    ChatClientCall --> ToolDetect{LLM 识别需要工具调用?}
+    ToolDetect -->|需要知识库检索| CallRetrieval[调用 retrieveKnowledge 工具<br/>向量相似度检索]
+    ToolDetect -->|需要文件列表| CallDocList[调用 getAllDocumentsFileName 工具<br/>查询文件列表]
+    ToolDetect -->|需要网络搜索| CallMcp[调用 MCP Server 工具<br/>网络搜索等]
+    ToolDetect -->|直接回答| DirectAnswer[直接生成回答]
     CallRetrieval --> ExtractRefs[ReferenceExtractAdvisor 提取引用文档]
     ExtractRefs --> BuildPrompt[构建 Prompt<br/>问题 + 检索结果 + 引用]
     CallDocList --> BuildPrompt
@@ -266,17 +310,17 @@ flowchart TD
     Return --> End([结束])
 ```
 
-### Agent 工具调用流程
+### 工具调用流程
 
 ```mermaid
 flowchart TD
     Start([用户提问]) --> Input[用户输入: '知识库中有哪些文档?']
-    Input --> Agent[Agent 框架分析]
-    Agent --> MatchTool{匹配到工具?}
+    Input --> LLMAnalyze[LLM 分析用户意图]
+    LLMAnalyze --> MatchTool{匹配到工具?}
     MatchTool -->|是| SelectTool{选择哪个工具?}
     MatchTool -->|否| DirectAnswer[直接生成回答]
-    SelectTool -->|文件列表| CallDocFunc[调用 DocumentToolFunction]
-    SelectTool -->|知识检索| CallRetrievalFunc[调用 KnowledgeRetrievalToolFunction]
+    SelectTool -->|文件列表| CallDocFunc[调用 DocumentToolFunction<br/>@Tool 注解工具]
+    SelectTool -->|知识检索| CallRetrievalFunc[调用 KnowledgeRetrievalToolFunction<br/>@Tool 注解工具]
     SelectTool -->|网络搜索| CallMcpServer[调用 MCP Server]
     CallDocFunc --> QueryDB[DocumentService 查询数据库]
     QueryDB --> ReturnList[返回文件名列表]
@@ -316,6 +360,6 @@ flowchart TD
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-06</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
   <a href="#架构设计">⬆️ 返回顶部</a>
 </div>

@@ -49,7 +49,7 @@ ollama pull embeddinggemma:latest
 ## 🗄️ 初始化数据库
 
 ```bash
-mysql -u root -p < doc/init_database.sql
+mysql -u root -p < doc/database/init_database.sql
 ```
 
 **默认管理员账号**：
@@ -61,7 +61,7 @@ mysql -u root -p < doc/init_database.sql
 
 ## ⚙️ 修改配置
 
-编辑 `spring-ai-rag-knowledge-database/src/main/resources/` 下的配置文件：
+编辑 `spring-ai-rag-example/spring-ai-rag-example-knowledge-database/src/main/resources/` 下的配置文件：
 
 | 配置文件                  | 配置内容                                                                                 |
 |-----------------------|--------------------------------------------------------------------------------------|
@@ -79,21 +79,21 @@ mysql -u root -p < doc/init_database.sql
 
 ```bash
 mvn clean package -DskipTests
-cd spring-ai-rag-knowledge-database
-java -jar target/spring-ai-rag-knowledge-database-0.0.1-SNAPSHOT.jar
+cd spring-ai-rag-example/spring-ai-rag-example-knowledge-database
+java -jar target/spring-ai-rag-example-knowledge-database-0.0.1-SNAPSHOT.jar
 ```
 
 ### 方式二：Maven 开发模式运行
 
 ```bash
-mvn spring-boot:run -pl spring-ai-rag-knowledge-database
+mvn spring-boot:run -pl spring-ai-rag-example/spring-ai-rag-example-knowledge-database
 ```
 
 ### 方式三：IDE 运行
 
-直接在 IDE 中运行 `SpringAiRagKnowledgeDatabaseApplication.java` 启动类。
+直接在 IDE 中运行 `SpringAiRagExampleKnowledgeDatabaseApplication.java` 启动类。
 
-## 服务访问
+## 🌐 服务访问
 
 服务默认运行在 `http://localhost:8083`
 
@@ -151,7 +151,7 @@ curl -X POST http://localhost:8083/api/chat/ask \
 A: 请检查 `rdb-datasource.yml` 中的数据库连接配置，确保：
 - MySQL 服务已启动
 - 数据库用户名和密码正确
-- 数据库 `rag_database` 已创建
+- 数据库 `knowledge_database_rag` 已创建
 
 ### Q: Redis 连接失败？
 
@@ -214,9 +214,9 @@ python main.py
 
 服务默认运行在 `http://127.0.0.1:8084/mcp`。
 
-> 完整的配置说明、传输方式对比、部署方式等，请参考 [Python MCP Server 文档](mcp-server.md)。
+> 完整的配置说明、传输方式对比、部署方式等，请参考 [Python MCP Server 文档](python-mcp-server.md)。
 
-## Windows 环境注意事项
+## 🪟 Windows 环境注意事项
 
 ### 1. 环境变量设置
 

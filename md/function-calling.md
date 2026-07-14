@@ -2,7 +2,7 @@
 
 > **← 返回主文档**：[README.md](../README.md)
 
-本项目基于 Spring AI Alibaba Agent Framework，支持 Agent 自主调用预定义的工具方法。Agent 会根据用户意图自动选择合适的工具进行调用。
+本项目基于 Spring AI 的 Function Calling 机制，支持 LLM 自主调用预定义的工具方法。LLM 会根据用户意图自动选择合适的工具进行调用。
 
 ## 🔧 已实现的工具
 
@@ -91,17 +91,17 @@ public String retrieveKnowledge(
 
 本项目还支持 MCP 协议，可以连接外部 MCP Server 来扩展工具能力。
 
-### 配置位置
+### 📍 配置位置
 
 `mcp.yml`（详细配置请参考 [配置文件说明 - mcp.yml](configuration.md#14-mcpyml)）
 
-### 默认配置
+### 🔧 默认配置
 
 - MCP Client 已启用
 - 配置了一个示例 MCP Server：`python-mcp-web-serach-server`（URL: `http://127.0.0.1:8084/mcp`）
 - 支持通过 `streamable-http` 方式连接 MCP Server
 
-### 使用方式
+### 📝 使用方式
 
 1. 在 `mcp.yml` 中配置外部 MCP Server 的连接信息
 2. 启动应用后，MCP Client 会自动连接到配置的 MCP Server
@@ -115,7 +115,7 @@ public String retrieveKnowledge(
 
 **功能**：拦截 ChatClient 的 call 和 stream 请求，记录详细的调用日志
 
-**实现位置**：`com.ranyk.spring.ai.rag.knowledge.database.ai.advisor.CustomSimpleLoggerAdvisor`
+**实现位置**：`com.ranyk.spring.ai.rag.agent.advisor.CustomSimpleLoggerAdvisor`（starter-agent 模块）
 
 **特性**：
 
@@ -127,7 +127,7 @@ public String retrieveKnowledge(
 
 **功能**：拦截知识库检索工具调用结果，提取 references 供后续使用
 
-**实现位置**：`com.ranyk.spring.ai.rag.knowledge.database.ai.advisor.ReferenceExtractAdvisor`
+**实现位置**：`com.ranyk.spring.ai.rag.agent.advisor.ReferenceExtractAdvisor`（starter-agent 模块）
 
 **特性**：
 
@@ -165,7 +165,7 @@ public class MyCustomFunction {
 }
 ```
 
-> **注意**：使用 Agent Framework 后，无需在 `ChatClientConfiguration` 中手动注册工具，Agent 会自动发现和调用所有标注了 `@Tool` 的方法。
+> **注意**：Spring AI 会自动发现并注册所有标注了 `@Tool` 的 Bean 方法，无需手动注册工具。
 
 ### 方式二：MCP Server（外部服务）
 
@@ -174,13 +174,13 @@ public class MyCustomFunction {
 3. 在 `mcp.yml` 中配置 MCP Server 的连接信息
 4. 启动 MCP Server 和 Java 应用
 
-详细内容请参考 [mcp-server.md](mcp-server.md)
+详细内容请参考 [Python MCP Server](python-mcp-server.md)
 
 ## 🔄 工具调用流程
 
-工具调用的完整流程图请参考 [架构设计 - Agent 工具调用流程](architecture.md#agent-工具调用流程)。
+工具调用的完整流程图请参考 [架构设计 - 工具调用流程](architecture.md#工具调用流程)。
 
-## 工具优先级
+## 🎯 工具优先级
 
 工具调用的优先级由 LLM 根据用户意图决定，以下是影响因素：
 

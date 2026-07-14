@@ -28,8 +28,9 @@
     "user": {
       "id": 1,
       "username": "admin",
-      "nickname": "管理员",
-      "role": "ADMIN"
+      "realName": "管理员",
+      "role": "ADMIN",
+      "avatar": "/uploads/avatar/default.png"
     }
   }
 }
@@ -60,11 +61,11 @@
   "data": {
     "id": 1,
     "username": "admin",
-    "nickname": "管理员",
-    "avatar": "/uploads/avatar/admin.png",
+    "realName": "管理员",
+    "avatar": "/uploads/avatar/default.png",
     "role": "ADMIN",
-    "email": "admin@example.com",
-    "createdAt": "2024-01-01T10:00:00"
+    "status": 1,
+    "createTime": "2024-01-01T10:00:00"
   }
 }
 ```
@@ -75,8 +76,7 @@
 
 ```json
 {
-  "nickname": "新昵称",
-  "email": "new@example.com"
+  "realName": "新真实姓名"
 }
 ```
 
@@ -113,9 +113,7 @@ curl -X POST http://localhost:8083/api/user/me/avatar \
 {
   "code": 200,
   "message": "success",
-  "data": {
-    "avatar": "/uploads/avatar/admin.png"
-  }
+  "data": "/uploads/avatar/xxx.png"
 }
 ```
 
@@ -146,9 +144,9 @@ curl -X POST http://localhost:8083/api/user/me/avatar \
 {
   "username": "newuser",
   "password": "password123",
-  "nickname": "新用户",
+  "realName": "新用户",
   "role": "USER",
-  "email": "newuser@example.com"
+  "status": 1
 }
 ```
 
@@ -158,12 +156,7 @@ curl -X POST http://localhost:8083/api/user/me/avatar \
 {
   "code": 200,
   "message": "success",
-  "data": {
-    "id": 2,
-    "username": "newuser",
-    "nickname": "新用户",
-    "role": "USER"
-  }
+  "data": null
 }
 ```
 
@@ -192,13 +185,13 @@ curl -X DELETE http://localhost:8083/api/user/2 \
 
 | 接口                   | 方法     | 权限    | 说明   |
 |----------------------|--------|-------|------|
-| `/api/category`      | GET    | 登录用户  | 分类列表 |
+| `/api/category`      | GET    | 登录用户  | 分页查询分类 |
 | `/api/category`      | POST   | ADMIN | 新增分类 |
 | `/api/category/{id}` | DELETE | ADMIN | 删除分类 |
 
 ### 获取分类列表
 
-**请求**：`GET /api/category`
+**请求**：`GET /api/category?page=1&size=10`
 
 **响应**：
 
@@ -206,14 +199,19 @@ curl -X DELETE http://localhost:8083/api/user/2 \
 {
   "code": 200,
   "message": "success",
-  "data": [
-    {
-      "id": 1,
-      "name": "技术文档",
-      "sortOrder": 1,
-      "createdAt": "2024-01-01T10:00:00"
-    }
-  ]
+  "data": {
+    "records": [
+      {
+        "id": 1,
+        "name": "技术文档",
+        "sortOrder": 1,
+        "createTime": "2024-01-01T10:00:00"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "size": 10
+  }
 }
 ```
 
@@ -243,8 +241,8 @@ curl -X DELETE http://localhost:8083/api/user/2 \
 | 参数名        | 类型     | 必填 | 说明          |
 |------------|--------|----|-------------|
 | files      | File[] | 是  | 文档文件        |
-| categoryId | Long   | 否  | 分类ID        |
-| fileName   | String | 否  | 文件名称（单个文件时） |
+| categoryId | Long   | 是  | 分类ID        |
+| title      | String | 否  | 文档标题（单个文件时） |
 
 **curl 示例**：
 
@@ -275,11 +273,7 @@ curl -X POST http://localhost:8083/api/document \
 {
   "code": 200,
   "message": "success",
-  "data": {
-    "successCount": 2,
-    "failedCount": 0,
-    "documents": [...]
-  }
+  "data": true
 }
 ```
 
@@ -318,13 +312,16 @@ curl -X DELETE http://localhost:8083/api/document/1 \
     "records": [
       {
         "id": 1,
-        "fileName": "技术文档.pdf",
-        "filePath": "/uploads/documents/技术文档.pdf",
-        "fileSize": 1024000,
         "categoryId": 1,
-        "vectorStatus": "INDEXED",
-        "chunkCount": 15,
-        "createdAt": "2024-01-01T10:00:00"
+        "title": "技术文档",
+        "fileName": "技术文档.pdf",
+        "filePath": "/upload/20260629/技术文档.pdf",
+        "fileType": "pdf",
+        "fileSize": "1024000",
+        "status": "INDEXED",
+        "vectorCount": 15,
+        "uploadUserId": 1,
+        "createTime": "2024-01-01T10:00:00"
       }
     ],
     "total": 50,
@@ -338,12 +335,12 @@ curl -X DELETE http://localhost:8083/api/document/1 \
 
 | 接口                              | 方法     | 权限   | 说明   |
 |---------------------------------|--------|------|------|
-| `/api/chat/session`             | GET    | 登录用户 | 会话列表 |
-| `/api/chat/session/{sessionId}` | DELETE | 登录用户 | 删除会话 |
+| `/api/chat/session`             | GET    | 登录用户 | 分页查询会话列表 |
+| `/api/chat/session/{sessionId}` | DELETE | 登录用户 | 删除会话及消息 |
 
 ### 获取会话列表
 
-**请求**：`GET /api/chat/session`
+**请求**：`GET /api/chat/session?page=1&size=10`
 
 **响应**：
 
@@ -351,15 +348,20 @@ curl -X DELETE http://localhost:8083/api/document/1 \
 {
   "code": 200,
   "message": "success",
-  "data": [
-    {
-      "id": "session-uuid",
-      "title": "关于项目架构的问题",
-      "messageCount": 5,
-      "lastMessageAt": "2024-01-01T12:00:00",
-      "createdAt": "2024-01-01T10:00:00"
-    }
-  ]
+  "data": {
+    "records": [
+      {
+        "id": 1,
+        "userId": 1,
+        "title": "关于项目架构的问题",
+        "createTime": "2024-01-01T10:00:00",
+        "updateTime": "2024-01-01T12:00:00"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "size": 10
+  }
 }
 ```
 
@@ -370,7 +372,7 @@ curl -X DELETE http://localhost:8083/api/document/1 \
 **curl 示例**：
 
 ```bash
-curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
+curl -X DELETE http://localhost:8083/api/chat/session/1 \
   -H "Authorization: Bearer <your-token>"
 ```
 
@@ -391,14 +393,15 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
 | `/api/chat/ask`                          | POST | 登录用户 | 提问（RAG） |
 | `/api/chat/session/{sessionId}/messages` | GET  | 登录用户 | 会话消息列表  |
 
-### 提问（Agent 自主调用）
+### 提问（Function Calling 工具调用）
 
 **请求**：`POST /api/chat/ask`
 
 ```json
 {
   "question": "知识库中有哪些文档？",
-  "sessionId": "session-uuid"
+  "sessionId": 1,
+  "categoryIds": [1, 2]
 }
 ```
 
@@ -409,33 +412,31 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
   "code": 200,
   "message": "success",
   "data": {
-    "sessionId": "session-uuid",
+    "sessionId": 1,
     "answer": "知识库中包含以下文档：技术文档.pdf、产品说明.md、API 文档.pdf",
-    "refs": [
+    "references": [
       {
-        "documentId": 1,
-        "fileName": "技术文档.pdf",
-        "relevance": 0.95
+        "title": "技术文档.pdf",
+        "docId": 1,
+        "categoryId": 1,
+        "snippet": "这是技术文档的内容片段..."
       }
-    ],
-    "messageId": "message-uuid",
-    "createdAt": "2024-01-01T12:00:00"
+    ]
   }
 }
 ```
 
-**Agent 自动工具调用说明**：
+**Function Calling 工具调用说明**：
 
-根据用户问题的意图，Agent 会自动选择合适的工具：
+根据用户问题的意图，LLM 会自动选择合适的 Function Calling 工具：
 
-- **询问文件列表**：调用 `getAllDocumentsFileName` 工具查询数据库
-- **知识性问题**：调用 `retrieveKnowledge` 工具进行向量相似度检索
-- **最新信息**：调用 MCP Server 的网络搜索工具
+- **查询文件列表**：调用 `getAllDocumentsFileName` 工具分页查询知识库中的文档文件名
+- **知识性问题**：调用 `retrieveKnowledge` 工具进行向量相似度语义检索
 - **直接回答**：对于简单问题，直接生成回答
 
 ### 获取会话消息列表
 
-**请求**：`GET /api/chat/session/{sessionId}/messages`
+**请求**：`GET /api/chat/session/{sessionId}/messages?page=1&size=10`
 
 **响应**：
 
@@ -443,21 +444,29 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
 {
   "code": 200,
   "message": "success",
-  "data": [
-    {
-      "id": "message-uuid-1",
-      "role": "USER",
-      "content": "知识库中有哪些文档？",
-      "createdAt": "2024-01-01T12:00:00"
-    },
-    {
-      "id": "message-uuid-2",
-      "role": "ASSISTANT",
-      "content": "知识库中包含以下文档：技术文档.pdf、产品说明.md、API 文档.pdf",
-      "refs": [...],
-      "createdAt": "2024-01-01T12:00:01"
-    }
-  ]
+  "data": {
+    "records": [
+      {
+        "id": 1,
+        "sessionId": 1,
+        "role": "USER",
+        "content": "知识库中有哪些文档？",
+        "refs": null,
+        "createTime": "2024-01-01T12:00:00"
+      },
+      {
+        "id": 2,
+        "sessionId": 1,
+        "role": "ASSISTANT",
+        "content": "知识库中包含以下文档：技术文档.pdf、产品说明.md、API 文档.pdf",
+        "refs": "[{\"title\":\"技术文档.pdf\",\"docId\":1}]",
+        "createTime": "2024-01-01T12:00:01"
+      }
+    ],
+    "total": 2,
+    "page": 1,
+    "size": 10
+  }
 }
 ```
 
@@ -478,13 +487,21 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
   "code": 200,
   "message": "success",
   "data": {
-    "userCount": 100,
-    "documentCount": 50,
-    "sessionCount": 200,
-    "messageCount": 1000,
-    "todayNewUsers": 5,
-    "todayNewDocuments": 2,
-    "todayNewMessages": 50
+    "userTotal": 100,
+    "documentTotal": 50,
+    "vectorTotal": 1200,
+    "qaToday": 35,
+    "qaByDay": [
+      {"date": "2026-07-08", "count": "30"},
+      {"date": "2026-07-09", "count": "45"}
+    ],
+    "categoryDocShare": [
+      {"categoryName": "技术文档", "documentCount": 20}
+    ],
+    "userRegByDay": [
+      {"date": "2026-07-08", "count": "5"},
+      {"date": "2026-07-09", "count": "3"}
+    ]
   }
 }
 ```
@@ -570,6 +587,6 @@ curl -X DELETE http://localhost:8083/api/chat/session/session-uuid \
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-06</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
   <a href="#api-接口">⬆️ 返回顶部</a>
 </div>
