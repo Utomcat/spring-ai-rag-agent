@@ -1,6 +1,7 @@
 package com.ranyk.spring.ai.rag.agent.config;
 
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
+import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.ranyk.spring.ai.rag.agent.advisor.CustomSimpleLoggerAdvisor;
 import com.ranyk.spring.ai.rag.agent.advisor.ReferenceExtractAdvisor;
 import com.ranyk.spring.ai.rag.base.config.properties.SystemProperties;
@@ -11,6 +12,7 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,11 +39,24 @@ public class AgentConfiguration {
      * @return ReactAgent 对象
      */
     @Bean
-    public ReactAgent reactAgent(SystemProperties systemProperties, OpenAiChatModel openAiChatModel) {
+    public ReactAgent reactAgent(SystemProperties systemProperties,
+                                 OpenAiChatModel openAiChatModel,
+                                 MemorySaver memorySaver,
+                                 ToolCallback weatherForLocationToolCallBack) {
         log.info("创建 ReactAgent 对象, 注册全局的 Agent 对象, 使用 Spring AI Alibaba");
         return ReactAgent.builder()
+                // 设置 ReactAgent 对象的名称
                 .name(systemProperties.getAgentName())
+                // 设置 ReactAgent 对象的模型
                 .model(openAiChatModel)
+                // 设置 ReactAgent 对象的系统提示词
+                .systemPrompt(systemProperties.getSystemPrompt())
+                // 设置 ReactAgent 对象的工具
+                .tools(weatherForLocationToolCallBack)
+                // 设置 ReactAgent 对象的输出类型
+                // .outputType(String.class)
+                // 设置 ReactAgent 对象的检查点保存器
+                .saver(memorySaver)
                 .build();
     }
 

@@ -1,12 +1,14 @@
 package com.ranyk.spring.ai.rag.tool.config;
 
 import com.ranyk.spring.ai.rag.tool.ai.tools.KnowledgeRetrievalToolFunction;
+import com.ranyk.spring.ai.rag.tool.ai.tools.WeatherForLocationToolFunction;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import tools.jackson.databind.ObjectMapper;
 
 /**
@@ -29,12 +31,40 @@ public class ToolConfiguration {
      * @return 知识检索工具函数
      */
     @Bean
-    @Primary
     public KnowledgeRetrievalToolFunction knowledgeRetrievalToolFunction(RedisVectorStore redisVectorStore,
                                                                          @Qualifier("objectMapper") ObjectMapper objectMapper) {
         log.debug("================================= 创建知识检索工具函数 KnowledgeRetrievalToolFunction start ============");
         log.debug("创建知识检索工具函数 KnowledgeRetrievalToolFunction Bean 中 ... ");
         log.debug("================================= 创建知识检索工具函数 KnowledgeRetrievalToolFunction end   ============");
         return new KnowledgeRetrievalToolFunction(redisVectorStore, objectMapper);
+    }
+
+    /**
+     * 创建天气查询工具函数
+     *
+     * @param objectMapper 对象转换器
+     * @return 天气查询工具函数
+     */
+    @Bean
+    public WeatherForLocationToolFunction weatherForLocationToolFunction(@Qualifier("objectMapper") ObjectMapper objectMapper) {
+        log.debug("================================= 创建天气查询工具函数 WeatherForLocationToolFunction start ============");
+        log.debug("创建天气查询工具函数 WeatherForLocationToolFunction Bean 中 ... ");
+        log.debug("================================= 创建天气查询工具函数 WeatherForLocationToolFunction end   ============");
+        return new WeatherForLocationToolFunction(objectMapper);
+    }
+
+    /**
+     * 创建天气查询工具回调函数
+     *
+     * @param weatherForLocationToolFunction 天气查询工具函数
+     * @return 天气查询工具回调函数
+     */
+    @Bean
+    public ToolCallback weatherForLocationToolCallBack(WeatherForLocationToolFunction weatherForLocationToolFunction) {
+        return FunctionToolCallback
+                .builder("weatherForLocationToolFunction", weatherForLocationToolFunction)
+                .description("根据传入的城市名称, 查询当前城市的天气信息, 以及近五天的天气预报信息")
+                .inputType(String.class)
+                .build();
     }
 }

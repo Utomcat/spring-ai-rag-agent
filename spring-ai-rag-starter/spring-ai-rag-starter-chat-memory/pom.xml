@@ -34,6 +34,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-graph-core</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.ranyk</groupId>
             <artifactId>spring-ai-rag-starter-base</artifactId>
         </dependency>
