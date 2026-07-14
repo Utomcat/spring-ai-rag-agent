@@ -140,22 +140,22 @@ print(f"缓存统计: {stats}")
 
 ### 核心缓存模块
 
-| 模块 | 文件 | Redis DB | 说明 |
-|---|---|---|---|
-| 统一缓存接口 | `utils/cache_interface.py` | - | 定义所有缓存管理器必须实现的接口规范 |
-| 热点数据缓存 | `utils/hot_data_cache_manager.py` | DB 1 | 小容量(50条)、短TTL(5分钟)、LRU淘汰、降级到内存 |
-| 完整数据缓存 | `utils/full_data_cache_manager.py` | DB 2 | 大容量(500条)、长TTL(30分钟)、LRU淘汰、降级到内存 |
-| 双层缓存管理器 | `utils/dual_layer_cache_manager.py` | - | 统一管理、读取先热点后完整、写入同时两层、自动晋升 |
-| 内存缓存(降级) | `utils/cache_manager.py` | - | Redis 不可用时的降级方案 |
+| 模块       | 文件                                  | Redis DB | 说明                               |
+|----------|-------------------------------------|----------|----------------------------------|
+| 统一缓存接口   | `utils/cache_interface.py`          | -        | 定义所有缓存管理器必须实现的接口规范               |
+| 热点数据缓存   | `utils/hot_data_cache_manager.py`   | DB 1     | 小容量(50条)、短TTL(5分钟)、LRU淘汰、降级到内存   |
+| 完整数据缓存   | `utils/full_data_cache_manager.py`  | DB 2     | 大容量(500条)、长TTL(30分钟)、LRU淘汰、降级到内存 |
+| 双层缓存管理器  | `utils/dual_layer_cache_manager.py` | -        | 统一管理、读取先热点后完整、写入同时两层、自动晋升        |
+| 内存缓存(降级) | `utils/cache_manager.py`            | -        | Redis 不可用时的降级方案                  |
 
 ### 增强功能模块
 
-| 模块 | 文件 | 说明 |
-|---|---|---|
-| 缓存预热 | `utils/cache_warmer.py` | 系统启动时预加载热点数据 |
-| 缓存监控 | `utils/cache_monitor.py` | 集成 Prometheus 监控（命中率、延迟等指标） |
-| 多实例同步 | `utils/cache_sync.py` | 使用 Redis Pub/Sub 实现多实例间缓存同步 |
-| 热点追踪 | `utils/hot_data_tracker.py` | 追踪访问频率，自动晋升到热点缓存 |
+| 模块    | 文件                          | 说明                          |
+|-------|-----------------------------|-----------------------------|
+| 缓存预热  | `utils/cache_warmer.py`     | 系统启动时预加载热点数据                |
+| 缓存监控  | `utils/cache_monitor.py`    | 集成 Prometheus 监控（命中率、延迟等指标） |
+| 多实例同步 | `utils/cache_sync.py`       | 使用 Redis Pub/Sub 实现多实例间缓存同步 |
+| 热点追踪  | `utils/hot_data_tracker.py` | 追踪访问频率，自动晋升到热点缓存            |
 
 ---
 
@@ -267,14 +267,14 @@ CACHE_SYNC_CHANNEL=mcp-cache-sync
 
 ## 📈 核心优势
 
-| 优势 | 说明 |
-|---|---|
-| **性能优化** | 热点数据专用快速通道(DB 1)，智能晋升机制 |
-| **资源管理** | 分层存储 + LRU 淘汰，防止内存溢出 |
-| **可靠性** | Redis 不可用时自动降级到内存缓存 |
-| **可观测性** | Prometheus 全指标覆盖，实时监控 |
+| 优势        | 说明                         |
+|-----------|----------------------------|
+| **性能优化**  | 热点数据专用快速通道(DB 1)，智能晋升机制    |
+| **资源管理**  | 分层存储 + LRU 淘汰，防止内存溢出       |
+| **可靠性**   | Redis 不可用时自动降级到内存缓存        |
+| **可观测性**  | Prometheus 全指标覆盖，实时监控      |
 | **多实例同步** | Redis Pub/Sub 确保分布式环境数据一致性 |
-| **环境隔离** | 不同环境使用不同 Redis DB |
+| **环境隔离**  | 不同环境使用不同 Redis DB          |
 
 ---
 

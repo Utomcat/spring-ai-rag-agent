@@ -183,11 +183,11 @@ curl -X DELETE http://localhost:8083/api/user/2 \
 
 ## 📂 分类接口
 
-| 接口                   | 方法     | 权限    | 说明   |
-|----------------------|--------|-------|------|
+| 接口                   | 方法     | 权限    | 说明     |
+|----------------------|--------|-------|--------|
 | `/api/category`      | GET    | 登录用户  | 分页查询分类 |
-| `/api/category`      | POST   | ADMIN | 新增分类 |
-| `/api/category/{id}` | DELETE | ADMIN | 删除分类 |
+| `/api/category`      | POST   | ADMIN | 新增分类   |
+| `/api/category/{id}` | DELETE | ADMIN | 删除分类   |
 
 ### 获取分类列表
 
@@ -333,10 +333,10 @@ curl -X DELETE http://localhost:8083/api/document/1 \
 
 ## 💬 聊天会话接口
 
-| 接口                              | 方法     | 权限   | 说明   |
-|---------------------------------|--------|------|------|
+| 接口                              | 方法     | 权限   | 说明       |
+|---------------------------------|--------|------|----------|
 | `/api/chat/session`             | GET    | 登录用户 | 分页查询会话列表 |
-| `/api/chat/session/{sessionId}` | DELETE | 登录用户 | 删除会话及消息 |
+| `/api/chat/session/{sessionId}` | DELETE | 登录用户 | 删除会话及消息  |
 
 ### 获取会话列表
 

@@ -4,13 +4,20 @@
   <img src="https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white" alt="Java Version" />
   <img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=spring-boot&logoColor=white" alt="Spring Boot" />
   <img src="https://img.shields.io/badge/Spring%20AI-2.0.0-6DB33F?logo=spring&logoColor=white" alt="Spring AI" />
+  <img src="https://img.shields.io/badge/Spring%20AI%20Alibaba-2.0.0-6DB33F?logo=spring&logoColor=white" alt="Spring AI Alibaba" />
   <img src="https://img.shields.io/badge/Spring%20Security-6.5+-6DB33F?logo=spring-security&logoColor=white" alt="Spring Security" />
   <img src="https://img.shields.io/badge/MySQL-9.7.0-4479A1?logo=mysql&logoColor=white" alt="MySQL" />
   <img src="https://img.shields.io/badge/MariaDB-3.5.9-003545?logo=mariadb&logoColor=white" alt="MariaDB" />
   <img src="https://img.shields.io/badge/Redis-Vector%20Store-DC382D?logo=redis&logoColor=white" alt="Redis" />
   <img src="https://img.shields.io/badge/Ollama-Embedding-000000?logo=ollama&logoColor=white" alt="Ollama" />
   <img src="https://img.shields.io/badge/Maven-3.8+-C71A36?logo=apache-maven&logoColor=white" alt="Maven" />
-  <img src="https://img.shields.io/badge/MyBatis%20Plus-3.5.16-000000" alt="MyBatis Plus" />
+  <img src="https://img.shields.io/badge/MyBatis%20Plus-3.5.16-000000?logo=mybatis&logoColor=white" alt="MyBatis Plus" />
+  <img src="https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white" alt="JWT" />
+  <img src="https://img.shields.io/badge/Lombok-1.18.46-EE1C25" alt="Lombok" />
+  <img src="https://img.shields.io/badge/MapStruct-1.7.0-6DB33F" alt="MapStruct" />
+  <img src="https://img.shields.io/badge/Hutool-5.8.46-FF6600" alt="Hutool" />
+  <img src="https://img.shields.io/badge/Apache%20Tika-003366?logo=apache&logoColor=white" alt="Apache Tika" />
+  <img src="https://img.shields.io/badge/MCP-WebFlux-6DB33F?logo=spring&logoColor=white" alt="MCP" />
   <img src="https://img.shields.io/badge/Python-3.14+-3776AB?logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Status-开发中-yellow" alt="Status" />
   <img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License" />
@@ -46,12 +53,12 @@
 
 ### 子项目文档
 
-| 子项目                                          | 文档                                  | 说明                              |
-|----------------------------------------------|-------------------------------------|---------------------------------|
-| spring-ai-rag-starter                        | [Starter 模块](md/starter-modules.md) | 可复用 Starter 组件库，18 个功能模块        |
-| spring-ai-rag-example                          | [示例项目](md/example-project.md)         | 知识库问答系统示例应用，演示 Starter 组件的使用     |
-| python-mcp-server                            | [Python MCP Server](md/python-mcp-server.md)    | Python MCP Server 子项目完整技术文档（含概览、工具列表、使用指南、版本历史） |
-|                                                | [Redis 双层缓存](md/redis-cache.md) | Redis 双DB架构缓存系统（含快速开始、架构设计、配置说明） |
+| 子项目                   | 文档                                           | 说明                                              |
+|-----------------------|----------------------------------------------|-------------------------------------------------|
+| spring-ai-rag-starter | [Starter 模块](md/starter-modules.md)          | 可复用 Starter 组件库，18 个功能模块                        |
+| spring-ai-rag-example | [示例项目](md/example-project.md)                | 知识库问答系统示例应用，演示 Starter 组件的使用                    |
+| python-mcp-server     | [Python MCP Server](md/python-mcp-server.md) | Python MCP Server 子项目完整技术文档（含概览、工具列表、使用指南、版本历史） |
+|                       | [Redis 双层缓存](md/redis-cache.md)              | Redis 双DB架构缓存系统（含快速开始、架构设计、配置说明）                |
 
 ---
 
@@ -78,22 +85,22 @@
 
 ## 🛠️ 技术栈
 
-| 类别        | 技术                                                |
-|-----------|---------------------------------------------------|
-| 框架        | Spring Boot 4.1.1-SNAPSHOT, Spring AI 2.0.0       |
-| Java 版本   | Java 21                                           |
-| 关系型数据库    | MySQL 9.7.0 / MariaDB 3.5.9                       |
-| 向量数据库     | Redis（使用 Jedis 连接）                                |
-| LLM       | OpenAI 兼容 API (小米 Mimo v2.5-pro-ultraspeed)       |
-| Embedding | Ollama (embeddinggemma:latest)                    |
-| ORM       | MyBatis Plus 3.5.16                               |
-| 安全        | Spring Security + JWT                             |
-| 工具库       | Lombok, MapStruct, Hutool                         |
-| 文档解析      | Tika, Markdown Reader                             |
-| 数据校验      | Spring Boot Starter Validation                    |
-| 虚拟线程      | Spring Boot Virtual Threads                       |
-| MCP       | Spring AI MCP Client (WebFlux)                    |
-| Agent框架   | Spring AI Alibaba Agent Framework（预留，后续逐步集成） |
+| 类别        | 技术                                            |
+|-----------|-----------------------------------------------|
+| 框架        | Spring Boot 4.1.1-SNAPSHOT, Spring AI 2.0.0   |
+| Java 版本   | Java 21                                       |
+| 关系型数据库    | MySQL 9.7.0 / MariaDB 3.5.9                   |
+| 向量数据库     | Redis（使用 Jedis 连接）                            |
+| LLM       | OpenAI 兼容 API (小米 Mimo v2.5-pro-ultraspeed)   |
+| Embedding | Ollama (embeddinggemma:latest)                |
+| ORM       | MyBatis Plus 3.5.16                           |
+| 安全        | Spring Security + JWT                         |
+| 工具库       | Lombok, MapStruct, Hutool                     |
+| 文档解析      | Tika, Markdown Reader                         |
+| 数据校验      | Spring Boot Starter Validation                |
+| 虚拟线程      | Spring Boot Virtual Threads                   |
+| MCP       | Spring AI MCP Client (WebFlux)                |
+| Agent框架   | Spring AI Alibaba Agent Framework（ReactAgent） |
 
 ---
 

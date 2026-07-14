@@ -8,26 +8,26 @@
 
 ## 📋 模块总览
 
-| 模块                                  | 说明                    | 核心功能                                     |
-|-------------------------------------|-----------------------|------------------------------------------|
-| spring-ai-rag-starter-agent         | Agent 编排与 Advisor       | 自定义 Advisor、Agent 配置                        |
-| spring-ai-rag-starter-annotations   | 自定义注解（预留）           | 项目通用注解定义（预留，暂无实现）                       |
-| spring-ai-rag-starter-base          | 基础类                   | 统一响应体、基础 DTO/PO/VO、Jackson 配置、虚拟线程配置       |
-| spring-ai-rag-starter-chat-memory   | 聊天记忆                  | ChatMemory 配置，支持多轮对话上下文                    |
-| spring-ai-rag-starter-common        | 公共组件                  | 常量枚举、异常体系、工具类                             |
-| spring-ai-rag-starter-datasource    | 数据源                   | MyBatis Plus 配置、关系型数据库数据源、自动填充             |
-| spring-ai-rag-starter-document-splitter | 文档分割                | 文档切分配置、文档解析工具                             |
-| spring-ai-rag-starter-international | 国际化                   | 多语言消息工具                                   |
-| spring-ai-rag-starter-llm           | LLM 模型配置             | OpenAI 兼容 API + Ollama Embedding 配置      |
-| spring-ai-rag-starter-log           | 日志（预留）                | 日志配置（预留，暂无实现）                              |
-| spring-ai-rag-starter-mcp           | MCP 客户端（预留）           | MCP 协议客户端配置（预留，暂无实现）                       |
-| spring-ai-rag-starter-redis         | Redis 配置              | Redis 连接配置                                 |
-| spring-ai-rag-starter-security      | 安全认证                  | Spring Security + JWT 认证                   |
-| spring-ai-rag-starter-skill         | Skills 执行引擎（预留）      | 技能注册、批量执行、链式执行（预留，暂无实现）                   |
-| spring-ai-rag-starter-task          | 任务调度                  | 延迟任务、异步任务                                 |
-| spring-ai-rag-starter-tool          | AI 工具                 | Function Calling 工具实现                     |
-| spring-ai-rag-starter-vector-store  | 向量存储                  | Redis Vector Store 配置                      |
-| spring-ai-rag-starter-web           | Web 配置                | CORS、异常处理、文件上传、国际化、Tomcat 配置              |
+| 模块                                      | 说明                | 核心功能                                 |
+|-----------------------------------------|-------------------|--------------------------------------|
+| spring-ai-rag-starter-agent             | Agent 编排与 Advisor | 自定义 Advisor、Agent 配置                 |
+| spring-ai-rag-starter-annotations       | 自定义注解（预留）         | 项目通用注解定义（预留，暂无实现）                    |
+| spring-ai-rag-starter-base              | 基础类               | 统一响应体、基础 DTO/PO/VO、Jackson 配置、虚拟线程配置 |
+| spring-ai-rag-starter-chat-memory       | 聊天记忆              | ChatMemory 配置，支持多轮对话上下文              |
+| spring-ai-rag-starter-common            | 公共组件              | 常量枚举、异常体系、工具类                        |
+| spring-ai-rag-starter-datasource        | 数据源               | MyBatis Plus 配置、关系型数据库数据源、自动填充       |
+| spring-ai-rag-starter-document-splitter | 文档分割              | 文档切分配置、文档解析工具                        |
+| spring-ai-rag-starter-international     | 国际化               | 多语言消息工具                              |
+| spring-ai-rag-starter-llm               | LLM 模型配置          | OpenAI 兼容 API + Ollama Embedding 配置  |
+| spring-ai-rag-starter-log               | 日志（预留）            | 日志配置（预留，暂无实现）                        |
+| spring-ai-rag-starter-mcp               | MCP 客户端（预留）       | MCP 协议客户端配置（预留，暂无实现）                 |
+| spring-ai-rag-starter-redis             | Redis 配置          | Redis 连接配置                           |
+| spring-ai-rag-starter-security          | 安全认证              | Spring Security + JWT 认证             |
+| spring-ai-rag-starter-skill             | Skills 执行引擎（预留）   | 技能注册、批量执行、链式执行（预留，暂无实现）              |
+| spring-ai-rag-starter-task              | 任务调度              | 延迟任务、异步任务                            |
+| spring-ai-rag-starter-tool              | AI 工具             | Function Calling 工具实现                |
+| spring-ai-rag-starter-vector-store      | 向量存储              | Redis Vector Store 配置                |
+| spring-ai-rag-starter-web               | Web 配置            | CORS、异常处理、文件上传、国际化、Tomcat 配置         |
 
 ---
 
@@ -39,11 +39,11 @@ Agent 编排与 Advisor 模块，提供 AI 对话的拦截增强能力。
 
 **核心类**：
 
-| 类名                           | 说明                              |
-|------------------------------|---------------------------------|
-| `AgentConfiguration`         | Agent 配置类，组装 ChatClient 和 Advisor 链 |
-| `CustomSimpleLoggerAdvisor`  | 自定义日志 Advisor，拦截请求和响应记录调用日志      |
-| `ReferenceExtractAdvisor`    | 引用提取 Advisor，自动提取知识库检索的引用文档     |
+| 类名                          | 说明                                  |
+|-----------------------------|-------------------------------------|
+| `AgentConfiguration`        | Agent 配置类，组装 ChatClient 和 Advisor 链 |
+| `CustomSimpleLoggerAdvisor` | 自定义日志 Advisor，拦截请求和响应记录调用日志         |
+| `ReferenceExtractAdvisor`   | 引用提取 Advisor，自动提取知识库检索的引用文档         |
 
 **特性**：
 - ✅ 可插拔的 Advisor 链配置
@@ -58,16 +58,16 @@ Agent 编排与 Advisor 模块，提供 AI 对话的拦截增强能力。
 
 **核心类**：
 
-| 类名                       | 说明                    |
-|--------------------------|-----------------------|
-| `Result<T>`              | 统一 API 响应体封装          |
-| `MultiResult<T>`         | 多结果响应体封装              |
-| `BaseDTO`                | 基础数据传输对象              |
-| `StoredFile`             | 已存储文件 DTO             |
-| `PageQueryPO`            | 分页查询参数对象              |
-| `JacksonConfiguration`   | Jackson ObjectMapper 配置 |
-| `VirtualThreadConfiguration` | 虚拟线程配置             |
-| `SystemProperties`       | 系统属性配置类               |
+| 类名                           | 说明                      |
+|------------------------------|-------------------------|
+| `Result<T>`                  | 统一 API 响应体封装            |
+| `MultiResult<T>`             | 多结果响应体封装                |
+| `BaseDTO`                    | 基础数据传输对象                |
+| `StoredFile`                 | 已存储文件 DTO               |
+| `PageQueryPO`                | 分页查询参数对象                |
+| `JacksonConfiguration`       | Jackson ObjectMapper 配置 |
+| `VirtualThreadConfiguration` | 虚拟线程配置                  |
+| `SystemProperties`           | 系统属性配置类                 |
 
 ---
 
@@ -77,8 +77,8 @@ Agent 编排与 Advisor 模块，提供 AI 对话的拦截增强能力。
 
 **核心类**：
 
-| 类名                      | 说明                  |
-|-------------------------|---------------------|
+| 类名                        | 说明                 |
+|---------------------------|--------------------|
 | `ChatMemoryConfiguration` | ChatMemory Bean 配置 |
 
 **特性**：
@@ -93,18 +93,18 @@ Agent 编排与 Advisor 模块，提供 AI 对话的拦截增强能力。
 
 **常量枚举**：
 
-| 枚举类                      | 说明          |
-|--------------------------|-------------|
-| `CapabilityTypeEnum`     | 能力类型枚举      |
-| `DatabaseTypeEnum`       | 数据库类型枚举     |
-| `DevelopmentLanguageEnum`| 开发语言枚举      |
-| `FileCategoryEnum`       | 文件分类枚举      |
-| `FileTypeEnum`           | 文件类型枚举      |
-| `MessageRoleEnum`        | 消息角色枚举      |
-| `StatusEnum`             | 状态枚举        |
-| `SymbolEnum`             | 符号常量枚举      |
-| `TransportTypeEnum`      | 传输类型枚举      |
-| `VectorMetaKeyEnum`      | 向量元数据键枚举    |
+| 枚举类                       | 说明       |
+|---------------------------|----------|
+| `CapabilityTypeEnum`      | 能力类型枚举   |
+| `DatabaseTypeEnum`        | 数据库类型枚举  |
+| `DevelopmentLanguageEnum` | 开发语言枚举   |
+| `FileCategoryEnum`        | 文件分类枚举   |
+| `FileTypeEnum`            | 文件类型枚举   |
+| `MessageRoleEnum`         | 消息角色枚举   |
+| `StatusEnum`              | 状态枚举     |
+| `SymbolEnum`              | 符号常量枚举   |
+| `TransportTypeEnum`       | 传输类型枚举   |
+| `VectorMetaKeyEnum`       | 向量元数据键枚举 |
 
 **异常体系**：
 
@@ -123,14 +123,14 @@ Agent 编排与 Advisor 模块，提供 AI 对话的拦截增强能力。
 
 **核心类**：
 
-| 类名                            | 说明                 |
-|-------------------------------|--------------------|
-| `MyBatisPlusConfiguration`    | MyBatis Plus 配置    |
-| `HikariDataSourceProperties`  | HikariCP 连接池属性    |
-| `RdbProperties`               | 关系型数据库属性          |
-| `BaseEntity`                  | 基础实体类（自动填充创建/更新时间） |
-| `MyBatisPlusMetaObjectHandler`| 自动填充处理器           |
-| `PageBaseDTO`                 | 分页基础 DTO           |
+| 类名                             | 说明                 |
+|--------------------------------|--------------------|
+| `MyBatisPlusConfiguration`     | MyBatis Plus 配置    |
+| `HikariDataSourceProperties`   | HikariCP 连接池属性     |
+| `RdbProperties`                | 关系型数据库属性           |
+| `BaseEntity`                   | 基础实体类（自动填充创建/更新时间） |
+| `MyBatisPlusMetaObjectHandler` | 自动填充处理器            |
+| `PageBaseDTO`                  | 分页基础 DTO           |
 
 ---
 
@@ -140,11 +140,11 @@ Agent 编排与 Advisor 模块，提供 AI 对话的拦截增强能力。
 
 **核心类**：
 
-| 类名                             | 说明            |
-|--------------------------------|---------------|
-| `DocumentSplitterConfiguration`| 文档分割器配置       |
-| `DocSplitterProperties`        | 分割参数属性（chunk-size、overlap） |
-| `DocumentParseUtils`           | 文档解析工具（Tika / Markdown）   |
+| 类名                              | 说明                         |
+|---------------------------------|----------------------------|
+| `DocumentSplitterConfiguration` | 文档分割器配置                    |
+| `DocSplitterProperties`         | 分割参数属性（chunk-size、overlap） |
+| `DocumentParseUtils`            | 文档解析工具（Tika / Markdown）    |
 
 ---
 
@@ -154,9 +154,9 @@ Agent 编排与 Advisor 模块，提供 AI 对话的拦截增强能力。
 
 **核心类**：
 
-| 类名           | 说明          |
-|--------------|-------------|
-| `MessageUtils` | 国际化消息工具类   |
+| 类名             | 说明       |
+|----------------|----------|
+| `MessageUtils` | 国际化消息工具类 |
 
 **支持语言**：中文（zh_CN）、英文（en_US）
 
@@ -170,7 +170,7 @@ LLM 模型配置模块，支持双模型架构。
 
 | 类名                    | 说明                    |
 |-----------------------|-----------------------|
-| `OpenAiConfiguration` | OpenAI 兼容 API 聊天模型配置 |
+| `OpenAiConfiguration` | OpenAI 兼容 API 聊天模型配置  |
 | `OllamaConfiguration` | Ollama Embedding 模型配置 |
 
 **双模型架构**：
@@ -185,8 +185,8 @@ Redis 配置模块，提供 Redis 连接管理。
 
 **核心类**：
 
-| 类名                 | 说明             |
-|--------------------|----------------|
+| 类名                   | 说明              |
+|----------------------|-----------------|
 | `RedisConfiguration` | Redis 连接配置 Bean |
 
 **用途**：
@@ -201,15 +201,15 @@ Redis 配置模块，提供 Redis 连接管理。
 
 **核心类**：
 
-| 类名                         | 说明              |
-|----------------------------|-----------------|
-| `SecurityConfiguration`    | Spring Security 配置 |
-| `JwtAuthFilter`            | JWT 认证过滤器       |
-| `JwtUtils`                 | JWT 工具类         |
-| `SecurityUtils`            | Security 工具类    |
-| `JwtProperties`            | JWT 配置属性        |
-| `LoginUserDetailsDTO`      | 登录用户详情 DTO      |
-| `ParsedTokenVO`            | 解析后的 Token VO   |
+| 类名                      | 说明                 |
+|-------------------------|--------------------|
+| `SecurityConfiguration` | Spring Security 配置 |
+| `JwtAuthFilter`         | JWT 认证过滤器          |
+| `JwtUtils`              | JWT 工具类            |
+| `SecurityUtils`         | Security 工具类       |
+| `JwtProperties`         | JWT 配置属性           |
+| `LoginUserDetailsDTO`   | 登录用户详情 DTO         |
+| `ParsedTokenVO`         | 解析后的 Token VO      |
 
 **特性**：
 - ✅ JWT Token 认证
@@ -253,10 +253,10 @@ AI 工具模块，实现 Function Calling 工具。
 
 **核心类**：
 
-| 类名                            | 说明               |
-|-------------------------------|------------------|
+| 类名                              | 说明                    |
+|---------------------------------|-----------------------|
 | `RedisVectorStoreConfiguration` | Redis Vector Store 配置 |
-| `VectorStoreProperties`       | 向量存储属性（索引类型、距离度量、维度） |
+| `VectorStoreProperties`         | 向量存储属性（索引类型、距离度量、维度）  |
 
 **配置**：
 - 索引类型：HNSW
@@ -271,18 +271,18 @@ Web 配置模块，提供 Web 层通用配置。
 
 **核心类**：
 
-| 类名                              | 说明            |
-|---------------------------------|---------------|
-| `WebMvcConfiguration`           | Web MVC 配置    |
-| `WebMvcConfiguration`           | CORS 跨域配置     |
-| `GlobalWebExceptionHandler`     | 全局异常处理器       |
-| `FaviconConfiguration`          | Favicon 配置    |
-| `I18nConfiguration`             | 国际化配置         |
-| `TomcatConfiguration`           | Tomcat 配置     |
-| `UploadBootstrapConfiguration`  | 文件上传初始化配置    |
-| `CorsProperties`                | CORS 属性       |
-| `FileProperties`                | 文件上传属性        |
-| `WebUtils`                      | Web 工具类       |
+| 类名                             | 说明         |
+|--------------------------------|------------|
+| `WebMvcConfiguration`          | Web MVC 配置 |
+| `WebMvcConfiguration`          | CORS 跨域配置  |
+| `GlobalWebExceptionHandler`    | 全局异常处理器    |
+| `FaviconConfiguration`         | Favicon 配置 |
+| `I18nConfiguration`            | 国际化配置      |
+| `TomcatConfiguration`          | Tomcat 配置  |
+| `UploadBootstrapConfiguration` | 文件上传初始化配置  |
+| `CorsProperties`               | CORS 属性    |
+| `FileProperties`               | 文件上传属性     |
+| `WebUtils`                     | Web 工具类    |
 
 ---
 
