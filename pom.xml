@@ -22,6 +22,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>java-mcp-server</module>
         <module>spring-ai-rag-example</module>
         <module>spring-ai-rag-starter</module>
     </modules>

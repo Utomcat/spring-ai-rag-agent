@@ -6,6 +6,7 @@
 		<groupId>com.ranyk</groupId>
 		<artifactId>spring-ai-rag-starter</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>spring-ai-rag-starter-mcp</artifactId>

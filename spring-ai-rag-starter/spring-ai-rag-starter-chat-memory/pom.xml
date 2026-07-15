@@ -6,6 +6,7 @@
         <groupId>com.ranyk</groupId>
         <artifactId>spring-ai-rag-starter</artifactId>
         <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>spring-ai-rag-starter-chat-memory</artifactId>
@@ -31,11 +32,6 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-client-chat</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-graph-core</artifactId>
         </dependency>
 
         <dependency>
