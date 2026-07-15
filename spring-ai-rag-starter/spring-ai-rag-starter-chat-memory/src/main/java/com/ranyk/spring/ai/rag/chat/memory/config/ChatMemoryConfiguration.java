@@ -1,6 +1,5 @@
 package com.ranyk.spring.ai.rag.chat.memory.config;
 
-import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -56,18 +55,5 @@ public class ChatMemoryConfiguration {
         log.debug("创建 Spring AI 会话聊天短期记忆顾问对象 MessageChatMemoryAdvisor Bean 中 ... ");
         log.debug("================================ 创建 Spring AI 短期会话记忆顾问对象 Bean End  =========================");
         return MessageChatMemoryAdvisor.builder(inMemoryChatMemory).build();
-    }
-
-    /**
-     * 创建 MemorySaver 对象, 用于保存会话记忆 - Spring AI Alibaba
-     *
-     * @return 返回创建好的 MemorySaver 对象 {@link MemorySaver} 对象
-     */
-    @Bean
-    public MemorySaver memorySaver() {
-        log.debug("=============================== 创建 Spring AI Alibaba 会话记忆保存对象 Bean Start ====================");
-        log.debug("创建 Spring AI Alibaba 会话记忆保存对象 MemorySaver Bean 中 ... ");
-        log.debug("================================ 创建 Spring AI Alibaba 会话记忆保存对象 Bean End  ====================");
-        return MemorySaver.builder().build();
     }
 }
