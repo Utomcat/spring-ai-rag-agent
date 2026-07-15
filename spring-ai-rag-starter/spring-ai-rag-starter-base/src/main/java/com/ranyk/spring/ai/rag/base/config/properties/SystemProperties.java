@@ -44,4 +44,8 @@ public class SystemProperties {
      * 系统默认的 Agent 名称
      */
     private String agentName = "default-agent";
+    /**
+     * 系统默认的 Agent 文件操作默认保存路径, 末尾带 /
+     */
+    private String agentFileOperateDefaultDir = "E:/FTP/upload/";
 }

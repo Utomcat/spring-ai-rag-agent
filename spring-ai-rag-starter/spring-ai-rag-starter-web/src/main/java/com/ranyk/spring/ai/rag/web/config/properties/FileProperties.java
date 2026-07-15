@@ -28,7 +28,7 @@ public class FileProperties {
     /**
      * 自定义 - 文件上传属性
      */
-    private Upload upload;
+    private Upload upload = new Upload();
 
     /**
      * 自定义 - 直接访问文件的请求 pathPatterns
@@ -46,6 +46,6 @@ public class FileProperties {
         /**
          * 自定义 - 文件上传根目录属性
          */
-        private String root = "/upload";
+        private String root = System.getProperty("user.dir") + "/upload";;
     }
 }
