@@ -8,6 +8,7 @@ import com.ranyk.spring.ai.rag.common.constant.MessageRoleEnum;
 import com.ranyk.spring.ai.rag.common.constant.SymbolEnum;
 import com.ranyk.spring.ai.rag.common.exception.ServiceException;
 import com.ranyk.spring.ai.rag.knowledge.database.ai.tools.DocumentToolFunction;
+import com.ranyk.spring.ai.rag.knowledge.database.ai.tools.SessionHistoryToolFunction;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.dto.ChatMessageDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.entity.ChatMessage;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.mapstruct.ChatMessageMapper;
@@ -24,6 +25,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +75,10 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      */
     private final DocumentToolFunction documentToolFunction;
     /**
+     * 会话历史工具函数 - 用于业务相关的 - 会话历史相关操作
+     */
+    private final SessionHistoryToolFunction sessionHistoryToolFunction;
+    /**
      * Spring 编程式事务管理器 - 用于手动控制事务边界
      */
     private final PlatformTransactionManager transactionManager;
@@ -118,6 +124,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
                               DocumentToolFunction documentToolFunction,
                               ChatMessageMapper chatMessageMapper,
                               ReferenceExtractAdvisor referenceExtractAdvisor,
+                              @Lazy SessionHistoryToolFunction sessionHistoryToolFunction,
                               PlatformTransactionManager transactionManager,
                               DelayedTaskService delayedTaskService) {
         this.chatMessageRepository = chatMessageRepository;
@@ -127,6 +134,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
         this.documentToolFunction = documentToolFunction;
         this.chatMessageMapper = chatMessageMapper;
         this.referenceExtractAdvisor = referenceExtractAdvisor;
+        this.sessionHistoryToolFunction = sessionHistoryToolFunction;
         this.transactionManager = transactionManager;
         this.delayedTaskService = delayedTaskService;
     }
@@ -178,13 +186,15 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
 
         // 2. Agent 调用:LLM 自主决定调用工具并生成回答
         long startTimeNanos = System.nanoTime();
+        // 此处对用户提出的问题进行修改, 为每次的用户会话增加会话ID的参数
+        String newQuestion = question + " ,当前的会话ID为: " + sessionId;
         ChatResponse chatResponse;
         List<Map<String, Object>> references;
         try {
             chatResponse = chatClient.prompt()
-                    .user(question)
+                    .user(newQuestion)
                     .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
-                    .tools(documentToolFunction)
+                    .tools(documentToolFunction, sessionHistoryToolFunction)
                     .call()
                     .chatResponse();
             // 成功调用后提取 references
@@ -412,5 +422,24 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
     @Transactional(rollbackFor = Exception.class)
     public void deleteBySessionId(ChatMessageDTO chatMessageDTO) {
         this.remove(Wrappers.<ChatMessage>lambdaQuery().eq(ChatMessage::getSessionId, chatMessageDTO.getSessionId()));
+    }
+
+    /**
+     * 通过 会话消息 ID 查询这个会话的详细数据
+     *
+     * @param chatMessageDTO 需要查询会话详细数据的会话 ID 数据封装对象, 使用 {@link ChatMessageDTO#getSessionId()}
+     * @return 返回查询到的会话详细数据, 使用 {@link ChatMessageDTO#getDataList()}
+     */
+    public ChatMessageDTO querySessionHistoryDetail(ChatMessageDTO chatMessageDTO) {
+        if (Objects.isNull(chatMessageDTO.getSessionId())){
+            throw new ServiceException("sessions.no.permissions", new String[]{"会话不存在或者无权限查询此会话的会话消息 List!"});
+        }
+        LambdaQueryWrapper<ChatMessage> queryWrapper = Wrappers.<ChatMessage>lambdaQuery()
+                .eq(ChatMessage::getSessionId, chatMessageDTO.getSessionId())
+                .orderByAsc(ChatMessage::getId);
+        List<ChatMessage> chatMessageList = this.chatMessageRepository.selectList(queryWrapper);
+        return ChatMessageDTO.builder()
+                .dataList(chatMessageMapper.chatMessageListToChatMessageDTOList(chatMessageList))
+                .build();
     }
 }
