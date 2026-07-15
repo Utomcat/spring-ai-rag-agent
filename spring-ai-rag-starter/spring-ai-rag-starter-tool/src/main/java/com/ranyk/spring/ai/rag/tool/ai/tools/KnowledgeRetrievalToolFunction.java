@@ -65,18 +65,18 @@ public class KnowledgeRetrievalToolFunction {
      * @param categoryIds 可选的分类 ID 列表，用于限定检索范围。不传则全库检索
      * @return 结构化 JSON 字符串，包含 query、totalHits、documents 数组（每个文档包含 title、docId、categoryId、snippet）
      */
-    @Tool(description = "从知识库中语义检索与用户问题相关的文档片段。当需要查找知识库中的专业信息、技术文档、业务流程时使用此工具。")
+    @Tool(description = "从知识库中语义检索与用户问题相关的文档片段. 当需要查找知识库中的专业信息、技术文档、业务流程时使用此工具")
     public String retrieveKnowledge(
             @ToolParam(description = "用户的问题或检索关键词") String question,
-            @ToolParam(description = "可选的分类ID列表，用于限定检索范围。不传则全库检索", required = false) List<Long> categoryIds
+            @ToolParam(description = "可选的分类ID列表, 用于限定检索范围. 不传则全库检索", required = false) List<Long> categoryIds
     ) {
-        log.info("调用知识库检索工具 - retrieveKnowledge，入参：question => {}，categoryIds => {}", question, categoryIds);
+        log.info("调用知识库检索工具 - retrieveKnowledge, 入参：question => {} , categoryIds => {}", question, categoryIds);
 
         try {
             // 执行向量检索（支持分类过滤）
             List<Document> documents = retrieveForCategories(question, categoryIds);
 
-            log.info("知识库检索完成，命中 {} 个文档片段", documents.size());
+            log.info("知识库检索完成, 命中 {} 个文档片段", documents.size());
 
             // 构建结构化返回结果
             Map<String, Object> result = new LinkedHashMap<>();
