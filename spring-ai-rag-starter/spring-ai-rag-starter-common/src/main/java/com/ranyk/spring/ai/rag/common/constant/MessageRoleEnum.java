@@ -2,6 +2,8 @@ package com.ranyk.spring.ai.rag.common.constant;
 
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * CLASS_NAME: MessageRoleEnum.java
  *
@@ -37,5 +39,20 @@ public enum MessageRoleEnum {
      */
     MessageRoleEnum(String role) {
         this.role = role;
+    }
+
+    /**
+     * 根据角色获取枚举值
+     *
+     * @param role 角色
+     * @return 枚举值
+     */
+    public static MessageRoleEnum valueOfRole(String role) {
+        for (MessageRoleEnum messageRoleEnum : MessageRoleEnum.values()) {
+            if (Objects.equals(messageRoleEnum.role, role)) {
+                return messageRoleEnum;
+            }
+        }
+        return ROLE_SYSTEM;
     }
 }
