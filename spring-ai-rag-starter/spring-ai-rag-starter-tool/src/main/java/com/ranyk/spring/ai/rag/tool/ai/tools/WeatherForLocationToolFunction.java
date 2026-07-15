@@ -3,7 +3,7 @@ package com.ranyk.spring.ai.rag.tool.ai.tools;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.model.ToolContext;
+import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,7 +11,6 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
-import java.util.function.BiFunction;
 
 /**
  * CLASS_NAME: WeatherForLocationToolFunction.java
@@ -24,7 +23,7 @@ import java.util.function.BiFunction;
 @Slf4j
 @Component
 @SuppressWarnings("unused")
-public class WeatherForLocationToolFunction implements BiFunction<String, ToolContext, String> {
+public class WeatherForLocationToolFunction {
 
     /**
      * 天气查询接口地址
@@ -50,15 +49,14 @@ public class WeatherForLocationToolFunction implements BiFunction<String, ToolCo
     }
 
     /**
-     * 天气工具调用工具, 用于实现依据查询天气的城市/地区名称, 获取对应的天气信息
+     * 天气工具调用工具, 用于实现依据查询天气的城市/地区名称, 获取对应的天气信息 - 此工具目前使用的是 聚合数据 的天气查询接口
      *
      * @param city        天气查询工具入参 - 需要查询天气的城市/地区名称
-     * @param toolContext 工具上下文对象 {@link ToolContext}
      * @return 返回工具的调用结果, 返回一个字符串
      */
-    @Override
-    public String apply(@ToolParam(description = "需要查询天气的城市") String city, ToolContext toolContext) {
-        log.info("天气查询工具被调用, 查询城市: {}", city);
+    @Tool(description = "传入需要查询天气信息的城市名称, 获取对应城市的天气信息, 当需要查询天气信息时使用此工具")
+    public String getWeatherForLocation(@ToolParam(description = "需要查询天气的城市") String city) {
+        log.info("调用天气查询工具 - getWeatherForLocation, 入参: city => {}", city);
 
         HashMap<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("city", city);
