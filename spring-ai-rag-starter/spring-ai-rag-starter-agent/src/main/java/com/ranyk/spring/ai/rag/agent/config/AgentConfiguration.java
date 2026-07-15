@@ -1,18 +1,16 @@
 package com.ranyk.spring.ai.rag.agent.config;
 
-import com.alibaba.cloud.ai.graph.agent.ReactAgent;
-import com.alibaba.cloud.ai.graph.checkpoint.savers.MemorySaver;
 import com.ranyk.spring.ai.rag.agent.advisor.CustomSimpleLoggerAdvisor;
 import com.ranyk.spring.ai.rag.agent.advisor.ReferenceExtractAdvisor;
 import com.ranyk.spring.ai.rag.base.config.properties.SystemProperties;
 import com.ranyk.spring.ai.rag.tool.ai.tools.KnowledgeRetrievalToolFunction;
+import com.ranyk.spring.ai.rag.tool.ai.tools.WeatherForLocationToolFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,35 +30,6 @@ import tools.jackson.databind.ObjectMapper;
 public class AgentConfiguration {
 
     /**
-     * 创建 ReactAgent 对象, 注册全局的 Agent 对象, 使用 Spring AI Alibaba
-     *
-     * @param systemProperties 系统属性对象
-     * @param openAiChatModel  OpenAiChatModel 对象
-     * @return ReactAgent 对象
-     */
-    @Bean
-    public ReactAgent reactAgent(SystemProperties systemProperties,
-                                 OpenAiChatModel openAiChatModel,
-                                 MemorySaver memorySaver,
-                                 ToolCallback weatherForLocationToolCallBack) {
-        log.info("创建 ReactAgent 对象, 注册全局的 Agent 对象, 使用 Spring AI Alibaba");
-        return ReactAgent.builder()
-                // 设置 ReactAgent 对象的名称
-                .name(systemProperties.getAgentName())
-                // 设置 ReactAgent 对象的模型
-                .model(openAiChatModel)
-                // 设置 ReactAgent 对象的系统提示词
-                .systemPrompt(systemProperties.getSystemPrompt())
-                // 设置 ReactAgent 对象的工具
-                .tools(weatherForLocationToolCallBack)
-                // 设置 ReactAgent 对象的输出类型
-                // .outputType(String.class)
-                // 设置 ReactAgent 对象的检查点保存器
-                .saver(memorySaver)
-                .build();
-    }
-
-    /**
      * 创建 ChatClient 对象, 注册全局的 ChatClient 对象, 使用 Open AI 方式
      *
      * @param openAiChatModel                OpenAiChatModel 对象
@@ -71,6 +40,7 @@ public class AgentConfiguration {
      * @param customSimpleLoggerAdvisor      自定义简单日志记录顾问
      * @param mcpToolCallbackProvider        MCP Server 回调提供者
      * @param knowledgeRetrievalToolFunction 知识库检索工具函数
+     * @param weatherForLocationToolFunction 天气查询工具函数
      * @return ChatClient 对象
      */
     @Bean
@@ -82,11 +52,12 @@ public class AgentConfiguration {
             MessageChatMemoryAdvisor inMemoryChatMemoryAdvisor,
             @Lazy CustomSimpleLoggerAdvisor customSimpleLoggerAdvisor,
             @Lazy SyncMcpToolCallbackProvider mcpToolCallbackProvider,
-            @Lazy KnowledgeRetrievalToolFunction knowledgeRetrievalToolFunction
+            @Lazy KnowledgeRetrievalToolFunction knowledgeRetrievalToolFunction,
+            @Lazy WeatherForLocationToolFunction weatherForLocationToolFunction
     ) {
         log.debug("================================= 创建 ChatClient 对象 start =================================");
         log.debug("正在创建 ChatClient, 当前使用 OpenAI 方式创建 ChatClient 对象 ...");
-        log.debug("当前 ChatClient 集成了 Agent 能力：知识库检索工具、引用提取 Advisor ...");
+        log.debug("当前 ChatClient 集成了 Agent 能力：知识库检索工具、引用提取 Advisor 、天气查询工具 ...");
         log.debug("知识库文档工具、MCP Server 工具 这两个工具在实际使用时再主动添加, 当前暂不配置为默认 Tools 和 Advisor ...");
         log.debug("注意, 在此处设置了之后, 全局使用的 ChatClient 均会带有设置的 Advisor、工具, 为避免过度配置, 请按需配置! ");
         log.debug("================================ 创建 ChatClient 对象 end   =================================");
@@ -111,7 +82,9 @@ public class AgentConfiguration {
                         // 知识库检索工具 - 供 Agent 自主调用进行向量检索
                         knowledgeRetrievalToolFunction,
                         // MCP Server 工具
-                        mcpToolCallbackProvider
+                        mcpToolCallbackProvider,
+                        // 天气查询工具 - 供 Agent 自主调用进行天气查询
+                        weatherForLocationToolFunction
                 )
                 // 构建 ChatClient 对象
                 .build();
