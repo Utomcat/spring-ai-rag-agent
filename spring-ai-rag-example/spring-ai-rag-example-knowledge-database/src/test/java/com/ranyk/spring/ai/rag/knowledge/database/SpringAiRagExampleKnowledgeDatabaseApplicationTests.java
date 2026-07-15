@@ -18,7 +18,7 @@ class SpringAiRagExampleKnowledgeDatabaseApplicationTests {
 	@Test
 	@DisplayName("天气查询工具测试")
 	void weatherForLocationToolTest() {
-		String result = new WeatherForLocationToolFunction(objectMapper).apply("成都", null);
+		String result = new WeatherForLocationToolFunction(objectMapper).getWeatherForLocation("成都");
 		log.info("天气查询结果: {}", result);
 	}
 
