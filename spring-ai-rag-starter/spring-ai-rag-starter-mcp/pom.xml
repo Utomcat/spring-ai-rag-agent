@@ -12,7 +12,7 @@
 
 	<name>spring-ai-rag-starter-mcp</name>
 
-	<description>Spring AI RAG mcp 配置 starter</description>
+	<description>Spring AI RAG mcp 客户端配置 starter</description>
 
 	<packaging>jar</packaging>
 
