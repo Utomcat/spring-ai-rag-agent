@@ -29,6 +29,11 @@ spring:
               # 使用 streamable-http 方式, 配置 MCP Server 的 url
               url: http://127.0.0.1:8084
               endpoint: /mcp
+            # Java 的 MCP Server 配置
+            java-file-mcp-server:
+              # Java 的 MCP Server 的 url
+              url: http://127.0.0.1:8085
+              endpoint: /mcp
 
 
 # 自定义的 MCP 服务配置 - 暂为使用

@@ -1,0 +1,29 @@
+server:
+  port: 8085
+
+# Spring AI MCP 服务配置
+spring:
+  ai:
+    mcp:
+      server:
+        # Spring AI MCP 服务名
+        name: java-file-mcp-server
+        # Spring AI MCP 服务版本
+        version: 1.0.0
+        # Spring AI MCP 服务类型
+        type: sync
+        # Spring AI MCP 服务指令
+        instructions: ""
+        # Spring AI MCP 服务协议 - 使用 Streamable HTTP
+        protocol: STREAMABLE
+        # Spring AI MCP 注解扫描器
+        annotation-scanner:
+          # Spring AI MCP 注解扫描器是否启用
+          enabled: true
+
+
+logging:
+  level:
+    root: info
+    org.springframework.ai: debug
+    com.ranyk.java.file.mcp.server.ai.mcp: debug
