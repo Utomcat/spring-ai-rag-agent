@@ -12,7 +12,7 @@ import com.ranyk.spring.ai.rag.knowledge.database.domain.document.dto.DocumentDT
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.entity.Document;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.mapstruct.DocumentMapper;
 import com.ranyk.spring.ai.rag.knowledge.database.repository.document.DocumentRepository;
-import com.ranyk.spring.ai.rag.knowledge.database.service.file.FileStorageService;
+import com.ranyk.spring.ai.rag.web.service.file.FileStorageService;
 import com.ranyk.spring.ai.rag.knowledge.database.service.rag.RagIngestService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
