@@ -21,6 +21,7 @@ spring:
     # system.yml: 系统配置
     # mcp.yml: MCP 配置
     # tomcat.yml: Tomcat 配置
+    # weather-api.yml: 天气 API 配置
     import:
       - classpath:mybatis-plus.yml
       - classpath:nrdb-datasource.yml
@@ -36,3 +37,4 @@ spring:
       - classpath:system.yml
       - classpath:mcp.yml
       - classpath:tomcat.yml
+      - classpath:weather-api.yml
