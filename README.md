@@ -4,7 +4,6 @@
   <img src="https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white" alt="Java Version" />
   <img src="https://img.shields.io/badge/Spring%20Boot-4.1.1-6DB33F?logo=spring-boot&logoColor=white" alt="Spring Boot" />
   <img src="https://img.shields.io/badge/Spring%20AI-2.0.0-6DB33F?logo=spring&logoColor=white" alt="Spring AI" />
-  <img src="https://img.shields.io/badge/Spring%20AI%20Alibaba-2.0.0-6DB33F?logo=spring&logoColor=white" alt="Spring AI Alibaba" />
   <img src="https://img.shields.io/badge/Spring%20Security-6.5+-6DB33F?logo=spring-security&logoColor=white" alt="Spring Security" />
   <img src="https://img.shields.io/badge/MySQL-9.7.0-4479A1?logo=mysql&logoColor=white" alt="MySQL" />
   <img src="https://img.shields.io/badge/MariaDB-3.5.9-003545?logo=mariadb&logoColor=white" alt="MariaDB" />
@@ -21,6 +20,7 @@
   <img src="https://img.shields.io/badge/Python-3.14+-3776AB?logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Status-开发中-yellow" alt="Status" />
   <img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License" />
+  <img src="https://img.shields.io/badge/Spring%20AI%20Agent%20Utils-0.10.0-6DB33F" alt="Spring AI Agent Utils" />
 </p>
 
 基于 **Spring AI 2.0.0** + **Spring Boot 4.1.1** 构建的智能知识库问答系统，采用 **Agent 架构**实现自主工具调用和智能决策，支持文档上传解析、向量存储检索与多轮对话。
@@ -29,7 +29,7 @@
 >
 > **项目状态**：🚧 开发中
 >
-> **最后更新**：2026-07-14
+> **最后更新**：2026-07-16
 
 ---
 
@@ -54,30 +54,32 @@
 ### 子项目文档
 
 | 子项目                   | 文档                                           | 说明                                              |
-|-----------------------|----------------------------------------------|-------------------------------------------------|
+|-----------------------|----------------------------------------------|--------------------------------------------------|
 | spring-ai-rag-starter | [Starter 模块](md/starter-modules.md)          | 可复用 Starter 组件库，18 个功能模块                        |
 | spring-ai-rag-example | [示例项目](md/example-project.md)                | 知识库问答系统示例应用，演示 Starter 组件的使用                    |
 | python-mcp-server     | [Python MCP Server](md/python-mcp-server.md) | Python MCP Server 子项目完整技术文档（含概览、工具列表、使用指南、版本历史） |
 |                       | [Redis 双层缓存](md/redis-cache.md)              | Redis 双DB架构缓存系统（含快速开始、架构设计、配置说明）                |
+| java-mcp-server       | Java 文件操作 MCP Server                        | Java 原生 MCP Server，提供文件操作等工具（端口 8085）              |
 
 ---
 
 ## 📖 项目概述
 
-本项目是一个基于 Spring AI 的智能知识库问答系统，采用 **Agent 架构**实现自主工具调用和智能决策。系统由三个子项目组成，采用多模块协同架构：
+本项目是一个基于 Spring AI 的智能知识库问答系统，采用 **Agent 架构**实现自主工具调用和智能决策。系统由四个子项目组成，采用多模块协同架构：
 
 - **spring-ai-rag-starter**：可复用的 Starter 组件库，封装了 AI、安全、数据源、向量存储等 18 个功能模块
 - **spring-ai-rag-example**：基于 Starter 组件构建的知识库问答示例应用，包含完整的业务逻辑
 - **python-mcp-server**：独立的 Python MCP Server，提供网络搜索、数据分析等扩展工具能力
+- **java-mcp-server**：Java MCP Server，提供文件操作等 Java 原生 MCP 工具能力
 
 ### 🎯 核心特点
 
-- **Agent 架构**：采用 Spring AI Alibaba Agent Framework，支持自主意图识别和工具调用
+- **Agent 架构**：基于 Spring AI 原生 ChatClient + Function Calling，支持自主意图识别和工具调用
 - **双模型架构**：OpenAI 兼容 API（LLM 聊天）+ Ollama（Embedding 向量化）
 - **向量存储**：基于 Redis Vector Store 实现文档向量存储与相似度检索
 - **工具扩展**：支持 Function Calling 和 MCP 协议，可扩展知识库检索、网络搜索、数据分析等能力
 - **引用提取**：自定义 Advisor 实现日志记录和引用文档自动提取
-- **多模块设计**：Java Starter 组件库 + Java 示例应用 + Python MCP Server 三模块协同
+- **多模块设计**：Java Starter 组件库 + Java 示例应用 + Python MCP Server + Java MCP Server 四模块协同
 - **虚拟线程**：基于 JDK 21 虚拟线程提升并发性能
 - **Redis双层缓存**：Python MCP Server 中热点数据（DB 1）+ 完整数据（DB 2）分离存储，智能晋升机制
 
@@ -100,7 +102,8 @@
 | 数据校验      | Spring Boot Starter Validation                |
 | 虚拟线程      | Spring Boot Virtual Threads                   |
 | MCP       | Spring AI MCP Client (WebFlux)                |
-| Agent框架   | Spring AI Alibaba Agent Framework（ReactAgent） |
+| Agent框架   | Spring AI 原生 ChatClient + Function Calling        |
+| Skills     | spring-ai-agent-utils（SKILL.md 技能定义）        |
 
 ---
 
@@ -129,10 +132,10 @@ spring-ai-rag-agent/
 │   ├── spring-ai-rag-starter-international  # 国际化
 │   ├── spring-ai-rag-starter-llm            # LLM 模型配置
 │   ├── spring-ai-rag-starter-log            # 日志
-│   ├── spring-ai-rag-starter-mcp            # MCP 客户端
+│   ├── spring-ai-rag-starter-mcp            # MCP 客户端配置
 │   ├── spring-ai-rag-starter-redis          # Redis 配置
 │   ├── spring-ai-rag-starter-security       # 安全认证（JWT + Spring Security）
-│   ├── spring-ai-rag-starter-skill          # Skills 执行引擎
+│   ├── spring-ai-rag-starter-skill          # Skills 技能配置（SKILL.md）
 │   ├── spring-ai-rag-starter-task           # 任务调度
 │   ├── spring-ai-rag-starter-tool           # AI 工具（Function Calling）
 │   ├── spring-ai-rag-starter-vector-store   # 向量存储（Redis Vector Store）
@@ -140,6 +143,9 @@ spring-ai-rag-agent/
 │
 ├── spring-ai-rag-example/               # 示例项目
 │   └── spring-ai-rag-example-knowledge-database  # 知识库问答系统示例应用
+│
+├── java-mcp-server/                     # Java MCP Server（Java 原生 MCP 工具）
+│   └── java-file-mcp-server/                # 文件操作 MCP Server（端口 8085）
 │
 ├── python-mcp-server/                   # Python MCP Server（扩展工具能力）
 │   ├── main.py                          # MCP Server 启动入口
@@ -179,6 +185,6 @@ Apache License 2.0
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#spring-ai-rag-agent">⬆️ 返回顶部</a>
 </div>

@@ -94,6 +94,7 @@ spring-ai-rag-example-knowledge-database/
 | Function Calling | 支持 AI 工具调用，包括知识库文件列表查询、知识库语义检索等        |
 | MCP 客户端          | 支持 MCP 协议，可连接外部 MCP Server 扩展工具能力      |
 | Advisor 拦截       | 自定义 Advisor 实现日志记录和引用文档提取              |
+| Skills 技能          | 基于 SKILL.md 的技能驱动对话（如智能客服）              |
 
 ---
 
@@ -118,6 +119,7 @@ spring-ai-rag-example-knowledge-database/
 | spring-ai-rag-starter-international     | 国际化                      |
 | spring-ai-rag-starter-task              | 异步任务                     |
 | spring-ai-rag-starter-mcp               | MCP 客户端                  |
+| spring-ai-rag-starter-skill             | Skills 技能配置（智能客服等）      |
 
 ---
 
@@ -181,6 +183,6 @@ spring-ai-rag-example-knowledge-database/
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#spring-ai-rag-example-示例项目">⬆️ 返回顶部</a>
 </div>

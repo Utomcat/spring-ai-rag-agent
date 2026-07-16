@@ -79,8 +79,12 @@ graph TB
     %% ══════════════════════════════════════
     subgraph AI[AI 能力层]
         ChatClient[ChatClient]
-        ReactAgent[ReactAgent<br/>Spring AI Alibaba ReAct]
-        ToolFunctions[@Tool 注解工具<br/>知识检索 / 文档查询]
+        ReactAgent[ChatClient<br/>Spring AI 原生 Function Calling]
+        KnowledgeTool[KnowledgeRetrievalToolFunction<br/>知识库语义检索]
+        DocumentTool[DocumentToolFunction<br/>文档文件列表查询]
+        WeatherTool[WeatherForLocationToolFunction<br/>天气查询]
+        SessionHistoryTool[SessionHistoryToolFunction<br/>会话历史查询]
+        SkillsTool[SkillsTool<br/>SKILL.md 技能加载]
         ChatMemory[ChatMemory<br/>MessageWindowChatMemory]
         CustomAdvisors[自定义 Advisors<br/>日志记录 / 引用提取]
         VectorStoreAdvisor[VectorStoreAdvisor]
@@ -95,6 +99,7 @@ graph TB
     %% ══════════════════════════════════════
     subgraph Data[数据存储层]
         McpServer[MCP Server<br/>外部工具服务]
+        JavaMcpServer[Java MCP Server<br/>文件操作工具服务<br/>端口 8085]
         Ollama[Ollama<br/>Embedding 服务]
         OpenAI[OpenAI 兼容 API<br/>LLM 服务]
         Redis[(Redis<br/>向量数据库 + 缓存)]
@@ -158,7 +163,11 @@ graph TB
 
     %% ────────── AI 内部调用 ──────────
     ChatClient --> ReactAgent
-    ReactAgent --> ToolFunctions
+    ReactAgent --> KnowledgeTool
+    ReactAgent --> DocumentTool
+    ReactAgent --> WeatherTool
+    ReactAgent --> SessionHistoryTool
+    ReactAgent --> SkillsTool
     ChatClient --> ChatMemory
     ChatClient --> CustomAdvisors
     ChatClient --> VectorStoreAdvisor
@@ -166,6 +175,7 @@ graph TB
 
     %% ────────── AI → 数据存储层 ──────────
     McpClient --> McpServer
+    McpClient --> JavaMcpServer
     EmbeddingModel --> Ollama
     ChatClient --> OpenAI
     VectorStoreAdvisor --> Redis
@@ -295,11 +305,17 @@ flowchart TD
     ChatClientCall --> ToolDetect{LLM 识别需要工具调用?}
     ToolDetect -->|需要知识库检索| CallRetrieval[调用 retrieveKnowledge 工具<br/>向量相似度检索]
     ToolDetect -->|需要文件列表| CallDocList[调用 getAllDocumentsFileName 工具<br/>查询文件列表]
+    ToolDetect -->|需要天气查询| CallWeather[调用 getWeatherForLocation 工具<br/>天气查询]
+    ToolDetect -->|需要会话历史| CallSessionHistory[调用 getSessionHistoryInfo 工具<br/>会话历史查询]
+    ToolDetect -->|触发技能| CallSkills[调用 SkillsTool<br/>SKILL.md 技能加载]
     ToolDetect -->|需要网络搜索| CallMcp[调用 MCP Server 工具<br/>网络搜索等]
     ToolDetect -->|直接回答| DirectAnswer[直接生成回答]
     CallRetrieval --> ExtractRefs[ReferenceExtractAdvisor 提取引用文档]
     ExtractRefs --> BuildPrompt[构建 Prompt<br/>问题 + 检索结果 + 引用]
     CallDocList --> BuildPrompt
+    CallWeather --> BuildPrompt
+    CallSessionHistory --> BuildPrompt
+    CallSkills --> BuildPrompt
     CallMcp --> BuildPrompt
     DirectAnswer --> BuildPrompt
     BuildPrompt --> CallLLM[调用 OpenAI 兼容 API LLM 生成回答<br/>ChatClient]
@@ -321,15 +337,27 @@ flowchart TD
     MatchTool -->|否| DirectAnswer[直接生成回答]
     SelectTool -->|文件列表| CallDocFunc[调用 DocumentToolFunction<br/>@Tool 注解工具]
     SelectTool -->|知识检索| CallRetrievalFunc[调用 KnowledgeRetrievalToolFunction<br/>@Tool 注解工具]
+    SelectTool -->|天气查询| CallWeatherFunc[调用 WeatherForLocationToolFunction<br/>@Tool 注解工具]
+    SelectTool -->|会话历史| CallSessionFunc[调用 SessionHistoryToolFunction<br/>@Tool 注解工具]
+    SelectTool -->|技能加载| CallSkillsTool[调用 SkillsTool<br/>SKILL.md 技能]
     SelectTool -->|网络搜索| CallMcpServer[调用 MCP Server]
     CallDocFunc --> QueryDB[DocumentService 查询数据库]
     QueryDB --> ReturnList[返回文件名列表]
     CallRetrievalFunc --> VectorSearch[Redis Vector Store 语义检索]
     VectorSearch --> ReturnDocs[返回结构化文档片段]
-    CallMcpServer --> ExternalSearch[外部搜索引擎]
+    CallWeatherFunc --> WeatherAPI[聚合数据天气 API]
+    WeatherAPI --> ReturnWeather[返回天气信息]
+    CallSessionFunc --> QuerySession[ChatMessageService 查询会话历史]
+    QuerySession --> ReturnHistory[返回会话历史记录]
+    CallSkillsTool --> LoadSkill[加载 SKILL.md 技能<br/>按技能指引执行]
+    LoadSkill --> ReturnSkillResult[返回技能执行结果]
+    CallMcpServer --> ExternalSearch[外部 MCP Server 工具]
     ExternalSearch --> ReturnResults[返回搜索结果]
     ReturnList --> LLMFormat[LLM 格式化结果为自然语言]
     ReturnDocs --> LLMFormat
+    ReturnWeather --> LLMFormat
+    ReturnHistory --> LLMFormat
+    ReturnSkillResult --> LLMFormat
     ReturnResults --> LLMFormat
     DirectAnswer --> LLMFormat
     LLMFormat --> Response[返回用户]
@@ -360,6 +388,6 @@ flowchart TD
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#架构设计">⬆️ 返回顶部</a>
 </div>

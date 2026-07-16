@@ -20,10 +20,10 @@
 | spring-ai-rag-starter-international     | 国际化               | 多语言消息工具                              |
 | spring-ai-rag-starter-llm               | LLM 模型配置          | OpenAI 兼容 API + Ollama Embedding 配置  |
 | spring-ai-rag-starter-log               | 日志（预留）            | 日志配置（预留，暂无实现）                        |
-| spring-ai-rag-starter-mcp               | MCP 客户端（预留）       | MCP 协议客户端配置（预留，暂无实现）                 |
+| spring-ai-rag-starter-mcp               | MCP 客户端配置           | MCP 协议客户端配置（WebFlux）                         |
 | spring-ai-rag-starter-redis             | Redis 配置          | Redis 连接配置                           |
 | spring-ai-rag-starter-security          | 安全认证              | Spring Security + JWT 认证             |
-| spring-ai-rag-starter-skill             | Skills 执行引擎（预留）   | 技能注册、批量执行、链式执行（预留，暂无实现）              |
+| spring-ai-rag-starter-skill             | Skills 技能配置        | 基于 spring-ai-agent-utils 的技能注册与 SKILL.md 管理  |
 | spring-ai-rag-starter-task              | 任务调度              | 延迟任务、异步任务                            |
 | spring-ai-rag-starter-tool              | AI 工具             | Function Calling 工具实现                |
 | spring-ai-rag-starter-vector-store      | 向量存储              | Redis Vector Store 配置                |
@@ -286,6 +286,50 @@ Web 配置模块，提供 Web 层通用配置。
 
 ---
 
+### spring-ai-rag-starter-mcp
+
+MCP 客户端配置模块，提供 MCP 协议客户端连接能力。
+
+**依赖**：
+
+| 依赖                                     | 说明                          |
+|----------------------------------------|-----------------------------|
+| `spring-ai-starter-mcp-client-webflux` | Spring AI MCP Client（WebFlux） |
+| `spring-ai-rag-starter-base`           | 基础类                        |
+
+**特性**：
+- ✅ 基于 WebFlux 的 MCP Client 配置
+- ✅ 支持 `streamable-http` 传输协议
+- ✅ 自动连接外部 MCP Server（如 Python MCP Server、Java MCP Server）
+- ✅ 工具自动发现与注册
+
+---
+
+### spring-ai-rag-starter-skill
+
+Skills 技能配置模块，基于 `spring-ai-agent-utils` 实现技能注册与 SKILL.md 管理。
+
+**依赖**：
+
+| 依赖                             | 说明                           |
+|--------------------------------|------------------------------|
+| `spring-ai-agent-utils`        | Skills 技能框架（SKILL.md 解析与执行） |
+| `spring-ai-rag-starter-base`   | 基础类                          |
+| `spring-ai-rag-starter-llm`    | LLM 模型配置                     |
+
+**已包含技能**：
+
+| 技能                             | 说明                                      |
+|--------------------------------|-----------------------------------------|
+| `intelligent-customer-service` | 智能客服技能，覆盖产品咨询、技术问题、账户相关、售后、投诉等场景 |
+
+**特性**：
+- ✅ 基于 SKILL.md 的技能定义与加载
+- ✅ classpath 资源扫描与自动注册
+- ✅ 与 ChatClient 集成，支持技能驱动的对话
+
+---
+
 ## 🔧 使用方式
 
 ### 📦 Maven 引入
@@ -337,6 +381,12 @@ spring-ai-rag-starter-base（基础类）
     ├── spring-ai-rag-starter-agent（Agent 编排）
     │   └── llm, tool, chat-memory
     │
+    ├── spring-ai-rag-starter-skill（Skills 技能）
+    │   └── base, llm
+    │
+    ├── spring-ai-rag-starter-mcp（MCP 客户端）
+    │   └── base
+    │
     └── spring-ai-rag-starter-tool（AI 工具）
         └── vector-store, datasource
 ```
@@ -344,6 +394,6 @@ spring-ai-rag-starter-base（基础类）
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#spring-ai-rag-starter-模块">⬆️ 返回顶部</a>
 </div>

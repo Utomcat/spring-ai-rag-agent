@@ -274,6 +274,6 @@ Get-Content -Path logs\application.log -Wait
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-06</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#快速开始">⬆️ 返回顶部</a>
 </div>

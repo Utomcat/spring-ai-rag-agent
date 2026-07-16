@@ -814,6 +814,6 @@ WEBPAGE_RATE_LIMIT_PER_URL=10      # 提高到10次/分钟
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#python-mcp-server-完整技术文档">⬆️ 返回顶部</a>
 </div>

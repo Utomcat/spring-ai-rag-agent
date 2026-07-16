@@ -43,33 +43,57 @@ mcp:
 
 ---
 
-### 2. Agent Framework — 🔲 预留模块
+### 2. Agent Framework — ✅ 已实现
 
-项目已引入 **Spring AI Alibaba Agent Framework** 依赖（`spring-ai-alibaba-agent-framework`），但尚未在代码中使用。
+项目已基于 **Spring AI 原生 ChatClient + Function Calling** 实现 Agent 自主编排与工具调用。
 
-#### 当前状态
+#### 当前架构
 
-- Maven 依赖已配置（`spring-ai-alibaba-agent-framework`、`spring-ai-alibaba-graph-core`）
-- `spring-ai-rag-starter-agent` 模块目前仅包含自定义 Advisor（日志记录、引用提取），不包含 Agent 编排逻辑
-- 当前的工具调用通过 Spring AI 原生的 Function Calling 机制实现
+- **ChatClient 集成**：通过 Spring AI 原生 ChatClient 实现自主意图识别和工具调用
+- **Advisor 链**：自定义 Advisor 实现日志记录和引用文档提取
+- **工具调用**：支持 @Tool 注解的 Function Calling 和 MCP 工具自动发现与调用
 
-#### 后续规划
+#### 已实现功能
 
-- 集成 Spring AI Alibaba Agent Framework，实现更复杂的 Agent 工作流
-- 支持多步骤推理、自主工具链调用
-- 支持 Agent 间的协作与编排
+- ✅ Agent 自主意图识别
+- ✅ 多工具并行调用（知识库检索、文件查询、MCP 工具）
+- ✅ 聊天记忆支持（MessageWindowChatMemory）
+- ✅ 引用文档自动提取（ReferenceExtractAdvisor）
+- ✅ 调用日志记录（CustomSimpleLoggerAdvisor）
 
 ---
 
-### 3. Skills 执行引擎 — 🔲 预留模块
+### 3. Skills 执行引擎 — ✅ 已实现
 
-`spring-ai-rag-starter-skill` 模块已创建 Maven 目录结构，但暂未实现具体代码。
+`spring-ai-rag-starter-skill` 模块已实现，基于 `spring-ai-agent-utils` 实现技能注册与 SKILL.md 管理。
+
+#### 当前架构
+
+- **技能框架**：基于 `spring-ai-agent-utils` 库实现
+- **技能定义**：使用 SKILL.md 文件定义技能（包含提示词、工作流程、工具调用指引等）
+- **技能加载**：从 classpath 资源中自动扫描和加载技能
+
+#### 已包含技能
+
+| 技能                             | 说明                                      |
+|--------------------------------|-----------------------------------------|
+| `intelligent-customer-service` | 智能客服技能，覆盖产品咨询、技术问题、账户相关、售后、投诉等场景 |
+
+#### SKILL.md 结构
+
+技能通过 SKILL.md 文件定义，包含：
+- **Front Matter**：技能名称、描述、触发条件
+- **核心原则**：技能行为准则
+- **工作流程**：分步骤的处理逻辑（意图识别、知识检索、回答生成）
+- **可用工具**：技能可调用的工具列表
+- **回答模板**：不同场景的回复格式
+- **边界约束**：技能的限制和规则
 
 #### 后续规划
 
-- 实现技能注册与自动发现机制
-- 支持技能的同步/异步执行、批量执行、链式执行
-- 提供技能市场/仓库的扩展能力
+- 添加更多业务场景技能（如数据分析助手、代码审查等）
+- 支持技能间的协作与编排
+- 支持运行时动态加载技能
 
 ---
 
@@ -121,25 +145,27 @@ mcp:
 1. **MCP Server 需先启动**：在使用 MCP 工具前，需要先启动外部 MCP Server（如 Python MCP Server）
 2. **网络连通性**：确保 Java 应用能够访问 MCP Server 的 URL
 3. **工具发现**：MCP Server 提供的工具会被 Spring AI 自动发现并注册为可用的 Function Callback
-4. **预留模块**：Agent Framework 和 Skills 模块为预留模块，当前不影响系统正常运行
+4. **Agent 与 Skills**：Agent Framework 基于 Spring AI 原生实现，Skills 基于 `spring-ai-agent-utils` 实现，均不影响系统核心功能
 
 ---
 
 ## 🔮 后续演进路线
 
 ### 第二阶段
-1. 集成 Spring AI Alibaba Agent Framework，实现 Agent 自主编排
-2. 完善 MCP 管理层，支持多 MCP Server 注册、健康检查、故障转移
-3. 添加更多 Python MCP Server 工具（图表生成、报告生成等）
+1. 完善 MCP 管理层，支持多 MCP Server 注册、健康检查、故障转移
+2. 添加更多 Python MCP Server 工具（图表生成、报告生成等）
+3. 完善 Java MCP Server（java-file-mcp-server）的工具能力
+4. 添加更多业务场景技能（数据分析、代码审查等）
 
 ### 第三阶段
-1. 实现 Skills 执行引擎，支持技能注册和编排
+1. 实现技能间的协作与编排
 2. 实现完整的 Agent 工作流引擎
 3. 支持分布式 MCP Server 集群
+4. 支持运行时动态加载技能
 
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#mcp--agent--skills">⬆️ 返回顶部</a>
 </div>

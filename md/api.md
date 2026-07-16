@@ -587,6 +587,6 @@ curl -X DELETE http://localhost:8083/api/chat/session/1 \
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-14</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
   <a href="#api-接口">⬆️ 返回顶部</a>
 </div>
