@@ -11,6 +11,7 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,6 +42,7 @@ public class AgentConfiguration {
      * @param mcpToolCallbackProvider        MCP Server 回调提供者
      * @param knowledgeRetrievalToolFunction 知识库检索工具函数
      * @param weatherForLocationToolFunction 天气查询工具函数
+     * @param skillTool                      SkillsTool 工具回调 - 用于加载 SKILL.md 技能
      * @return ChatClient 对象
      */
     @Bean
@@ -53,11 +55,12 @@ public class AgentConfiguration {
             @Lazy CustomSimpleLoggerAdvisor customSimpleLoggerAdvisor,
             @Lazy SyncMcpToolCallbackProvider mcpToolCallbackProvider,
             @Lazy KnowledgeRetrievalToolFunction knowledgeRetrievalToolFunction,
-            @Lazy WeatherForLocationToolFunction weatherForLocationToolFunction
+            @Lazy WeatherForLocationToolFunction weatherForLocationToolFunction,
+            @Lazy ToolCallback skillTool
     ) {
         log.debug("================================= 创建 ChatClient 对象 start =================================");
         log.debug("正在创建 ChatClient, 当前使用 OpenAI 方式创建 ChatClient 对象 ...");
-        log.debug("当前 ChatClient 集成了 Agent 能力：知识库检索工具、引用提取 Advisor 、天气查询工具 ...");
+        log.debug("当前 ChatClient 集成了 Agent 能力：知识库检索工具、引用提取 Advisor 、天气查询工具、SkillsTool 技能 ...");
         log.debug("知识库文档工具、MCP Server 工具 这两个工具在实际使用时再主动添加, 当前暂不配置为默认 Tools 和 Advisor ...");
         log.debug("注意, 在此处设置了之后, 全局使用的 ChatClient 均会带有设置的 Advisor、工具, 为避免过度配置, 请按需配置! ");
         log.debug("================================ 创建 ChatClient 对象 end   =================================");
@@ -84,7 +87,9 @@ public class AgentConfiguration {
                         // MCP Server 工具
                         mcpToolCallbackProvider,
                         // 天气查询工具 - 供 Agent 自主调用进行天气查询
-                        weatherForLocationToolFunction
+                        weatherForLocationToolFunction,
+                        // SkillsTool - 供 Agent 自主发现和加载 SKILL.md 技能
+                        skillTool
                 )
                 // 构建 ChatClient 对象
                 .build();
