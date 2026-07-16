@@ -15,7 +15,7 @@ import com.ranyk.spring.ai.rag.knowledge.database.domain.user.dto.AppUserDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.entity.AppUser;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.user.mapstruct.AppUserMapper;
 import com.ranyk.spring.ai.rag.knowledge.database.repository.user.AppUserRepository;
-import com.ranyk.spring.ai.rag.knowledge.database.service.file.FileStorageService;
+import com.ranyk.spring.ai.rag.web.service.file.FileStorageService;
 import com.ranyk.spring.ai.rag.security.config.properties.JwtProperties;
 import com.ranyk.spring.ai.rag.security.utils.JwtUtils;
 import com.ranyk.spring.ai.rag.web.config.properties.FileProperties;
