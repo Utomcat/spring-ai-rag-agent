@@ -54,11 +54,11 @@ public class SkillConfiguration {
         try {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
             Resource[] resources = resolver.getResources("classpath:skills/**");
-            log.info("===== classpath:skills 目录下的文件列表 =====");
+            log.debug("===== classpath:skills 目录下的文件列表 =====");
             for (Resource resource : resources) {
                 log.info("  -> {} (exists => {}, isFile => {})", resource.getURL(), resource.exists(), resource.isFile());
             }
-            log.info("===== 共发现 {} 个资源 =====", resources.length);
+            log.debug("===== 共发现 {} 个资源 =====", resources.length);
         } catch (Exception e) {
             log.warn("扫描 classpath:skills 目录失败: {}", e.getMessage());
         }
