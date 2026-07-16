@@ -2,6 +2,7 @@ package com.ranyk.java.file.mcp.server.ai.mcp;
 
 import cn.hutool.core.util.StrUtil;
 import com.ranyk.spring.ai.rag.base.config.properties.SystemProperties;
+import com.ranyk.spring.ai.rag.web.service.file.FileStorageService;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.mcp.annotation.McpTool;
@@ -30,18 +31,18 @@ import java.util.Locale;
 @SuppressWarnings("unused")
 public class FileOperateMcpTool {
     /**
-     * 系统属性对象
+     * 文件存储服务对象
      */
-    private final SystemProperties systemProperties;
+    private final FileStorageService fileStorageService;
 
     /**
      * 构造方法
      *
-     * @param systemProperties 系统属性对象
+     * @param fileStorageService 文件存储服务对象
      */
     @Autowired
-    public FileOperateMcpTool(SystemProperties systemProperties) {
-        this.systemProperties = systemProperties;
+    public FileOperateMcpTool(FileStorageService fileStorageService) {
+        this.fileStorageService = fileStorageService;
     }
 
     /**
@@ -63,42 +64,6 @@ public class FileOperateMcpTool {
                                    @Nullable @McpToolParam(description = "写入的文件后缀, 字符串类型, 如 .md、.txt、.csv、.json") String suffix,
                                    @McpToolParam(description = "需要向文件中写入的内容, 为避免文件写入内容过多, 导致 String 类型无法存入, 故使用 List 将内容进行拆分") List<String> contexts) {
         log.info("调用文件操作 MCP 服务的 writeFileContext 方法, 入参: dirPath => {}, fileName => {}, suffix => {}, context 一共有 => {} 块", dirPath, fileName, suffix, contexts.size());
-        // 声明 文件保存文件夹 Path 对象
-        Path dir;
-        // 判断文件保存文件夹路径是否为空, 为空则使用默认的文件保存文件夹路径
-        if (StrUtil.isBlank(dirPath)) {
-            log.info("需要写入的文件路径为空, 需要使用默认的文件路径 {}", systemProperties.getAgentFileOperateDefaultDir());
-            dir = Path.of(systemProperties.getAgentFileOperateDefaultDir(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT)));
-        } else {
-            // 去除文件保存文件夹路径参数中的反斜杠和斜杠
-            String originDir = dirPath.replace("\\", "").replace("/", "");
-            // 去除默认文件保存文件夹路径中的反斜杠和斜杠
-            String defaultDir = systemProperties.getAgentFileOperateDefaultDir().replace("\\", "").replace("/", "");
-            log.info("需要写入的文件路径为 {}, 默认文件路径为 {}", originDir, defaultDir);
-            dir = StrUtil.equalsIgnoreCase(originDir, defaultDir) ? Path.of(systemProperties.getAgentFileOperateDefaultDir(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT))) : Path.of(dirPath);
-        }
-        // 判断文件后缀是否传入, 未传入则使用默认的文件后缀 .md
-        String actualSuffix = StrUtil.isBlank(suffix) ? ".md" : suffix;
-        // 判断文件名是否传入, 未传入则使用默认的文件名, 格式为 20260715123456
-        if (StrUtil.isBlank(fileName)) {
-            fileName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ROOT));
-        }
-        // 构建文件名, 并添加文件后缀
-        fileName = fileName + actualSuffix;
-        // 构建文件的 Path 对象
-        Path filePath = Path.of(dir.toString(), fileName);
-        try {
-            // 创建文件保存文件夹
-            Files.createDirectories(dir);
-            // 构造文件内容
-            String content = String.join("", contexts);
-            // 将文件内容写入到文件中
-            Files.writeString(filePath, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            log.info("文件 {} 写入成功, 内容长度: {}", filePath, content.length());
-            return "文件写入成功, 保存路径: " + filePath;
-        } catch (Exception e) {
-            log.error("文件 {} 写入失败, 异常信息为: {}", filePath, e.getMessage());
-            return "文件写入失败, 异常信息为: " + e.getMessage();
-        }
+        return fileStorageService.writeFileContext(dirPath, fileName, suffix, contexts);
     }
 }
