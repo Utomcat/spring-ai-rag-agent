@@ -1,0 +1,7 @@
+weather:
+  api:
+    factory-owners:
+      - enable: true
+        name: "juhe"
+        api-key: "59647c777cf80d6517f4b2620b7223a0"
+        base-url: "https://apis.juhe.cn/simpleWeather/query"
