@@ -56,7 +56,6 @@ build/
 hs_err_pid*
 replay_pid*
 /upload/
-/spring-ai-rag-knowledge-database/upload/
 
 /*/.venv
 /python-mcp-server/uv.lock
