@@ -7,7 +7,6 @@ import com.ranyk.spring.ai.rag.tool.config.properties.WeatherApiProperties;
 import com.ranyk.spring.ai.rag.tool.domain.bean.WeatherApiDefinitionBean;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -100,9 +99,7 @@ public class ToolConfiguration {
                         .toList())
                 .build();
         log.info("当前配置的天气查询 API 接口有: ");
-        weatherApiProperties.getFactoryOwners().forEach(item -> {
-            log.info("配置天气 API 接口厂商: {} ,是否启用: {} , 配置的访问 URL => {} , API KEY => {} ", item.getName(), item.getEnable(), item.getBaseUrl(), item.getApiKey());
-        });
+        weatherApiProperties.getFactoryOwners().forEach(item -> log.info("配置天气 API 接口厂商: {} ,是否启用: {} , 配置的访问 URL => {} , API KEY => {} ", item.getName(), item.getEnable(), item.getBaseUrl(), item.getApiKey()));
         log.debug("================================= 创建天气 API 接口调用基础信息 Bean end   ============");
         return weatherApiDefinitionBean;
     }
