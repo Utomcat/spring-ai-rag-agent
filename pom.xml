@@ -311,6 +311,14 @@
                 <scope>compile</scope>
             </dependency>
 
+            <!-- Source: https://mvnrepository.com/artifact/org.springaicommunity/spring-ai-agent-utils -->
+            <dependency>
+                <groupId>org.springaicommunity</groupId>
+                <artifactId>spring-ai-agent-utils</artifactId>
+                <version>0.10.0</version>
+                <scope>compile</scope>
+            </dependency>
+
             <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-webmvc -->
             <dependency>
                 <groupId>org.springframework.boot</groupId>

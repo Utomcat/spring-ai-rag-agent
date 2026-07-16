@@ -21,12 +21,6 @@
 	</properties>
 
 	<dependencies>
-		<!-- spring-ai-starter-alibaba-agent-framework -->
-		<dependency>
-			<groupId>com.alibaba.cloud.ai</groupId>
-			<artifactId>spring-ai-alibaba-agent-framework</artifactId>
-		</dependency>
-
 		<!-- spring-ai-autoconfigure-model-chat-client -->
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
