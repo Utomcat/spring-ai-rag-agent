@@ -1,7 +1,8 @@
-package com.ranyk.spring.ai.rag.knowledge.database.service.file;
+package com.ranyk.spring.ai.rag.web.service.file;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import com.ranyk.spring.ai.rag.base.domain.dto.StoredFile;
 import com.ranyk.spring.ai.rag.common.exception.FileException;
 import com.ranyk.spring.ai.rag.web.config.properties.FileProperties;
@@ -13,7 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -118,5 +121,54 @@ public class FileStorageService {
      */
     public Boolean batchDelete(List<String> paths) {
         return paths.stream().allMatch(this::delete);
+    }
+
+    /**
+     * 写入文件内容 - 将文件内容写入到文件中
+     *
+     * @param dirPath  文件保存文件夹路径
+     * @param fileName 文件名
+     * @param suffix   文件后缀
+     * @param contexts 文件内容列表
+     * @return 文件写入结果, 如果写入成功则返回文件路径, 否则返回异常信息字符串
+     */
+    public String writeFileContext(String dirPath, String fileName, String suffix, List<String> contexts) {
+        // 声明 文件保存文件夹 Path 对象
+        Path dir;
+        // 判断文件保存文件夹路径是否为空, 为空则使用默认的文件保存文件夹路径
+        if (StrUtil.isBlank(dirPath)) {
+            log.info("需要写入的文件路径为空, 需要使用默认的文件路径 {}", fileProperties.getUpload().getRoot());
+            dir = Path.of(fileProperties.getUpload().getRoot(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT)));
+        } else {
+            // 去除文件保存文件夹路径参数中的反斜杠和斜杠
+            String originDir = dirPath.replace("\\", "").replace("/", "");
+            // 去除默认文件保存文件夹路径中的反斜杠和斜杠
+            String defaultDir = fileProperties.getUpload().getRoot().replace("\\", "").replace("/", "");
+            log.info("需要写入的文件路径为 {}, 默认文件路径为 {}", originDir, defaultDir);
+            dir = StrUtil.equalsIgnoreCase(originDir, defaultDir) ? Path.of(fileProperties.getUpload().getRoot(), LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ROOT))) : Path.of(dirPath);
+        }
+        // 判断文件后缀是否传入, 未传入则使用默认的文件后缀 .md
+        String actualSuffix = StrUtil.isBlank(suffix) ? ".md" : suffix;
+        // 判断文件名是否传入, 未传入则使用默认的文件名, 格式为 20260715123456
+        if (StrUtil.isBlank(fileName)) {
+            fileName = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss", Locale.ROOT));
+        }
+        // 构建文件名, 并添加文件后缀
+        fileName = fileName + actualSuffix;
+        // 构建文件的 Path 对象
+        Path filePath = Path.of(dir.toString(), fileName);
+        try {
+            // 创建文件保存文件夹
+            Files.createDirectories(dir);
+            // 构造文件内容
+            String content = String.join("", contexts);
+            // 将文件内容写入到文件中
+            Files.writeString(filePath, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            log.info("文件 {} 写入成功, 内容长度: {}", filePath, content.length());
+            return "文件写入成功, 保存路径: " + filePath;
+        } catch (Exception e) {
+            log.error("文件 {} 写入失败, 异常信息为: {}", filePath, e.getMessage(), e);
+            return "文件写入失败, 异常信息为: " + e.getMessage();
+        }
     }
 }
