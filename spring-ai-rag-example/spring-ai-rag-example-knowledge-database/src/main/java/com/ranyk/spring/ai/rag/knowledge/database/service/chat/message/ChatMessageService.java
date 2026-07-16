@@ -201,6 +201,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
             references = referenceExtractAdvisor.getExtractedReferences();
         } catch (Exception e) {
             log.error("Agent 调用异常 sessionId => {}, userId => {}: {}", sessionId, userId, e.getMessage(), e);
+            // TODO 此处需要增加异常时, 会话消息记录, 否则会导致会话消息丢失
             return ChatMessageDTO.builder()
                     .sessionId(sessionId)
                     .answer(AGENT_ERROR_MESSAGE)
