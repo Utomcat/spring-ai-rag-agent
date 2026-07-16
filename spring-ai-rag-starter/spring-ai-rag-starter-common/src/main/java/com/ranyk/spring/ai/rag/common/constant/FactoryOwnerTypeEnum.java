@@ -85,6 +85,6 @@ public enum FactoryOwnerTypeEnum {
         /**
          * 未知
          */
-        UNKNOWN;
+        UNKNOWN
     }
 }
