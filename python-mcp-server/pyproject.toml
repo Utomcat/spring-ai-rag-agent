@@ -22,7 +22,7 @@ dependencies = [
     "tabulate>=0.9.0",
     # 环境配置
     "python-dotenv>=1.0.0",
-    "typer==0.26.8",
+    "typer==0.27.0",
     "pandas-stubs>=2.3.3.260113",
     # Redis缓存
     "redis>=5.0.0",
