@@ -7,7 +7,7 @@ spring:
       embedding: ollama
       # 聊天模型调用方式配置
       chat: openai
-    # OpenAI 配置
+    # OpenAI 配置 (当前配置用于 Spring AI 自动配置使用, 用于配置 OpenAiModel) - 该配置仅用于分析当前应该使用那个 OpenAI 协议的模型, 具体的 Agent 操作使用不使用当前的模型
     openai:
       # OpenAI API 密钥配置 - 小米 OpenAI API KEY 本地环境变量配置名 XIAOMI_MIMO_OPENAI_API_KEY; 百炼 OpenAI API KEY 本地环境变量配置名: DASHSCOPE_OPENAI_API_KEY;
       api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
@@ -25,7 +25,7 @@ spring:
       embedding:
         # 是否启用 OpenAI 内嵌模型
         enabled: false
-    # Ollama 配置
+    # Ollama 配置 (当前配置用于 Spring AI 自动配置使用, 用于配置 OllamaModel) - 该配置用于实际的业务逻辑中用于嵌入向量处理模型
     ollama:
       # Ollama 基础 URL 配置${OLLAMA_BASE_URL:"http://localhost:11434"}
       base-url: "http://localhost:11434"

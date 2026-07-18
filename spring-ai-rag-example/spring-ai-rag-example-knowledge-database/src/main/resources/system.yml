@@ -28,5 +28,3 @@ system:
     - 当用户未对文件后缀指定时, 请将文件按 Markdown 语法进行保存, 切传入的文件名后缀参数为 .md
   # 系统 Agent 的名字
   agent-name: knowledge-database-rag-agent
-  # 系统 Agent 文件操作默认保存路径, 末尾带 /
-  agent-file-operate-default-dir: E:/FTP/upload/
