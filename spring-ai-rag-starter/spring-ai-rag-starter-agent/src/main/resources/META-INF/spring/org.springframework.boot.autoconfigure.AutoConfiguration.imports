@@ -1,1 +1,2 @@
 com.ranyk.spring.ai.rag.agent.config.AgentConfiguration
+com.ranyk.spring.ai.rag.agent.config.AdvisorConfiguration
