@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.ranyk.spring.ai.rag.common.constant.FactoryOwnerTypeEnum;
 import com.ranyk.spring.ai.rag.tool.domain.bean.WeatherApiDefinitionBean;
+import com.ranyk.spring.ai.rag.tool.facade.BaseTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -26,7 +27,7 @@ import java.util.HashMap;
 @Slf4j
 @Component
 @SuppressWarnings("unused")
-public class WeatherForLocationToolFunction {
+public class WeatherForLocationToolFunction implements BaseTool {
 
     /**
      * JSON 工具对象
@@ -48,6 +49,26 @@ public class WeatherForLocationToolFunction {
                                           WeatherApiDefinitionBean weatherApiDefinitionBean) {
         this.objectMapper = objectMapper;
         this.weatherApiDefinitionBean = weatherApiDefinitionBean;
+    }
+
+    /**
+     * 获取工具名称
+     *
+     * @return 工具名称 - 返回对应的实现类 Bean 名称
+     */
+    @Override
+    public String getName() {
+        return "weatherForLocationToolFunction";
+    }
+
+    /**
+     * 获取工具描述
+     *
+     * @return 工具描述 - 返回对应的实现类的描述信息
+     */
+    @Override
+    public String getDescription() {
+        return "- 天气查询工具, 按需使用, 用于查询指定城市的天气信息";
     }
 
     /**

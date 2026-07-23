@@ -1,5 +1,6 @@
 package com.ranyk.spring.ai.rag.tool.ai.tools;
 
+import com.ranyk.spring.ai.rag.tool.facade.BaseTool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.tool.annotation.Tool;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @SuppressWarnings("unused")
-public class KnowledgeRetrievalToolFunction {
+public class KnowledgeRetrievalToolFunction implements BaseTool {
 
     /**
      * RAG 算法中向量检索的 top_k 参数
@@ -54,6 +55,26 @@ public class KnowledgeRetrievalToolFunction {
     public KnowledgeRetrievalToolFunction(VectorStore vectorStore, @Qualifier("objectMapper") ObjectMapper objectMapper) {
         this.vectorStore = vectorStore;
         this.objectMapper = objectMapper;
+    }
+
+    /**
+     * 获取工具名称
+     *
+     * @return 工具名称 - 返回对应的实现类 Bean 名称
+     */
+    @Override
+    public String getName() {
+        return "knowledgeRetrievalToolFunction";
+    }
+
+    /**
+     * 获取工具描述
+     *
+     * @return 工具描述 - 返回对应的实现类的描述信息
+     */
+    @Override
+    public String getDescription() {
+        return "- 知识库检索工具, 按需使用, 用于从知识库中语义检索与用户问题相关的文档片段";
     }
 
     /**
@@ -190,5 +211,4 @@ public class KnowledgeRetrievalToolFunction {
         // 存在多个类别 ID，则使用 IN 条件进行过滤
         return new FilterExpressionBuilder().in("categoryId", categoryIdsAsString.stream().toList()).build();
     }
-
 }

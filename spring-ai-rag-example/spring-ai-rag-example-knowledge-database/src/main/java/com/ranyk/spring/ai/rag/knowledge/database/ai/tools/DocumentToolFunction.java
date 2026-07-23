@@ -4,6 +4,8 @@ import cn.hutool.json.JSONUtil;
 import com.ranyk.spring.ai.rag.common.constant.FileTypeEnum;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.document.dto.DocumentDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.service.document.DocumentService;
+import com.ranyk.spring.ai.rag.tool.facade.BaseTool;
+import com.ranyk.spring.ai.rag.tool.registry.ToolRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -24,7 +26,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @SuppressWarnings("unused")
-public class DocumentToolFunction {
+public class DocumentToolFunction implements BaseTool {
 
     /**
      * 文档业务逻辑处理类对象
@@ -37,8 +39,29 @@ public class DocumentToolFunction {
      * @param documentService 文档业务逻辑处理类对象
      */
     @Autowired
-    public DocumentToolFunction(DocumentService documentService) {
+    public DocumentToolFunction(DocumentService documentService, ToolRegistry toolRegistry) {
         this.documentService = documentService;
+        toolRegistry.register(getName(), this);
+    }
+
+    /**
+     * 获取工具名称
+     *
+     * @return 工具名称 - 返回对应的实现类 Bean 名称
+     */
+    @Override
+    public String getName() {
+        return "documentToolFunction";
+    }
+
+    /**
+     * 获取工具描述
+     *
+     * @return 工具描述 - 返回对应的实现类的描述信息
+     */
+    @Override
+    public String getDescription() {
+        return "- 知识库文档列表查询工具, 按需使用, 用于查询知识库中已上传的文档文件名列表";
     }
 
     /**
