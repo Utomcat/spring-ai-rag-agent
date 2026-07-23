@@ -11,6 +11,7 @@ import lombok.Getter;
  * @date: 2026-07-15
  */
 @Getter
+@SuppressWarnings("unused")
 public enum JuHeWeatherEnum {
     /**
      * 晴
