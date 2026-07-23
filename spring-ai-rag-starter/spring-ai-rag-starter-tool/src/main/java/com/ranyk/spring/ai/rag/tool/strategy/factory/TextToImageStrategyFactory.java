@@ -43,7 +43,7 @@ public class TextToImageStrategyFactory {
     /**
      * 根据类型执行策略
      *
-     * @param type   策略类型, 参见 {@link AiFactoryOwnerTypeEnum}
+     * @param apiConfig   策略配置, 参见 {@link ImageGenerationProperties.ApiConfig}
      * @param prompt 提示信息, 用户传入的提示信息
      * @param size   图片大小, 图片大小
      * @return 执行结果, 正常的为图片 URL 下载地址, （24 小时有效）
