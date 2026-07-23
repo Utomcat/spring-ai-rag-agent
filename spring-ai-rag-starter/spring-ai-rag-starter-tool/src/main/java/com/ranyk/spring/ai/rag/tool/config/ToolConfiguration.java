@@ -5,6 +5,7 @@ import com.ranyk.spring.ai.rag.tool.ai.tools.KnowledgeRetrievalToolFunction;
 import com.ranyk.spring.ai.rag.tool.ai.tools.WeatherForLocationToolFunction;
 import com.ranyk.spring.ai.rag.tool.config.properties.WeatherApiProperties;
 import com.ranyk.spring.ai.rag.tool.domain.bean.WeatherApiDefinitionBean;
+import com.ranyk.spring.ai.rag.tool.registry.ToolRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -39,11 +40,14 @@ public class ToolConfiguration {
      */
     @Bean
     public KnowledgeRetrievalToolFunction knowledgeRetrievalToolFunction(RedisVectorStore redisVectorStore,
-                                                                         @Qualifier("objectMapper") ObjectMapper objectMapper) {
+                                                                         @Qualifier("objectMapper") ObjectMapper objectMapper,
+                                                                         ToolRegistry toolRegistry) {
         log.debug("================================= 创建知识检索工具函数 KnowledgeRetrievalToolFunction start ============");
         log.debug("创建知识检索工具函数 KnowledgeRetrievalToolFunction Bean 中 ... ");
+        KnowledgeRetrievalToolFunction tool = new KnowledgeRetrievalToolFunction(redisVectorStore, objectMapper);
+        toolRegistry.register(tool.getName(), tool);
         log.debug("================================= 创建知识检索工具函数 KnowledgeRetrievalToolFunction end   ============");
-        return new KnowledgeRetrievalToolFunction(redisVectorStore, objectMapper);
+        return tool;
     }
 
     /**
@@ -55,11 +59,22 @@ public class ToolConfiguration {
      */
     @Bean
     public WeatherForLocationToolFunction weatherForLocationToolFunction(@Qualifier("objectMapper") ObjectMapper objectMapper,
-                                                                         WeatherApiDefinitionBean weatherApiDefinitionBean) {
+                                                                         WeatherApiDefinitionBean weatherApiDefinitionBean,
+                                                                         ToolRegistry toolRegistry) {
         log.debug("================================= 创建天气查询工具函数 WeatherForLocationToolFunction start ============");
         log.debug("创建天气查询工具函数 WeatherForLocationToolFunction Bean 中 ... ");
+        WeatherForLocationToolFunction tool = new WeatherForLocationToolFunction(objectMapper, weatherApiDefinitionBean);
+        toolRegistry.register(tool.getName(), tool);
         log.debug("================================= 创建天气查询工具函数 WeatherForLocationToolFunction end   ============");
-        return new WeatherForLocationToolFunction(objectMapper, weatherApiDefinitionBean);
+        return tool;
+    }
+
+    @Bean
+    public ToolRegistry toolRegistry() {
+        log.debug("================================= 创建工具注册表 ToolRegistry start ============");
+        log.debug("创建 LLM 工具注册表 ToolRegistry Bean 中 ... ");
+        log.debug("================================= 创建工具注册表 ToolRegistry end   ============");
+        return new ToolRegistry();
     }
 
     /**
