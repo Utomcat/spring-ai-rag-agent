@@ -8,8 +8,8 @@
 
 ## 🧩 子模块
 
-| 子模块                                      | 说明          |
-|------------------------------------------|-------------|
+| 子模块                                   | 说明                   |
+|------------------------------------------|------------------------|
 | spring-ai-rag-example-knowledge-database | 知识库问答系统示例应用 |
 
 ---
@@ -23,7 +23,8 @@ spring-ai-rag-example-knowledge-database/
     │
     ├── ai/                          # AI 能力层
     │   └── tools/                   # Function Calling 工具
-    │       └── DocumentToolFunction.java        # 知识库文件列表查询工具
+    │       ├── DocumentToolFunction.java        # 知识库文件列表查询工具
+    │       └── SessionHistoryToolFunction.java  # 会话历史查询工具
     │
     ├── api/                         # REST API 接口层
     │   ├── auth/AuthApi.java                    # 认证接口
@@ -73,28 +74,30 @@ spring-ai-rag-example-knowledge-database/
 
 ### 基础功能
 
-| 功能      | 说明                                     |
-|---------|----------------------------------------|
-| 用户认证    | JWT Token 认证，支持登录、密码加密存储               |
-| 用户管理    | 用户 CRUD、头像上传、密码修改、个人资料更新               |
-| 知识库分类   | 分类的增删查，支持排序                            |
-| 文档管理    | 支持多文件上传、Tika 解析、Markdown 解析、文档向量化、向量存储 |
-| 聊天会话    | 支持多轮对话、会话列表、会话删除、上下文记忆                 |
-| 统计仪表盘   | 管理员概览统计数据                              |
-| 系统日志    | 操作日志记录                                 |
-| 国际化     | 支持中英文多语言                               |
-| RBAC 权限 | 基于角色的访问控制（ADMIN / USER）                |
+| 功能       | 说明                                                           |
+|------------|----------------------------------------------------------------|
+| 用户认证   | JWT Token 认证，支持登录、密码加密存储                         |
+| 用户管理   | 用户 CRUD、头像上传、密码修改、个人资料更新                    |
+| 知识库分类 | 分类的增删查，支持排序                                         |
+| 文档管理   | 支持多文件上传、Tika 解析、Markdown 解析、文档向量化、向量存储 |
+| 聊天会话   | 支持多轮对话、会话列表、会话删除、上下文记忆                   |
+| 统计仪表盘 | 管理员概览统计数据                                             |
+| 系统日志   | 操作日志记录                                                   |
+| 国际化     | 支持中英文多语言                                               |
+| RBAC 权限  | 基于角色的访问控制（ADMIN / USER）                             |
 
 ### AI 能力
 
-| 功能               | 说明                                     |
-|------------------|----------------------------------------|
-| 智能问答             | 基于 Agent 架构的智能对话，支持自主工具调用和知识库检索        |
-| 向量检索             | 基于 Redis Vector Store 实现相似度检索，提供引用文档展示 |
-| Function Calling | 支持 AI 工具调用，包括知识库文件列表查询、知识库语义检索等        |
-| MCP 客户端          | 支持 MCP 协议，可连接外部 MCP Server 扩展工具能力      |
-| Advisor 拦截       | 自定义 Advisor 实现日志记录和引用文档提取              |
-| Skills 技能          | 基于 SKILL.md 的技能驱动对话（如智能客服）              |
+| 功能             | 说明                                                             |
+|------------------|------------------------------------------------------------------|
+| 智能问答         | 基于 Agent 架构的智能对话，支持自主工具调用和知识库检索          |
+| 多模型路由       | ModelRouter 智能路由，按请求意图自动选择最优模型处理             |
+| 向量检索         | 基于 Redis Vector Store 实现相似度检索，提供引用文档展示         |
+| Function Calling | 支持 AI 工具调用，包括知识库检索、文件查询、天气查询、图像生成等 |
+| MCP 客户端       | 支持 MCP 协议，可连接外部 MCP Server 扩展工具能力                |
+| Advisor 拦截     | 自定义 Advisor 实现日志记录和引用文档提取                        |
+| Skills 技能      | 基于 SKILL.md 的技能驱动对话（如智能客服）                       |
+| 图像生成         | 基于 DashScope 原生接口的文本转图像能力                          |
 
 ---
 
@@ -102,24 +105,24 @@ spring-ai-rag-example-knowledge-database/
 
 示例项目通过引入 `spring-ai-rag-starter` 中的各模块来组装完整功能：
 
-| Starter 模块                              | 在示例项目中的用途                |
-|-----------------------------------------|--------------------------|
-| spring-ai-rag-starter-base              | 统一响应体、基础 DTO/VO          |
-| spring-ai-rag-starter-common            | 常量枚举、异常体系                |
-| spring-ai-rag-starter-datasource        | MyBatis Plus 数据源         |
-| spring-ai-rag-starter-security          | JWT 认证 + Spring Security |
-| spring-ai-rag-starter-web               | Web 配置、全局异常处理            |
-| spring-ai-rag-starter-llm               | LLM 模型配置                 |
-| spring-ai-rag-starter-redis             | Redis 连接配置               |
-| spring-ai-rag-starter-vector-store      | 向量存储                     |
-| spring-ai-rag-starter-agent             | Agent 编排与 Advisor        |
-| spring-ai-rag-starter-tool              | Function Calling 工具      |
-| spring-ai-rag-starter-chat-memory       | 聊天记忆                     |
-| spring-ai-rag-starter-document-splitter | 文档分割                     |
-| spring-ai-rag-starter-international     | 国际化                      |
-| spring-ai-rag-starter-task              | 异步任务                     |
-| spring-ai-rag-starter-mcp               | MCP 客户端                  |
-| spring-ai-rag-starter-skill             | Skills 技能配置（智能客服等）      |
+| Starter 模块                            | 在示例项目中的用途            |
+|-----------------------------------------|-------------------------------|
+| spring-ai-rag-starter-base              | 统一响应体、基础 DTO/VO       |
+| spring-ai-rag-starter-common            | 常量枚举、异常体系            |
+| spring-ai-rag-starter-datasource        | MyBatis Plus 数据源           |
+| spring-ai-rag-starter-security          | JWT 认证 + Spring Security    |
+| spring-ai-rag-starter-web               | Web 配置、全局异常处理        |
+| spring-ai-rag-starter-llm               | LLM 模型配置                  |
+| spring-ai-rag-starter-redis             | Redis 连接配置                |
+| spring-ai-rag-starter-vector-store      | 向量存储                      |
+| spring-ai-rag-starter-agent             | Agent 编排与 Advisor          |
+| spring-ai-rag-starter-tool              | Function Calling 工具         |
+| spring-ai-rag-starter-chat-memory       | 聊天记忆                      |
+| spring-ai-rag-starter-document-splitter | 文档分割                      |
+| spring-ai-rag-starter-international     | 国际化                        |
+| spring-ai-rag-starter-task              | 异步任务                      |
+| spring-ai-rag-starter-mcp               | MCP 客户端                    |
+| spring-ai-rag-starter-skill             | Skills 技能配置（智能客服等） |
 
 ---
 
@@ -128,12 +131,12 @@ spring-ai-rag-example-knowledge-database/
 示例项目的配置文件位于 `src/main/resources/` 下，采用多配置文件拆分模式：
 
 | 配置文件                  | 配置内容               |
-|-----------------------|--------------------|
+|-----------------------|--------------------||
 | `application.yml`     | 主配置（端口、应用名、引入其他配置） |
 | `rdb-datasource.yml`  | 关系型数据库数据源          |
 | `nrdb-datasource.yml` | Redis 数据源          |
 | `vdb-datasource.yml`  | 向量数据库配置            |
-| `llm-model.yml`       | LLM 模型配置           |
+| `llm-model.yml`       | LLM 模型配置（含多模型路由）   |
 | `mybatis-plus.yml`    | MyBatis Plus 配置    |
 | `jwt.yml`             | JWT 配置             |
 | `file.yml`            | 文件上传配置             |
@@ -144,6 +147,9 @@ spring-ai-rag-example-knowledge-database/
 | `system.yml`          | 系统配置               |
 | `mcp.yml`             | MCP 配置             |
 | `tomcat.yml`          | Tomcat 服务器配置       |
+| `weather-api.yml`     | 天气查询 API 配置       |
+| `skills.yml`          | Skills 技能描述配置     |
+| `image-generation-api.yml` | 图像生成 API 配置  |
 
 详细配置说明请参考 [配置文件说明](configuration.md)。
 
@@ -183,6 +189,6 @@ spring-ai-rag-example-knowledge-database/
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-23</span>
   <a href="#spring-ai-rag-example-示例项目">⬆️ 返回顶部</a>
 </div>

@@ -24,6 +24,9 @@ spring:
       - classpath:system.yml              # 系统配置
       - classpath:mcp.yml                 # MCP 配置
       - classpath:tomcat.yml              # Tomcat 服务器配置
+      - classpath:weather-api.yml         # 天气 API 配置
+      - classpath:skills.yml              # Skills 技能配置
+      - classpath:image-generation-api.yml # 图像生成 API 配置
 ```
 
 ## 📖 各配置文件详解
@@ -56,6 +59,9 @@ spring:
       - classpath:system.yml
       - classpath:mcp.yml
       - classpath:tomcat.yml
+      - classpath:weather-api.yml
+      - classpath:skills.yml
+      - classpath:image-generation-api.yml
 ```
 
 > 注意：服务端口号（`server.port: 8083`）配置在 `tomcat.yml` 中，不在本文件内。
@@ -164,7 +170,7 @@ vector-store:
 
 **位置**：`src/main/resources/llm-model.yml`
 
-**说明**：LLM 模型配置（OpenAI 兼容 API + Ollama Embedding），支持双模型架构
+**说明**：LLM 模型配置（OpenAI 兼容 API + Ollama Embedding），支持双模型架构和多模型智能路由
 
 **关键配置项**：
 
@@ -175,11 +181,11 @@ spring:
       chat: openai                                    # 聊天模型使用 OpenAI 兼容 API
       embedding: ollama                               # Embedding 模型使用 Ollama
     openai:
-      api-key: ${XIAOMI_MIMO_OPENAI_API_KEY:""}       # OpenAI API Key
-      base-url: "https://api.xiaomimimo.com/v1"       # API 基础 URL
+      api-key: ${DASHSCOPE_OPENAI_API_KEY:""}        # OpenAI API Key（百炼）
+      base-url: "https://ws-xxx.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"  # API 基础 URL
       chat:
         enabled: true                                 # 启用 OpenAI 聊天模型
-        model: "mimo-v2.5-pro-ultraspeed"             # 聊天模型名称
+        model: "qwen3-vl-235b-a22b-thinking"          # 路由模型名称
         timeout: 120s                                 # 请求超时
       embedding:
         enabled: false                                # 禁用 OpenAI Embedding
@@ -191,7 +197,36 @@ spring:
       embedding:
         enabled: true                                 # 启用 Ollama Embedding
         model: "embeddinggemma:latest"                # Embedding 模型
+
+# 多模型路由配置
+llm:
+  multi-model:
+    enabled: true                                     # 启用多模型路由
+    models:
+      - name: "qwen2.5-omni-7b"                      # Worker 模型名称
+        type: "OpenAI"                                # 模型类型
+        base-url: "https://..."                       # 模型 API 地址
+        api-key: ${DASHSCOPE_OPENAI_API_KEY:""}      # API Key
+        model: "qwen2.5-omni-7b"                     # 模型名称
+        description: "多模态理解生成大模型"        # 模型描述（用于路由判断）
+        timeout: 120                                  # 超时时间（秒）
+        mcp-enabled: true                             # 是否启用 MCP 工具
+        skill-enabled: true                           # 是否启用 Skills 技能
+        system-prompt-enabled: true                   # 是否启用系统提示词
+        tools:                                        # 该模型可用的工具 Bean 名称列表
+          - "imageGenerationToolFunction"
+      - name: "qwen-plus-2025-07-28"
+        type: "OpenAI"
+        # ... 同上配置
+        tools:
+          - "knowledgeRetrievalToolFunction"
+          - "weatherForLocationToolFunction"
+          - "documentToolFunction"
+          - "sessionHistoryToolFunction"
+          - "imageGenerationToolFunction"
 ```
+
+> **多模型路由说明**：启用后，路由模型（`spring.ai.openai` 配置的模型）会分析用户请求意图，自动选择最合适的 Worker 模型处理。每个 Worker 模型可独立配置工具集、MCP、Skills 和系统提示词。
 
 ### 7. jwt.yml
 
@@ -328,7 +363,7 @@ rdb:
 
 **位置**：`src/main/resources/mcp.yml`
 
-**说明**：MCP Client 配置（Spring AI MCP Client）
+**说明**：MCP Client 配置（Spring AI MCP Client）及自定义 MCP 服务描述
 
 **关键配置项**：
 
@@ -346,9 +381,19 @@ spring:
           enabled: true                               # 启用工具回调
         streamable-http:
           connections:
-            python-mcp-web-serach-server:             # MCP Server 连接名
-              url: http://127.0.0.1:8084              # MCP Server URL
-              endpoint: /mcp                          # MCP 端点路径
+            python-mcp-web-serach-server:             # Python MCP Server
+              url: http://127.0.0.1:8084
+              endpoint: /mcp
+            java-file-mcp-server:                     # Java MCP Server
+              url: http://127.0.0.1:8085
+              endpoint: /mcp
+
+# 自定义 MCP 服务描述（自动注入系统提示词）
+mcp:
+  descriptions:
+    - 数据获取工具(fetch_data), 从网页/文件/API中获取结构化数据
+    - 通过网络搜索引擎搜索最新的信息工具(web_search)
+    - 文件操作MCP工具 FileOperateMcpTool
 ```
 
 ### 15. tomcat.yml
@@ -372,13 +417,79 @@ server:
 
 > Spring Boot 4.x 已默认启用虚拟线程支持。
 
+### 16. weather-api.yml
+
+**位置**：`src/main/resources/weather-api.yml`
+
+**说明**：天气查询 API 配置（聚合数据）
+
+**关键配置项**：
+
+```yaml
+weather:
+  api:
+    factory-owners:
+      - enable: true                                  # 是否启用
+        name: "juhe"                                  # API 厂商名称
+        api-key: "<聚合数据 API Key>"              # API Key
+        base-url: "https://apis.juhe.cn/simpleWeather/query"  # API 地址
+```
+
+> 支持配置多个 API 厂商，当主 API 失败时自动切换到备用 API。
+
+### 17. skills.yml
+
+**位置**：`src/main/resources/skills.yml`
+
+**说明**：Skills 技能描述配置，用于自动注入系统提示词
+
+**关键配置项**：
+
+```yaml
+skills:
+  descriptions:
+    - 智能客服技能, 用于处理用户咨询问题, 提供专业的客服服务
+```
+
+### 18. image-generation-api.yml
+
+**位置**：`src/main/resources/image-generation-api.yml`
+
+**说明**：图像生成 API 配置（DashScope 原生接口）
+
+**关键配置项**：
+
+```yaml
+image:
+  generation:
+    api:
+      enabled: true                                   # 是否启用图像生成工具
+      api-configs:
+        - api-key: ${DASHSCOPE_OPENAI_API_KEY:""}    # DashScope API Key
+          type: DashScope                             # API 提供厂商类型
+          base-url: "https://..."                     # DashScope 原生接口地址
+          model: "qwen-image-max"                     # 图像生成模型
+          size: "1328*1328"                           # 默认输出图像分辨率
+          prompt-extend: true                         # 是否开启 Prompt 智能改写
+          watermark: false                            # 是否添加水印
+          timeout: 120000                             # 请求超时时间（毫秒）
+        - api-key: ${DASHSCOPE_OPENAI_API_KEY:""}    # 备用 API 配置
+          type: DashScope
+          model: "qwen-image-plus"                    # 备用模型
+          # ... 其他配置同上
+```
+
+> 支持配置多个 API，当第一个模型生成失败时自动尝试下一个。可选分辨率：1664*928(16:9)、1472*1104(4:3)、1328*1328(1:1)、1104*1472(3:4)、928*1664(9:16)。
+
 ## 🌍 环境变量支持
 
 以下配置项支持通过环境变量覆盖：
 
-| 环境变量                            | 对应配置项                              | 说明                |
-|---------------------------------|------------------------------------|-------------------|
-| `XIAOMI_MIMO_OPENAI_API_KEY`    | `spring.ai.openai.api-key`         | OpenAI API Key    |
+| 环境变量                   | 对应配置项                                   | 说明                   |
+|----------------------------|----------------------------------------------|------------------------|
+| `DASHSCOPE_OPENAI_API_KEY` | `spring.ai.openai.api-key`                   | DashScope 百炼 API Key |
+| `DASHSCOPE_OPENAI_API_KEY` | `image.generation.api.api-configs[].api-key` | 图像生成 API Key       |
+| `DASHSCOPE_OPENAI_API_KEY` | `llm.multi-model.models[].api-key`           | 多模型 Worker API Key  |
 
 > 其他配置项（数据库连接、Redis 连接等）在当前配置中为直接赋值方式，如需环境变量支持可自行修改为 `${ENV_VAR:默认值}` 格式。
 
@@ -401,7 +512,7 @@ src/main/resources/
 ├── rdb-datasource.yml                   # 关系型数据库数据源（HikariCP）
 ├── nrdb-datasource.yml                  # 非关系型数据库数据源（Redis/Jedis）
 ├── vdb-datasource.yml                   # 向量数据库数据源（Redis Vector Store）
-├── llm-model.yml                        # LLM 模型配置（OpenAI + Ollama）
+├── llm-model.yml                        # LLM 模型配置（OpenAI + Ollama + 多模型路由）
 ├── jwt.yml                              # JWT 认证配置
 ├── file.yml                             # 文件上传配置
 ├── doc-splitter.yml                     # 文档分割配置
@@ -411,6 +522,9 @@ src/main/resources/
 ├── rdb.yml                              # 关系型数据库 ORM 配置
 ├── mcp.yml                              # MCP Client 配置
 ├── tomcat.yml                           # Tomcat 服务器配置（端口、线程池）
+├── weather-api.yml                      # 天气查询 API 配置
+├── skills.yml                           # Skills 技能描述配置
+├── image-generation-api.yml             # 图像生成 API 配置
 ├── META-INF/spring/
 │   └── org.springframework.boot.autoconfigure.AutoConfiguration.imports
 ├── static/
@@ -427,6 +541,6 @@ src/main/resources/
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-23</span>
   <a href="#配置文件说明">⬆️ 返回顶部</a>
 </div>

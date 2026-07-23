@@ -29,7 +29,7 @@
 >
 > **项目状态**：🚧 开发中
 >
-> **最后更新**：2026-07-16
+> **最后更新**：2026-07-23
 
 ---
 
@@ -37,29 +37,29 @@
 
 ### 快速入门
 
-| 文档                          | 说明                |
-|-----------------------------|-------------------|
-| [快速开始](md/quickstart.md)    | 环境准备、安装部署、运行指南    |
-| [配置文件](md/configuration.md) | 各配置文件详解和环境变量支持    |
-| [API 接口](md/api.md)         | 完整的 REST API 接口文档 |
+| 文档                            | 说明                         |
+|---------------------------------|------------------------------|
+| [快速开始](md/quickstart.md)    | 环境准备、安装部署、运行指南 |
+| [配置文件](md/configuration.md) | 各配置文件详解和环境变量支持 |
+| [API 接口](md/api.md)           | 完整的 REST API 接口文档     |
 
 ### 核心概念
 
-| 文档                                             | 说明                              |
-|------------------------------------------------|---------------------------------|
-| [架构设计](md/architecture.md)                     | 总体架构、分层设计和核心流程图                 |
-| [Function Calling](md/function-calling.md)     | Agent 工具扩展和 MCP 协议支持            |
+| 文档                                           | 说明                                      |
+|------------------------------------------------|-------------------------------------------|
+| [架构设计](md/architecture.md)                 | 总体架构、分层设计和核心流程图            |
+| [Function Calling](md/function-calling.md)     | Agent 工具扩展和 MCP 协议支持             |
 | [MCP + Agent + Skills](md/mcp-agent-skills.md) | MCP + Agent + Skills 第一阶段实现使用指南 |
 
 ### 子项目文档
 
-| 子项目                   | 文档                                           | 说明                                              |
-|-----------------------|----------------------------------------------|--------------------------------------------------|
-| spring-ai-rag-starter | [Starter 模块](md/starter-modules.md)          | 可复用 Starter 组件库，18 个功能模块                        |
-| spring-ai-rag-example | [示例项目](md/example-project.md)                | 知识库问答系统示例应用，演示 Starter 组件的使用                    |
+| 子项目                | 文档                                         | 说明                                                                         |
+|-----------------------|----------------------------------------------|------------------------------------------------------------------------------|
+| spring-ai-rag-starter | [Starter 模块](md/starter-modules.md)        | 可复用 Starter 组件库，18 个功能模块                                         |
+| spring-ai-rag-example | [示例项目](md/example-project.md)            | 知识库问答系统示例应用，演示 Starter 组件的使用                              |
 | python-mcp-server     | [Python MCP Server](md/python-mcp-server.md) | Python MCP Server 子项目完整技术文档（含概览、工具列表、使用指南、版本历史） |
-|                       | [Redis 双层缓存](md/redis-cache.md)              | Redis 双DB架构缓存系统（含快速开始、架构设计、配置说明）                |
-| java-mcp-server       | Java 文件操作 MCP Server                        | Java 原生 MCP Server，提供文件操作等工具（端口 8085）              |
+|                       | [Redis 双层缓存](md/redis-cache.md)          | Redis 双DB架构缓存系统（含快速开始、架构设计、配置说明）                     |
+| java-mcp-server       | Java 文件操作 MCP Server                     | Java 原生 MCP Server，提供文件操作等工具（端口 8085）                        |
 
 ---
 
@@ -75,9 +75,10 @@
 ### 🎯 核心特点
 
 - **Agent 架构**：基于 Spring AI 原生 ChatClient + Function Calling，支持自主意图识别和工具调用
+- **多模型路由**：ModelRouter 智能路由 + ChatClientFactory 动态工厂，按请求意图自动选择最优模型
 - **双模型架构**：OpenAI 兼容 API（LLM 聊天）+ Ollama（Embedding 向量化）
 - **向量存储**：基于 Redis Vector Store 实现文档向量存储与相似度检索
-- **工具扩展**：支持 Function Calling 和 MCP 协议，可扩展知识库检索、网络搜索、数据分析等能力
+- **工具扩展**：支持 Function Calling 和 MCP 协议，可扩展知识库检索、网络搜索、图像生成、数据分析等能力
 - **引用提取**：自定义 Advisor 实现日志记录和引用文档自动提取
 - **多模块设计**：Java Starter 组件库 + Java 示例应用 + Python MCP Server + Java MCP Server 四模块协同
 - **虚拟线程**：基于 JDK 21 虚拟线程提升并发性能
@@ -87,23 +88,24 @@
 
 ## 🛠️ 技术栈
 
-| 类别        | 技术                                            |
-|-----------|-----------------------------------------------|
-| 框架        | Spring Boot 4.1.1-SNAPSHOT, Spring AI 2.0.0   |
-| Java 版本   | Java 21                                       |
-| 关系型数据库    | MySQL 9.7.0 / MariaDB 3.5.9                   |
-| 向量数据库     | Redis（使用 Jedis 连接）                            |
-| LLM       | OpenAI 兼容 API (小米 Mimo v2.5-pro-ultraspeed)   |
-| Embedding | Ollama (embeddinggemma:latest)                |
-| ORM       | MyBatis Plus 3.5.16                           |
-| 安全        | Spring Security + JWT                         |
-| 工具库       | Lombok, MapStruct, Hutool                     |
-| 文档解析      | Tika, Markdown Reader                         |
-| 数据校验      | Spring Boot Starter Validation                |
-| 虚拟线程      | Spring Boot Virtual Threads                   |
-| MCP       | Spring AI MCP Client (WebFlux)                |
-| Agent框架   | Spring AI 原生 ChatClient + Function Calling        |
-| Skills     | spring-ai-agent-utils（SKILL.md 技能定义）        |
+| 类别         | 技术                                                         |
+|--------------|--------------------------------------------------------------|
+| 框架         | Spring Boot 4.1.1-SNAPSHOT, Spring AI 2.0.0                  |
+| Java 版本    | Java 21                                                      |
+| 关系型数据库 | MySQL 9.7.0 / MariaDB 3.5.9                                  |
+| 向量数据库   | Redis（使用 Jedis 连接）                                     |
+| LLM          | OpenAI 兼容 API (DashScope 百炼 qwen3-vl-235b-a22b-thinking) |
+| Embedding    | Ollama (embeddinggemma:latest)                               |
+| ORM          | MyBatis Plus 3.5.16                                          |
+| 安全         | Spring Security + JWT                                        |
+| 工具库       | Lombok, MapStruct, Hutool                                    |
+| 文档解析     | Tika, Markdown Reader                                        |
+| 数据校验     | Spring Boot Starter Validation                               |
+| 虚拟线程     | Spring Boot Virtual Threads                                  |
+| MCP          | Spring AI MCP Client (WebFlux)                               |
+| Agent框架    | Spring AI 原生 ChatClient + Function Calling + 多模型路由    |
+| Skills       | spring-ai-agent-utils（SKILL.md 技能定义）                   |
+| 图像生成     | DashScope 原生接口 (qwen-image-max / qwen-image-plus)        |
 
 ---
 
@@ -167,14 +169,14 @@ spring-ai-rag-agent/
 
 ## 🗄️ 数据库表
 
-| 表名             | 说明                    |
-|----------------|-----------------------|
-| t_user         | 用户表（支持 ADMIN/USER 角色） |
-| t_kb_category  | 知识库分类表                |
-| t_kb_document  | 知识文档表（存储文件元数据与向量状态）   |
-| t_chat_session | 聊天会话表                 |
-| t_chat_message | 聊天消息表（包含引用文档 JSON）    |
-| t_system_log   | 系统日志表                 |
+| 表名           | 说明                                   |
+|----------------|----------------------------------------|
+| t_user         | 用户表（支持 ADMIN/USER 角色）         |
+| t_kb_category  | 知识库分类表                           |
+| t_kb_document  | 知识文档表（存储文件元数据与向量状态） |
+| t_chat_session | 聊天会话表                             |
+| t_chat_message | 聊天消息表（包含引用文档 JSON）        |
+| t_system_log   | 系统日志表                             |
 
 ---
 
@@ -185,6 +187,6 @@ Apache License 2.0
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-23</span>
   <a href="#spring-ai-rag-agent">⬆️ 返回顶部</a>
 </div>

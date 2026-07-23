@@ -6,14 +6,14 @@
 
 ### 必需环境
 
-| 环境/工具             | 版本要求                     | 说明                                       |
-|-------------------|--------------------------|------------------------------------------|
-| **JDK**           | 21+                      | 项目基于 Java 21 开发，使用虚拟线程等特性                |
-| **Maven**         | 3.8+                     | 项目构建工具                                   |
-| **MySQL**         | 8.0+ 或 **MariaDB** 10.5+ | 关系型数据库，存储用户、文档元数据、聊天记录等                  |
-| **Redis**         | 6.0+                     | 向量数据库（Redis Vector Store），用于文档向量存储与相似度检索 |
-| **Ollama**        | 最新版                      | 本地 Embedding 模型服务（仅用于文档向量化）              |
-| **OpenAI 兼容 API** | -                        | LLM 聊天模型服务（如小米 Mimo、DeepSeek、智谱等）        |
+| 环境/工具           | 版本要求                  | 说明                                                           |
+|---------------------|---------------------------|----------------------------------------------------------------|
+| **JDK**             | 21+                       | 项目基于 Java 21 开发，使用虚拟线程等特性                      |
+| **Maven**           | 3.8+                      | 项目构建工具                                                   |
+| **MySQL**           | 8.0+ 或 **MariaDB** 10.5+ | 关系型数据库，存储用户、文档元数据、聊天记录等                 |
+| **Redis**           | 6.0+                      | 向量数据库（Redis Vector Store），用于文档向量存储与相似度检索 |
+| **Ollama**          | 最新版                    | 本地 Embedding 模型服务（仅用于文档向量化）                    |
+| **OpenAI 兼容 API** | -                         | LLM 聊天模型服务（如 DashScope 百炼、DeepSeek、智谱等）        |
 
 ### 模型准备
 
@@ -27,24 +27,24 @@ ollama pull embeddinggemma:latest
 
 #### 2. OpenAI 兼容 API 的 LLM 模型（必需）
 
-项目使用 OpenAI 兼容 API 调用 LLM 聊天模型（默认配置为小米 Mimo），需要：
+项目使用 OpenAI 兼容 API 调用 LLM 聊天模型（默认配置为 DashScope 百炼），需要：
 
 1. 获取 API Key
 2. 在 `llm-model.yml` 中配置：
-    - `spring.ai.openai.api-key` - 你的 API Key（支持环境变量 `XIAOMI_MIMO_OPENAI_API_KEY`）
-    - `spring.ai.openai.base-url` - API 基础 URL（默认 `https://api.xiaomimimo.com/v1`）
-    - `spring.ai.openai.chat.model` - 聊天模型名称（默认 `mimo-v2.5-pro-ultraspeed`，支持环境变量 `XIAOMI_MIMO_OPENAI_CHAT_MODEL`）
+    - `spring.ai.openai.api-key` - 你的 API Key（支持环境变量 `DASHSCOPE_OPENAI_API_KEY`）
+    - `spring.ai.openai.base-url` - API 基础 URL（默认 DashScope 百炼业务空间地址）
+    - `spring.ai.openai.chat.model` - 聊天模型名称（默认 `qwen3-vl-235b-a22b-thinking`）
 
-> **注意**：项目默认配置使用小米 Mimo API，你可以根据需要替换为其他 OpenAI 兼容的 API 服务。Ollama 仅用于 Embedding 模型（`spring.ai.model.embedding: ollama`），LLM 聊天模型使用 OpenAI 兼容 API（`spring.ai.model.chat: openai`）。
+> **注意**：项目默认配置使用 DashScope 百炼 API，你可以根据需要替换为其他 OpenAI 兼容的 API 服务。Ollama 仅用于 Embedding 模型（`spring.ai.model.embedding: ollama`），LLM 聊天模型使用 OpenAI 兼容 API（`spring.ai.model.chat: openai`）。项目支持多模型智能路由，路由模型会自动分析请求并选择合适的 Worker 模型处理。
 
 ### 可选工具
 
-| 工具                   | 说明                          |
-|----------------------|-----------------------------|
+| 工具                 | 说明                                    |
+|----------------------|-----------------------------------------|
 | **MySQL Client**     | 用于执行数据库初始化脚本                |
-| **Postman / Apifox** | API 接口测试工具                  |
-| **IDE**              | IntelliJ IDEA（推荐）、VS Code 等 |
-| **MCP Server**       | 外部 MCP 服务（可选，用于扩展工具能力）      |
+| **Postman / Apifox** | API 接口测试工具                        |
+| **IDE**              | IntelliJ IDEA（推荐）、VS Code 等       |
+| **MCP Server**       | 外部 MCP 服务（可选，用于扩展工具能力） |
 
 ## 🗄️ 初始化数据库
 
@@ -63,15 +63,18 @@ mysql -u root -p < doc/database/init_database.sql
 
 编辑 `spring-ai-rag-example/spring-ai-rag-example-knowledge-database/src/main/resources/` 下的配置文件：
 
-| 配置文件                  | 配置内容                                                                                 |
-|-----------------------|--------------------------------------------------------------------------------------|
-| `rdb-datasource.yml`  | 设置 MySQL 连接信息（用户名、密码、数据库名）                                                           |
-| `nrdb-datasource.yml` | 设置 Redis 连接信息（主机、端口、密码）                                                              |
-| `llm-model.yml`       | 设置 LLM 模型配置：OpenAI API（api-key、base-url、chat.model）、Ollama（base-url、embedding.model） |
-| `vdb-datasource.yml`  | 设置 Redis 向量数据库配置（索引类型、距离度量、维度）                                                       |
-| `file.yml`            | 设置文件上传存储路径                                                                           |
-| `rdb.yml`             | 设置需要跳过自动填充的表（可选）                                                                     |
-| `mcp.yml`             | 设置 MCP Server 连接信息（可选）                                                               |
+| 配置文件                   | 配置内容                                                                                                            |
+|----------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `rdb-datasource.yml`       | 设置 MySQL 连接信息（用户名、密码、数据库名）                                                                       |
+| `nrdb-datasource.yml`      | 设置 Redis 连接信息（主机、端口、密码）                                                                             |
+| `llm-model.yml`            | 设置 LLM 模型配置：OpenAI API（api-key、base-url、chat.model）、Ollama（base-url、embedding.model）、多模型路由配置 |
+| `vdb-datasource.yml`       | 设置 Redis 向量数据库配置（索引类型、距离度量、维度）                                                               |
+| `file.yml`                 | 设置文件上传存储路径                                                                                                |
+| `rdb.yml`                  | 设置需要跳过自动填充的表（可选）                                                                                    |
+| `mcp.yml`                  | 设置 MCP Server 连接信息（可选）                                                                                    |
+| `weather-api.yml`          | 设置天气查询 API 配置（可选）                                                                                       |
+| `skills.yml`               | 设置 Agent Skills 技能配置（可选）                                                                                  |
+| `image-generation-api.yml` | 设置图像生成 API 配置（可选）                                                                                       |
 
 ## 🏗️ 构建运行
 
@@ -222,8 +225,8 @@ python main.py
 
 Windows 下设置环境变量的方式与 Linux/Mac 不同：
 
-| 环境         | 设置方式           | 示例                                       |
-|------------|----------------|------------------------------------------|
+| 环境       | 设置方式           | 示例                                     |
+|------------|--------------------|------------------------------------------|
 | CMD        | `set 变量名=值`    | `set MCP_TRANSPORT=streamable-http`      |
 | PowerShell | `$env:变量名="值"` | `$env:MCP_TRANSPORT = "streamable-http"` |
 
@@ -274,6 +277,6 @@ Get-Content -Path logs\application.log -Wait
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-23</span>
   <a href="#快速开始">⬆️ 返回顶部</a>
 </div>

@@ -16,26 +16,43 @@
 
 - **MCP Client**：通过 `spring-ai-starter-mcp-client-webflux` 依赖实现
 - **传输方式**：支持 `streamable-http` 协议
-- **外部 MCP Server**：默认配置了 Python MCP Server（`python-mcp-web-search-server`）
+- **外部 MCP Server**：配置了 Python MCP Server（`python-mcp-web-search-server`）和 Java MCP Server（`java-file-mcp-server`）
+- **条件化加载**：通过多模型配置的 `mcpEnabled` 字段控制哪些模型可使用 MCP 工具
+- **描述配置**：通过 `mcp.descriptions` 配置 MCP 工具描述，自动注入系统提示词
 
 #### 配置方式
 
 在 `mcp.yml` 中配置外部 MCP Server 的连接信息：
 
 ```yaml
+spring:
+  ai:
+    mcp:
+      client:
+        enabled: true
+        streamable-http:
+          connections:
+            python-mcp-web-serach-server:
+              url: http://127.0.0.1:8084
+              endpoint: /mcp
+            java-file-mcp-server:
+              url: http://127.0.0.1:8085
+              endpoint: /mcp
+
+# 自定义 MCP 服务描述（自动注入系统提示词）
 mcp:
-  enabled: true
-  servers:
-    python-mcp-web-search-server:
-      url: http://127.0.0.1:8084/mcp
-      transport: streamable-http
+  descriptions:
+    - 数据获取工具(fetch_data), 从网页/文件/API中获取结构化数据
+    - 通过网络搜索引擎搜索最新的信息工具(web_search)
+    - 文件操作MCP工具 FileOperateMcpTool
 ```
 
 #### 使用方式
 
-1. 启动外部 MCP Server（如 Python MCP Server）
+1. 启动外部 MCP Server（Python MCP Server 和/或 Java MCP Server）
 2. Spring Boot 应用启动后，MCP Client 自动连接配置的 MCP Server
 3. LLM 在对话中可自动发现并调用 MCP Server 提供的工具
+4. 通过多模型配置的 `mcpEnabled: true` 控制哪些模型可使用 MCP 工具
 
 #### Python MCP Server
 
@@ -45,21 +62,26 @@ mcp:
 
 ### 2. Agent Framework — ✅ 已实现
 
-项目已基于 **Spring AI 原生 ChatClient + Function Calling** 实现 Agent 自主编排与工具调用。
+项目已基于 **Spring AI 原生 ChatClient + Function Calling + 多模型路由** 实现 Agent 自主编排与工具调用。
 
 #### 当前架构
 
-- **ChatClient 集成**：通过 Spring AI 原生 ChatClient 实现自主意图识别和工具调用
+- **多模型路由**：`ModelRouter` 分析用户请求意图，自动选择最合适的 Worker 模型
+- **ChatClient 动态工厂**：`ChatClientFactory` 根据模型配置动态创建 ChatClient，按模型分配工具
+- **工具注册表**：`ToolRegistry` 统一管理工具注册与查找，支持按模型配置分配工具
 - **Advisor 链**：自定义 Advisor 实现日志记录和引用文档提取
-- **工具调用**：支持 @Tool 注解的 Function Calling 和 MCP 工具自动发现与调用
+- **条件化工具加载**：每个模型可独立配置 Function Calling 工具、MCP 工具、Skills 技能
 
 #### 已实现功能
 
 - ✅ Agent 自主意图识别
-- ✅ 多工具并行调用（知识库检索、文件查询、MCP 工具）
+- ✅ 多模型智能路由（ModelRouter 自动选择最优模型）
+- ✅ 多工具并行调用（知识库检索、文件查询、天气查询、图像生成、MCP 工具）
 - ✅ 聊天记忆支持（MessageWindowChatMemory）
 - ✅ 引用文档自动提取（ReferenceExtractAdvisor）
 - ✅ 调用日志记录（CustomSimpleLoggerAdvisor）
+- ✅ ChatClient 实例缓存，避免重复创建
+- ✅ 条件化工具/MCP/Skills 配置（按模型独立控制）
 
 ---
 
@@ -75,8 +97,8 @@ mcp:
 
 #### 已包含技能
 
-| 技能                             | 说明                                      |
-|--------------------------------|-----------------------------------------|
+| 技能                           | 说明                                                             |
+|--------------------------------|------------------------------------------------------------------|
 | `intelligent-customer-service` | 智能客服技能，覆盖产品咨询、技术问题、账户相关、售后、投诉等场景 |
 
 #### SKILL.md 结构
@@ -124,28 +146,51 @@ flowchart TD
 ### MCP Client 配置（mcp.yml）
 
 ```yaml
+spring:
+  ai:
+    mcp:
+      client:
+        enabled: true                           # 是否启用 MCP Client
+        name: spring-ai-mcp-client              # Client 名称
+        version: 1.0.0                          # Client 版本
+        type: sync                              # Client 类型
+        request-timeout: 120s                   # 初始化超时
+        toolcallback:
+          enabled: true                         # 启用工具回调
+        streamable-http:
+          connections:
+            python-mcp-web-serach-server:       # Python MCP Server
+              url: http://127.0.0.1:8084
+              endpoint: /mcp
+            java-file-mcp-server:               # Java MCP Server
+              url: http://127.0.0.1:8085
+              endpoint: /mcp
+
+# 自定义 MCP 服务描述（自动注入系统提示词）
 mcp:
-  enabled: true                           # 是否启用 MCP Client
-  servers:
-    python-mcp-web-search-server:
-      url: http://127.0.0.1:8084/mcp
-      transport: streamable-http
+  descriptions:
+    - 数据获取工具(fetch_data), 从网页/文件/API中获取结构化数据
+    - 通过网络搜索引擎搜索最新的信息工具(web_search)
+    - 文件操作MCP工具 FileOperateMcpTool
 ```
 
-### 环境变量
+### Skills 配置（skills.yml）
 
-| 环境变量            | 说明                             |
-|-----------------|--------------------------------|
-| `MCP_TRANSPORT` | MCP 传输方式（默认 `streamable-http`） |
+```yaml
+skills:
+  descriptions:
+    - 智能客服技能, 用于处理用户咨询问题, 提供专业的客服服务
+```
 
 ---
 
 ## ⚠️ 注意事项
 
-1. **MCP Server 需先启动**：在使用 MCP 工具前，需要先启动外部 MCP Server（如 Python MCP Server）
+1. **MCP Server 需先启动**：在使用 MCP 工具前，需要先启动外部 MCP Server（Python MCP Server 和/或 Java MCP Server）
 2. **网络连通性**：确保 Java 应用能够访问 MCP Server 的 URL
 3. **工具发现**：MCP Server 提供的工具会被 Spring AI 自动发现并注册为可用的 Function Callback
-4. **Agent 与 Skills**：Agent Framework 基于 Spring AI 原生实现，Skills 基于 `spring-ai-agent-utils` 实现，均不影响系统核心功能
+4. **条件化加载**：MCP 和 Skills 工具通过多模型配置的 `mcpEnabled` / `skillEnabled` 控制是否加载
+5. **Agent 与 Skills**：Agent Framework 基于 Spring AI 原生实现，Skills 基于 `spring-ai-agent-utils` 实现，均不影响系统核心功能
 
 ---
 
@@ -166,6 +211,6 @@ mcp:
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-23</span>
   <a href="#mcp--agent--skills">⬆️ 返回顶部</a>
 </div>

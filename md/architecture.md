@@ -78,12 +78,16 @@ graph TB
     %% 第五层：AI 能力层（独立于应用）
     %% ══════════════════════════════════════
     subgraph AI[AI 能力层]
+        ModelRouter[ModelRouter<br/>多模型智能路由]
+        ChatClientFactory[ChatClientFactory<br/>ChatClient 动态工厂]
         ChatClient[ChatClient]
         ReactAgent[ChatClient<br/>Spring AI 原生 Function Calling]
+        ToolRegistry[ToolRegistry<br/>工具注册表]
         KnowledgeTool[KnowledgeRetrievalToolFunction<br/>知识库语义检索]
         DocumentTool[DocumentToolFunction<br/>文档文件列表查询]
         WeatherTool[WeatherForLocationToolFunction<br/>天气查询]
         SessionHistoryTool[SessionHistoryToolFunction<br/>会话历史查询]
+        ImageGenTool[ImageGenerationToolFunction<br/>图像生成]
         SkillsTool[SkillsTool<br/>SKILL.md 技能加载]
         ChatMemory[ChatMemory<br/>MessageWindowChatMemory]
         CustomAdvisors[自定义 Advisors<br/>日志记录 / 引用提取]
@@ -153,7 +157,9 @@ graph TB
     StatsRepo --> MySQL
 
     %% ────────── Service → AI 能力层（跨层调用） ──────────
-    ChatMessageService --> ChatClient
+    ChatMessageService --> ModelRouter
+    ModelRouter --> ChatClientFactory
+    ChatClientFactory --> ChatClient
     RagIngestService --> DocumentReader
     RagIngestService --> DocumentSplitter
     RagIngestService --> EmbeddingModel
@@ -167,11 +173,13 @@ graph TB
     ReactAgent --> DocumentTool
     ReactAgent --> WeatherTool
     ReactAgent --> SessionHistoryTool
+    ReactAgent --> ImageGenTool
     ReactAgent --> SkillsTool
     ChatClient --> ChatMemory
     ChatClient --> CustomAdvisors
     ChatClient --> VectorStoreAdvisor
     ChatClient --> McpClient
+    ToolRegistry -.-> ReactAgent
 
     %% ────────── AI → 数据存储层 ──────────
     McpClient --> McpServer
@@ -307,6 +315,7 @@ flowchart TD
     ToolDetect -->|需要文件列表| CallDocList[调用 getAllDocumentsFileName 工具<br/>查询文件列表]
     ToolDetect -->|需要天气查询| CallWeather[调用 getWeatherForLocation 工具<br/>天气查询]
     ToolDetect -->|需要会话历史| CallSessionHistory[调用 getSessionHistoryInfo 工具<br/>会话历史查询]
+    ToolDetect -->|需要图像生成| CallImageGen[调用 generateImage 工具<br/>DashScope 图像生成]
     ToolDetect -->|触发技能| CallSkills[调用 SkillsTool<br/>SKILL.md 技能加载]
     ToolDetect -->|需要网络搜索| CallMcp[调用 MCP Server 工具<br/>网络搜索等]
     ToolDetect -->|直接回答| DirectAnswer[直接生成回答]
@@ -315,6 +324,7 @@ flowchart TD
     CallDocList --> BuildPrompt
     CallWeather --> BuildPrompt
     CallSessionHistory --> BuildPrompt
+    CallImageGen --> BuildPrompt
     CallSkills --> BuildPrompt
     CallMcp --> BuildPrompt
     DirectAnswer --> BuildPrompt
@@ -339,6 +349,7 @@ flowchart TD
     SelectTool -->|知识检索| CallRetrievalFunc[调用 KnowledgeRetrievalToolFunction<br/>@Tool 注解工具]
     SelectTool -->|天气查询| CallWeatherFunc[调用 WeatherForLocationToolFunction<br/>@Tool 注解工具]
     SelectTool -->|会话历史| CallSessionFunc[调用 SessionHistoryToolFunction<br/>@Tool 注解工具]
+    SelectTool -->|图像生成| CallImageFunc[调用 ImageGenerationToolFunction<br/>DashScope 原生接口]
     SelectTool -->|技能加载| CallSkillsTool[调用 SkillsTool<br/>SKILL.md 技能]
     SelectTool -->|网络搜索| CallMcpServer[调用 MCP Server]
     CallDocFunc --> QueryDB[DocumentService 查询数据库]
@@ -349,6 +360,8 @@ flowchart TD
     WeatherAPI --> ReturnWeather[返回天气信息]
     CallSessionFunc --> QuerySession[ChatMessageService 查询会话历史]
     QuerySession --> ReturnHistory[返回会话历史记录]
+    CallImageFunc --> DashScopeAPI[DashScope 图像生成 API]
+    DashScopeAPI --> ReturnImageURL[返回图像 URL]
     CallSkillsTool --> LoadSkill[加载 SKILL.md 技能<br/>按技能指引执行]
     LoadSkill --> ReturnSkillResult[返回技能执行结果]
     CallMcpServer --> ExternalSearch[外部 MCP Server 工具]
@@ -357,6 +370,7 @@ flowchart TD
     ReturnDocs --> LLMFormat
     ReturnWeather --> LLMFormat
     ReturnHistory --> LLMFormat
+    ReturnImageURL --> LLMFormat
     ReturnSkillResult --> LLMFormat
     ReturnResults --> LLMFormat
     DirectAnswer --> LLMFormat
@@ -388,6 +402,6 @@ flowchart TD
 ---
 
 <div style="display: flex; justify-content: space-between; align-items: center;">
-  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-16</span>
+  <span style="color: #888; font-size: 0.9em;">📅 最后更新：2026-07-23</span>
   <a href="#架构设计">⬆️ 返回顶部</a>
 </div>
