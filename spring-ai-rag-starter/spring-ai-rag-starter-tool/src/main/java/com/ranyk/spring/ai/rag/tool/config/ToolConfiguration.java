@@ -1,14 +1,20 @@
 package com.ranyk.spring.ai.rag.tool.config;
 
 import cn.hutool.core.util.StrUtil;
+import com.ranyk.spring.ai.rag.tool.ai.tools.ImageGenerationToolFunction;
 import com.ranyk.spring.ai.rag.tool.ai.tools.KnowledgeRetrievalToolFunction;
 import com.ranyk.spring.ai.rag.tool.ai.tools.WeatherForLocationToolFunction;
+import com.ranyk.spring.ai.rag.tool.config.properties.ImageGenerationProperties;
 import com.ranyk.spring.ai.rag.tool.config.properties.WeatherApiProperties;
 import com.ranyk.spring.ai.rag.tool.domain.bean.WeatherApiDefinitionBean;
 import com.ranyk.spring.ai.rag.tool.registry.ToolRegistry;
+import com.ranyk.spring.ai.rag.tool.strategy.TextToImageStrategy;
+import com.ranyk.spring.ai.rag.tool.strategy.factory.TextToImageStrategyFactory;
+import com.ranyk.spring.ai.rag.tool.strategy.impl.DashScopeTextToImageStrategyImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.redis.RedisVectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +33,8 @@ import java.util.List;
 @Slf4j
 @Configuration
 @EnableConfigurationProperties(value = {
-        WeatherApiProperties.class
+        WeatherApiProperties.class,
+        ImageGenerationProperties.class
 })
 public class ToolConfiguration {
 
@@ -67,6 +74,51 @@ public class ToolConfiguration {
         toolRegistry.register(tool.getName(), tool);
         log.debug("================================= 创建天气查询工具函数 WeatherForLocationToolFunction end   ============");
         return tool;
+    }
+
+    /**
+     * 创建图像生成工具函数
+     *
+     * @param objectMapper              对象转换器
+     * @param imageGenerationProperties 图像生成 API 配置属性
+     * @param toolRegistry              工具注册表
+     * @return 图像生成工具函数
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = ImageGenerationProperties.CONFIG_PREFIX, name = "enabled", havingValue = "true")
+    public ImageGenerationToolFunction imageGenerationToolFunction(ImageGenerationProperties imageGenerationProperties,
+                                                                   TextToImageStrategyFactory textToImageStrategyFactory,
+                                                                   ToolRegistry toolRegistry) {
+        log.debug("================================= 创建图像生成工具函数 ImageGenerationToolFunction start ============");
+        log.debug("创建图像生成工具函数 ImageGenerationToolFunction Bean 中 ... ");
+        ImageGenerationToolFunction tool = new ImageGenerationToolFunction(imageGenerationProperties, textToImageStrategyFactory);
+        toolRegistry.register(tool.getName(), tool);
+        log.debug("================================= 创建图像生成工具函数 ImageGenerationToolFunction end   ============");
+        return tool;
+    }
+
+    /**
+     * 创建图像生成策略工厂
+     *
+     * @param strategies 图像生成策略列表
+     * @return 图像生成策略工厂
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = ImageGenerationProperties.CONFIG_PREFIX, name = "enabled", havingValue = "true")
+    public TextToImageStrategyFactory textToImageStrategyFactory(List<TextToImageStrategy> strategies) {
+        return new TextToImageStrategyFactory(strategies);
+    }
+
+    /**
+     * 创建图像生成策略实现
+     *
+     * @param objectMapper 对象转换器
+     * @return 图像生成策略实现
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = ImageGenerationProperties.CONFIG_PREFIX, name = "enabled", havingValue = "true")
+    public TextToImageStrategy dashScopeTextToImageStrategyImpl(@Qualifier("objectMapper") ObjectMapper objectMapper) {
+        return new DashScopeTextToImageStrategyImpl(objectMapper);
     }
 
     /**
