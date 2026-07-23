@@ -79,9 +79,9 @@ public class ToolConfiguration {
     /**
      * 创建图像生成工具函数
      *
-     * @param objectMapper              对象转换器
-     * @param imageGenerationProperties 图像生成 API 配置属性
-     * @param toolRegistry              工具注册表
+     * @param imageGenerationProperties  图像生成 API 配置属性
+     * @param textToImageStrategyFactory 图像生成策略工厂
+     * @param toolRegistry               工具注册表
      * @return 图像生成工具函数
      */
     @Bean
