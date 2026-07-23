@@ -1,2 +1,1 @@
-com.ranyk.spring.ai.rag.llm.config.OllamaConfiguration
-com.ranyk.spring.ai.rag.llm.config.OpenAiConfiguration
+com.ranyk.spring.ai.rag.llm.config.LlmModelConfiguration
