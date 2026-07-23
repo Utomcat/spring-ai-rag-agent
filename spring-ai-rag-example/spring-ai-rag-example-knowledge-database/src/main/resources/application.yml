@@ -23,6 +23,7 @@ spring:
     # tomcat.yml: Tomcat 配置
     # weather-api.yml: 天气 API 配置
     # skills.yml: Skills 配置
+    # image-generation-api.yml: 图像生成 API 配置
     import:
       - classpath:mybatis-plus.yml
       - classpath:nrdb-datasource.yml
@@ -40,3 +41,4 @@ spring:
       - classpath:tomcat.yml
       - classpath:weather-api.yml
       - classpath:skills.yml
+      - classpath:image-generation-api.yml

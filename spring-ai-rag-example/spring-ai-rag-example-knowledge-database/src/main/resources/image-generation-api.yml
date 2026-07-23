@@ -1,0 +1,39 @@
+# 图像生成 API 配置 - 使用 DashScope 原生接口调用 qwen-image-max 模型
+image:
+  generation:
+    api:
+      # 是否启用图像生成工具
+      enabled: true
+      api-configs:
+        # DashScope API Key - 与多模型配置使用相同的百炼 API Key
+      - api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
+        # API 提供厂商类型 - 例如: DashScope
+        type: DashScope
+        # DashScope 原生接口地址(同步接口)
+        base-url: "https://ws-pc6kgqkr5hhtgyvu.cn-beijing.maas.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+        # 默认使用的图像生成模型
+        model: "qwen-image-max"
+        # 默认输出图像分辨率: 1664*928(16:9), 1472*1104(4:3), 1328*1328(1:1), 1104*1472(3:4), 928*1664(9:16)
+        size: "1328*1328"
+        # 是否开启 Prompt 智能改写
+        prompt-extend: true
+        # 是否添加水印
+        watermark: false
+        # 请求超时时间(毫秒)
+        timeout: 120000
+        # DashScope API Key - 与多模型配置使用相同的百炼 API Key
+      - api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
+        # API 提供厂商类型 - 例如: DashScope
+        type: DashScope
+        # DashScope 原生接口地址(同步接口)
+        base-url: "https://ws-pc6kgqkr5hhtgyvu.cn-beijing.maas.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+        # 使用的图像生成模型
+        model: "qwen-image-plus"
+        # 默认输出图像分辨率: 1664*928(16:9), 1472*1104(4:3), 1328*1328(1:1), 1104*1472(3:4), 928*1664(9:16)
+        size: "1328*1328"
+        # 是否开启 Prompt 智能改写
+        prompt-extend: true
+        # 是否添加水印
+        watermark: false
+        # 请求超时时间(毫秒)
+        timeout: 120000

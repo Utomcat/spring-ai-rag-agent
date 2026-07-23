@@ -11,8 +11,8 @@ spring:
     openai:
       # OpenAI API 密钥配置 - 小米 OpenAI API KEY 本地环境变量配置名 XIAOMI_MIMO_OPENAI_API_KEY; 百炼 OpenAI API KEY 本地环境变量配置名: DASHSCOPE_OPENAI_API_KEY;
       api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
-      # OpenAI 基础 URL 配置 - 小米 OpenAI Base URL: https://api.xiaomimimo.com/v1 ; 百炼 OpenAI Base URL: https://dashscope.aliyuncs.com/compatible-mode/v1;
-      base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+      # OpenAI 基础 URL 配置 - 小米 OpenAI Base URL: https://api.xiaomimimo.com/v1 ; 百炼 OpenAI Base URL(使用业务空间ID): https://ws-pc6kgqkr5hhtgyvu.cn-beijing.maas.aliyuncs.com/compatible-mode/v1;
+      base-url: "https://ws-pc6kgqkr5hhtgyvu.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
       # OpenAI 聊天模型配置
       chat:
         # 是否启用 OpenAI 聊天模型
@@ -50,29 +50,33 @@ llm:
       # Worker 模型 1 - qwen2.5-omni-7b (多模态模型, 适用于语音/图像/视频等多模态任务)
       - name: "qwen2.5-omni-7b"
         type: "OpenAI"
-        base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        base-url: "https://ws-pc6kgqkr5hhtgyvu.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
         api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
         model: "qwen2.5-omni-7b"
         description: "基于Qwen2.5训练的全新多模态理解生成大模型，支持文本, 图像，语音，视频输入理解和混合输入理解，具备文本和语音同时流式生成能力，多模态内容理解速度显著提升，提供了4种自然对话音色"
         timeout: 120
-        mcp-enabled: false
-        skill-enabled: false
+        mcp-enabled: true
+        skill-enabled: true
         system-prompt-enabled: true
+        tools:
+          - "imageGenerationToolFunction"
       # Worker 模型 2 - qwen3-vl-32b-thinking (视觉推理模型, 适用于复杂推理/视觉问答等任务)
       - name: "qwen3-vl-32b-thinking"
         type: "OpenAI"
-        base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        base-url: "https://ws-pc6kgqkr5hhtgyvu.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
         api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
         model: "qwen3-vl-32b-thinking"
         description: "Qwen3-VL系列最大尺寸Dense模型的推理版本，多模态推理能力仅次于Qwen3-VL-235B-Thinking，STEM&数学类解题能力、通用图像和视频理解能力出众，多模态Agent能力达到SOTA，适合做复杂多模态推理任务"
         timeout: 120
-        mcp-enabled: false
-        skill-enabled: false
+        mcp-enabled: true
+        skill-enabled: true
         system-prompt-enabled: true
+        tools:
+          - "imageGenerationToolFunction"
       # Worker 模型 3 - qwen-plus-2025-07-28 (Plus模型, 适用于复杂推理/视觉问答等任务)
       - name: "qwen-plus-2025-07-28"
         type: "OpenAI"
-        base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        base-url: "https://ws-pc6kgqkr5hhtgyvu.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
         api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
         model: "qwen-plus-2025-07-28"
         description: "Qwen3系列Plus模型，实现思考模式和非思考模式的有效融合，可在对话中切换模式。相较上个版本在中英文能力、工具调用上进行了专用增强。本版本为2025年7月28日快照，首次支持1M上下文长度，按照上下文长度进行阶梯计费"
@@ -85,25 +89,4 @@ llm:
           - "weatherForLocationToolFunction"
           - "documentToolFunction"
           - "sessionHistoryToolFunction"
-      # Worker 模型 4 - qwen-image-max (图像生成模型, 适用于图像生成任务)
-      - name: "qwen-image-max"
-        type: "OpenAI"
-        base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
-        model: "qwen-image-max"
-        description: "千问图像生成模型Max系列，在各类生成任务中表现出色，相较Plus系列大幅度降低生成图片的AI感，提升图像真实性；具备更真实的人物质感、更细腻的自然纹理、更美观的文字渲染"
-        timeout: 120
-        mcp-enabled: false
-        skill-enabled: false
-        system-prompt-enabled: false
-      # Worker 模型 5 - qwen-image-plus (图像生成模型, 适用于图像生成任务)
-      - name: "qwen-image-plus"
-        type: "OpenAI"
-        base-url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        api-key: ${DASHSCOPE_OPENAI_API_KEY:""}
-        model: "qwen-image-plus"
-        description: "千问系列图像生成模型，参数规模200亿。具备卓越的文本渲染能力，在复杂文本渲染、各类生成与编辑任务重表现出色，在多个公开基准测试中获得SOTA，模型性能大幅提升"
-        timeout: 120
-        mcp-enabled: false
-        skill-enabled: false
-        system-prompt-enabled: false
+          - "imageGenerationToolFunction"
