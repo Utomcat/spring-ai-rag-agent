@@ -1,14 +1,14 @@
 package com.ranyk.spring.ai.rag.knowledge.database.service.chat.message;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ranyk.spring.ai.rag.agent.advisor.ReferenceExtractAdvisor;
+import com.ranyk.spring.ai.rag.agent.factory.ChatClientFactory;
 import com.ranyk.spring.ai.rag.common.constant.MessageRoleEnum;
 import com.ranyk.spring.ai.rag.common.constant.SymbolEnum;
 import com.ranyk.spring.ai.rag.common.exception.ServiceException;
-import com.ranyk.spring.ai.rag.knowledge.database.ai.tools.DocumentToolFunction;
-import com.ranyk.spring.ai.rag.knowledge.database.ai.tools.SessionHistoryToolFunction;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.dto.ChatMessageDTO;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.entity.ChatMessage;
 import com.ranyk.spring.ai.rag.knowledge.database.domain.chat.message.mapstruct.ChatMessageMapper;
@@ -25,7 +25,6 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,10 +32,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * CLASS_NAME: ChatMessageService.java
@@ -59,10 +55,6 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      */
     private final ChatSessionService chatSessionService;
     /**
-     * RAG 大模型聊天客户端 - 集成 Agent 能力
-     */
-    private final ChatClient chatClient;
-    /**
      * Jackson 对象映射器
      */
     private final ObjectMapper objectMapper;
@@ -70,14 +62,6 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * 引用提取 Advisor - 用于从工具调用结果中提取 references
      */
     private final ReferenceExtractAdvisor referenceExtractAdvisor;
-    /**
-     * 文档工具函数 - 用于业务相关的 - 文档相关操作
-     */
-    private final DocumentToolFunction documentToolFunction;
-    /**
-     * 会话历史工具函数 - 用于业务相关的 - 会话历史相关操作
-     */
-    private final SessionHistoryToolFunction sessionHistoryToolFunction;
     /**
      * Spring 编程式事务管理器 - 用于手动控制事务边界
      */
@@ -90,6 +74,10 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * 延迟任务服务 - 用于处理延迟任务，如消息发送、任务调度等
      */
     private final DelayedTaskService delayedTaskService;
+    /**
+     * 聊天客户端工厂 - 用于创建和管理聊天客户端
+     */
+    private final ChatClientFactory chatClientFactory;
     /**
      * 会话标题最大长度
      */
@@ -108,35 +96,30 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      *
      * @param chatMessageRepository   聊天消息数据访问层接口 {@link ChatMessageRepository}
      * @param chatSessionService      聊天会话业务逻辑处理类 {@link ChatSessionService}
-     * @param chatClient              RAG 大模型聊天客户端 {@link ChatClient}
      * @param objectMapper            Jackson 对象映射器 {@link ObjectMapper}
-     * @param documentToolFunction    文档工具函数 {@link DocumentToolFunction}
      * @param chatMessageMapper       聊天消息数据转换 MapStruct 接口对象 {@link ChatMessageMapper}
      * @param referenceExtractAdvisor 引用提取 Advisor {@link ReferenceExtractAdvisor}
      * @param transactionManager      平台事务管理器 {@link PlatformTransactionManager}
      * @param delayedTaskService      延迟任务服务 {@link DelayedTaskService}
+     * @param chatClientFactory       聊天客户端工厂 {@link ChatClientFactory}
      */
     @Autowired
     public ChatMessageService(ChatMessageRepository chatMessageRepository,
                               ChatSessionService chatSessionService,
-                              ChatClient chatClient,
                               @Qualifier("objectMapper") ObjectMapper objectMapper,
-                              DocumentToolFunction documentToolFunction,
                               ChatMessageMapper chatMessageMapper,
                               ReferenceExtractAdvisor referenceExtractAdvisor,
-                              @Lazy SessionHistoryToolFunction sessionHistoryToolFunction,
                               PlatformTransactionManager transactionManager,
-                              DelayedTaskService delayedTaskService) {
+                              DelayedTaskService delayedTaskService,
+                              ChatClientFactory chatClientFactory) {
         this.chatMessageRepository = chatMessageRepository;
         this.chatSessionService = chatSessionService;
-        this.chatClient = chatClient;
         this.objectMapper = objectMapper;
-        this.documentToolFunction = documentToolFunction;
         this.chatMessageMapper = chatMessageMapper;
         this.referenceExtractAdvisor = referenceExtractAdvisor;
-        this.sessionHistoryToolFunction = sessionHistoryToolFunction;
         this.transactionManager = transactionManager;
         this.delayedTaskService = delayedTaskService;
+        this.chatClientFactory = chatClientFactory;
     }
 
     /**
@@ -186,22 +169,26 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
 
         // 2. Agent 调用:LLM 自主决定调用工具并生成回答
         long startTimeNanos = System.nanoTime();
-        // 此处对用户提出的问题进行修改, 为每次的用户会话增加会话ID的参数
-        String newQuestion = question + " ,当前的会话ID为: " + sessionId;
         ChatResponse chatResponse;
         List<Map<String, Object>> references;
         try {
-            chatResponse = chatClient.prompt()
-                    .user(newQuestion)
+            // 动态构建 ChatClient（路由选模型 + 按模型配置选工具）
+            ChatClient requestChatClient = chatClientFactory.getChatClient(question);
+            chatResponse = requestChatClient.prompt()
+                    .user(question)
                     .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
-                    .tools(documentToolFunction, sessionHistoryToolFunction)
+                    .toolContext(Map.of(ChatMemory.CONVERSATION_ID, sessionId))
                     .call()
                     .chatResponse();
             // 成功调用后提取 references
             references = referenceExtractAdvisor.getExtractedReferences();
         } catch (Exception e) {
             log.error("Agent 调用异常 sessionId => {}, userId => {}: {}", sessionId, userId, e.getMessage(), e);
-            // TODO 此处需要增加异常时, 会话消息记录, 否则会导致会话消息丢失
+            // 此处增加异常时, 会话消息记录, 否则会导致会话消息丢失
+            HashMap<String, Object> errorMessage = new HashMap<>();
+            errorMessage.put("error", e.getMessage());
+            errorMessage.put("stackTrace", e.getStackTrace());
+            asyncSaveChatMessages(sessionId, userId, question, AGENT_ERROR_MESSAGE, JSONUtil.toJsonStr(errorMessage), LocalDateTime.now());
             return ChatMessageDTO.builder()
                     .sessionId(sessionId)
                     .answer(AGENT_ERROR_MESSAGE)
@@ -432,7 +419,7 @@ public class ChatMessageService extends ServiceImpl<ChatMessageRepository, ChatM
      * @return 返回查询到的会话详细数据, 使用 {@link ChatMessageDTO#getDataList()}
      */
     public ChatMessageDTO querySessionHistoryDetail(ChatMessageDTO chatMessageDTO) {
-        if (Objects.isNull(chatMessageDTO.getSessionId())){
+        if (Objects.isNull(chatMessageDTO.getSessionId())) {
             throw new ServiceException("sessions.no.permissions", new String[]{"会话不存在或者无权限查询此会话的会话消息 List!"});
         }
         LambdaQueryWrapper<ChatMessage> queryWrapper = Wrappers.<ChatMessage>lambdaQuery()
