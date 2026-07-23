@@ -31,11 +31,13 @@ public class ModelRouter {
     private static final String ROUTER_SYSTEM_PROMPT = """
             你是一个模型路由分类器。根据用户的请求内容，判断应该由哪个模型来处理。
             
-            可用的模型及其描述：
+            可用的模型及其描述:
             %s
             
-            请只返回最合适的模型名称, 不要返回其他任何内容. 也不要有额外文字, 如果没有匹配到合适模型, 请返回默认模型: %s
-            如果一个模型无法进行处理, 请再使用配置好的其他相同类型的模型进行处理, 最终无法处理时, 请返回默认模型: %s
+            模型选择规则:
+            1. 请只返回最合适的模型名称, 不要返回其他任何内容. 也不要有额外文字, 如果没有匹配到合适模型, 请返回默认模型: %s
+            2. 如果一个模型无法进行处理, 请再使用配置好的其他相同类型的模型进行处理, 最终无法处理时, 请返回默认模型: %s
+            3. 如果用户请求包含图像生成任务, 请先选用合适的模型去调用图像生成工具, 如果无法生成图像, 再调用其他模型进行处理, 最终无法处理时, 请返回默认模型: %s
             """;
     /**
      * 模型路由模型
@@ -100,7 +102,7 @@ public class ModelRouter {
                     .map(e -> "- " + e.getKey() + (e.getValue().isEmpty() ? "" : ": " + e.getValue()))
                     .collect(Collectors.joining("\n"));
             // 构建系统提示消息
-            String systemPromptContent = String.format(ROUTER_SYSTEM_PROMPT, modelDescriptionsStr, DEFAULT_MODEL_NAME, DEFAULT_MODEL_NAME);
+            String systemPromptContent = String.format(ROUTER_SYSTEM_PROMPT, modelDescriptionsStr, DEFAULT_MODEL_NAME, DEFAULT_MODEL_NAME, DEFAULT_MODEL_NAME);
             log.info("路由模型的系统提示内容为: {}", systemPromptContent);
             SystemMessage systemMessage = new SystemMessage(systemPromptContent);
             // 构建用户消息
