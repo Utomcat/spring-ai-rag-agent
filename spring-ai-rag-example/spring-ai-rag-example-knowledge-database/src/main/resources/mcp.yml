@@ -36,10 +36,15 @@ spring:
               endpoint: /mcp
 
 
-# 自定义的 MCP 服务配置 - 暂为使用
+# 自定义的 MCP 服务配置
 mcp:
-  # 自定义的 MCP 服务端配置 - 暂未使用
-  server:
-    # 自定义的 MCP 服务端 URL 配置, List 集合, 因为可能存在多个 MCP Server - 暂未使用
-    urls:
-      - "http://127.0.0.1:8084/sse"
+  # 自定义的 MCP 服务描述信息列表,用于后续的自动添加系统提示词
+  descriptions:
+    - 数据获取工具(fetch_data), 从网页/文件/API中获取结构化数据
+    - 数据分析工具(analyze_data), 对已获取的数据进行统计分析（需要先使用fetch_data获取数据）
+    - 访问指定URL并提取网页内容工具(fetch_webpage), 访问 URL 并提取网页内容
+    - 为前端可视化生成图表数据（JSON格式）工具(generate_chart_data), 根据分析结果生成图表数据（JSON格式）
+    - 根据已获取的数据和分析结果生成结构化报告工具(generate_report), 生成包含数据和分析结果的结构化报告
+    - 对时间序列数据进行趋势分析工具(trend_analysis), 分析时间序列数据的趋势
+    - 通过网络搜索引擎搜索最新的信息工具(web_search), 从网络中搜索实时信息
+    - 如果需要对一定内容进行保存到本机电脑时, 请调用文件操作MCP工具 FileOperateMcpTool
