@@ -69,6 +69,11 @@ public class ToolConfiguration {
         return tool;
     }
 
+    /**
+     * 创建工具注册表
+     *
+     * @return 工具注册表
+     */
     @Bean
     public ToolRegistry toolRegistry() {
         log.debug("================================= 创建工具注册表 ToolRegistry start ============");

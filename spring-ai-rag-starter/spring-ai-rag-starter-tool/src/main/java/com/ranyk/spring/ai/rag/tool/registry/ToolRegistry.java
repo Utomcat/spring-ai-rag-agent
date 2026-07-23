@@ -2,7 +2,6 @@ package com.ranyk.spring.ai.rag.tool.registry;
 
 import com.ranyk.spring.ai.rag.tool.facade.BaseTool;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date: 2026-07-23
  */
 @Slf4j
+@SuppressWarnings("unused")
 public class ToolRegistry {
     /**
      * 用来存放已注册的工具 Map 集合

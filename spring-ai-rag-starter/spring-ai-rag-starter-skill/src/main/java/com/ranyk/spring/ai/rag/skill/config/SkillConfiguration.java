@@ -1,8 +1,10 @@
 package com.ranyk.spring.ai.rag.skill.config;
 
+import com.ranyk.spring.ai.rag.skill.config.properties.SkillsProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springaicommunity.agent.tools.SkillsTool;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -19,6 +21,7 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
  */
 @Slf4j
 @Configuration
+@EnableConfigurationProperties(SkillsProperties.class)
 public class SkillConfiguration {
 
     /**
